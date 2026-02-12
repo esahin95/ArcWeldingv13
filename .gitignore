@@ -12,9 +12,7 @@ processor*/
 !0?orig/
 
 # match unnecessary run folders
-pitzDaily/
-multiphaseEulerFoam/
-hopper/
+
 
 # match log files
 log.*

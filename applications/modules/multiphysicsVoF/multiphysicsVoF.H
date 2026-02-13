@@ -22,13 +22,13 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::solvers::incompressibleThermoVoF
+    Foam::solvers::multiphysicsVoF
 
 Description
-    Solver module for 2 incompressible, isothermal immiscible fluids using a
-    VOF (volume of fluid) phase-fraction based interface capturing approach,
-    with optional mesh motion and mesh topology changes including adaptive
-    re-meshing.
+    Solver module for 2 compressible, non-isothermal immiscible fluids
+    using a VOF (volume of fluid) phase-fraction based interface capturing
+    approach, with optional mesh motion and mesh topology changes including
+    adaptive re-meshing.
 
     The momentum and other fluid properties are of the "mixture" and a single
     momentum equation is solved.
@@ -46,21 +46,22 @@ Description
     particles, surface film etc. and constraining or limiting the solution.
 
 SourceFiles
-    incompressibleThermoVoF.C
+    multiphysicsVoF.C
 
 See also
     Foam::solvers::VoFSolver
     Foam::solvers::twoPhaseVoFSolver
-    Foam::solvers::compressibleVoF
+    Foam::solvers::inmultiphysicsVoF
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef incompressibleThermoVoF_H
-#define incompressibleThermoVoF_H
+#ifndef multiphysicsVoF_H
+#define multiphysicsVoF_H
 
 #include "twoPhaseVoFSolver.H"
-#include "incompressibleTwoPhaseVoFMixture.H"
-#include "incompressibleInterPhaseTransportModel.H"
+#include "compressibleTwoPhaseVoFMixture.H"
+#include "compressibleInterPhaseTransportModel.H"
+#include "compressibleInterPhaseThermophysicalTransportModel.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -70,10 +71,10 @@ namespace solvers
 {
 
 /*---------------------------------------------------------------------------*\
-                          Class incompressibleThermoVoF Declaration
+                          Class multiphysicsVoF Declaration
 \*---------------------------------------------------------------------------*/
 
-class incompressibleThermoVoF
+class multiphysicsVoF
 :
     public twoPhaseVoFSolver
 {
@@ -83,13 +84,19 @@ protected:
     // Phase properties
 
         //- The compressible two-phase mixture
-        incompressibleTwoPhaseVoFMixture& mixture;
+        compressibleTwoPhaseVoFMixture& mixture_;
 
 
     // Thermophysical properties
 
-        //- Static pressure field
-        volScalarField p;
+        //- Reference to the mixture static pressure field
+        volScalarField& p;
+
+        //- Compressibility source
+        volScalarField::Internal vDot;
+
+        //- Compressibility source stabilisation tolerance
+        scalar vDotResidualAlpha;
 
 
     // Pressure reference
@@ -98,13 +105,44 @@ protected:
         Foam::pressureReference pressureReference_;
 
 
+    // Kinematic properties
+
+        // Phase-1 mass-flux
+        surfaceScalarField alphaRhoPhi1;
+
+        // Phase-2 mass-flux
+        surfaceScalarField alphaRhoPhi2;
+
+        //- Kinetic energy field
+        //  Used in the energy equation
+        volScalarField K;
+
+
     // Momentum transport
 
         //- Momentum transport model
-        incompressibleInterPhaseTransportModel momentumTransport;
+        compressibleInterPhaseTransportModel momentumTransport;
+
+
+    // Thermophysical transport
+
+        //- Thermophysical transport model
+        compressibleInterPhaseThermophysicalTransportModel thermophysicalTransport;
+
+
+    // Cached temporary fields
+
+        //- Phase-1 continuity error
+        tmp<volScalarField::Internal> contErr1;
+
+        //- Phase-2 continuity error
+        tmp<volScalarField::Internal> contErr2;
 
 
     // Protected Member Functions
+
+        //- Read controls
+        virtual bool read();
 
         //- Return the pressure reference
         virtual const Foam::pressureReference& pressureReference() const
@@ -112,26 +150,26 @@ protected:
             return pressureReference_;
         }
 
-        //- The flow is incompressible
+        //- The fluid is incompressible if both phases are incompressible
         virtual bool incompressible() const
         {
-            return true;
+            return mixture.incompressible();
         }
 
-        //- Is the flow divergent?
-        //  i.e. includes phase-fraction sources
+        //- Compressible flow is divergent
         virtual bool divergent() const
         {
             return
-                fvModels().addsSupToField(alpha1.name())
-             || fvModels().addsSupToField(alpha2.name());
+               !incompressible()
+             || fvModels().addsSupToField(mixture_.rho1().name())
+             || fvModels().addsSupToField(mixture_.rho2().name());
         }
 
         //- Return the mixture compressibility/density
-        //  Not required for incompressible fluids
+        //  Used by CorrectPhi for compressible mixtures following mesh change
         virtual tmp<volScalarField> psiByRho() const
         {
-            return tmp<volScalarField>(nullptr);
+            return mixture.psiByRho();
         }
 
         //- Calculate the alpha equation sources
@@ -142,29 +180,33 @@ protected:
         );
 
         //- Return the momentum equation stress term
-        virtual tmp<fvVectorMatrix> divDevTau(volVectorField& U)
-        {
-            return momentumTransport.divDevTau(rho, U);
-        }
+        virtual tmp<fvVectorMatrix> divDevTau(volVectorField& U);
+
+public:
+
+    // Access to the physical state
+
+        //- The compressible two-phase mixture
+        const compressibleTwoPhaseVoFMixture& mixture;
 
 
 public:
 
     //- Runtime type information
-    TypeName("incompressibleThermoVoF");
+    TypeName("multiphysicsVoF");
 
 
     // Constructors
 
         //- Construct from region mesh
-        incompressibleThermoVoF(fvMesh& mesh);
+        multiphysicsVoF(fvMesh& mesh);
 
         //- Disallow default bitwise copy construction
-        incompressibleThermoVoF(const incompressibleThermoVoF&) = delete;
+        multiphysicsVoF(const multiphysicsVoF&) = delete;
 
 
     //- Destructor
-    virtual ~incompressibleThermoVoF();
+    virtual ~multiphysicsVoF();
 
 
     // Member Functions
@@ -178,13 +220,13 @@ public:
         //- Predict thermophysical transport
         virtual void thermophysicalTransportPredictor();
 
+        //- Construct and optionally solve the momentum equation
+        virtual void momentumPredictor();
+
         //- Construct and solve the energy equation,
         //  convert to temperature
         //  and update thermophysical and transport properties
         virtual void thermophysicalPredictor();
-
-        //- Construct and optionally solve the momentum equation
-        virtual void momentumPredictor();
 
         //- Construct and solve the pressure equation in the PISO loop
         virtual void pressureCorrector();
@@ -199,7 +241,7 @@ public:
     // Member Operators
 
         //- Disallow default bitwise assignment
-        void operator=(const incompressibleThermoVoF&) = delete;
+        void operator=(const multiphysicsVoF&) = delete;
 };
 
 

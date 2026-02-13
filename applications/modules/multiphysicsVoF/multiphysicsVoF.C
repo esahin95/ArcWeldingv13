@@ -23,23 +23,11 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-#include "incompressibleThermoVoF.H"
+#include "multiphysicsVoF.H"
 #include "localEulerDdtScheme.H"
-#include "fvCorrectPhi.H"
-#include "geometricZeroField.H"
-#include "addToRunTimeSelectionTable.H"
-
-#include "constrainHbyA.H"
-#include "constrainPressure.H"
-#include "adjustPhi.H"
-#include "findRefCell.H"
-#include "fvcMeshPhi.H"
-#include "fvcFlux.H"
 #include "fvcDdt.H"
 #include "fvcDiv.H"
-#include "fvcSnGrad.H"
-#include "fvcReconstruct.H"
-#include "fvmLaplacian.H"
+#include "addToRunTimeSelectionTable.H"
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
@@ -47,56 +35,98 @@ namespace Foam
 {
 namespace solvers
 {
-    defineTypeNameAndDebug(incompressibleThermoVoF, 0);
-    addToRunTimeSelectionTable(solver, incompressibleThermoVoF, fvMesh);
+    defineTypeNameAndDebug(multiphysicsVoF, 0);
+    addToRunTimeSelectionTable(solver, multiphysicsVoF, fvMesh);
 }
+}
+
+
+// * * * * * * * * * * * * * Protected Member Functions  * * * * * * * * * * //
+
+bool Foam::solvers::multiphysicsVoF::read()
+{
+    twoPhaseVoFSolver::read();
+
+    const dictionary& alphaControls = mesh.solution().solverDict(alpha1.name());
+
+    vDotResidualAlpha =
+        alphaControls.lookupOrDefault("vDotResidualAlpha", 1e-4);
+
+    return true;
 }
 
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
-Foam::solvers::incompressibleThermoVoF::incompressibleThermoVoF(fvMesh& mesh)
+Foam::solvers::multiphysicsVoF::multiphysicsVoF(fvMesh& mesh)
 :
     twoPhaseVoFSolver
     (
         mesh,
-        autoPtr<twoPhaseVoFMixture>(new incompressibleTwoPhaseVoFMixture(mesh))
+        autoPtr<twoPhaseVoFMixture>(new compressibleTwoPhaseVoFMixture(mesh))
     ),
 
-    mixture
+    mixture_
     (
-        refCast<incompressibleTwoPhaseVoFMixture>(twoPhaseVoFSolver::mixture)
+        refCast<compressibleTwoPhaseVoFMixture>(twoPhaseVoFSolver::mixture)
     ),
 
-    p
+    p(mixture_.p()),
+
+    vDot
     (
         IOobject
         (
-            "p",
+            "vDot",
             runTime.name(),
             mesh,
-            IOobject::NO_READ,
+            IOobject::READ_IF_PRESENT,
             IOobject::AUTO_WRITE
         ),
-        p_rgh + rho*buoyancy.gh
+        alpha1()*fvc::div(phi)()()
     ),
 
     pressureReference_
     (
         p,
         p_rgh,
-        pimple.dict()
+        pimple.dict(),
+        false
     ),
+
+    alphaRhoPhi1
+    (
+        IOobject::groupName("alphaRhoPhi", alpha1.group()),
+        fvc::interpolate(mixture_.thermo1().rho())*alphaPhi1
+    ),
+
+    alphaRhoPhi2
+    (
+        IOobject::groupName("alphaRhoPhi", alpha2.group()),
+        fvc::interpolate(mixture_.thermo2().rho())*alphaPhi2
+    ),
+
+    K("K", 0.5*magSqr(U)),
 
     momentumTransport
     (
+        rho,
         U,
         phi,
+        rhoPhi,
         alphaPhi1,
         alphaPhi2,
-        mixture
-    )
+        alphaRhoPhi1,
+        alphaRhoPhi2,
+        mixture_
+    ),
+
+    thermophysicalTransport(momentumTransport),
+
+    mixture(mixture_)
 {
+    read();
+
     if (correctPhi || mesh.topoChanging())
     {
         rAU = new volScalarField
@@ -113,69 +143,65 @@ Foam::solvers::incompressibleThermoVoF::incompressibleThermoVoF(fvMesh& mesh)
             dimensionedScalar(dimTime/dimDensity, 1)
         );
     }
-
-    if (!runTime.restart() || !divergent())
-    {
-        correctUphiBCs(U_, phi_, true);
-
-        fv::correctPhi
-        (
-            phi_,
-            U,
-            p_rgh,
-            rAU,
-            autoPtr<volScalarField>(),
-            pressureReference(),
-            pimple
-        );
-    }
 }
 
 
 // * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //
 
-Foam::solvers::incompressibleThermoVoF::~incompressibleThermoVoF()
+Foam::solvers::multiphysicsVoF::~multiphysicsVoF()
 {}
 
 
 // * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
 
-void Foam::solvers::incompressibleThermoVoF::prePredictor()
+void Foam::solvers::multiphysicsVoF::prePredictor()
 {
     twoPhaseVoFSolver::prePredictor();
 
-    const dimensionedScalar& rho1 = mixture.rho1();
-    const dimensionedScalar& rho2 = mixture.rho2();
+    const volScalarField& rho1 = mixture_.thermo1().rho();
+    const volScalarField& rho2 = mixture_.thermo2().rho();
 
-    // Calculate the mass-flux
-    rhoPhi = alphaPhi1*rho1 + alphaPhi2*rho2;
+    alphaRhoPhi1 = fvc::interpolate(rho1)*alphaPhi1;
+    alphaRhoPhi2 = fvc::interpolate(rho2)*alphaPhi2;
+
+    rhoPhi = alphaRhoPhi1 + alphaRhoPhi2;
+
+    contErr1 =
+    (
+        fvc::ddt(alpha1, rho1)()() + fvc::div(alphaRhoPhi1)()()
+      - (fvModels().source(alpha1, rho1)&rho1)()
+    );
+
+    contErr2 =
+    (
+        fvc::ddt(alpha2, rho2)()() + fvc::div(alphaRhoPhi2)()()
+      - (fvModels().source(alpha2, rho2)&rho2)()
+    );
 }
 
 
-void Foam::solvers::incompressibleThermoVoF::momentumTransportPredictor()
+void Foam::solvers::multiphysicsVoF::momentumTransportPredictor()
 {
     momentumTransport.predict();
 }
 
 
-void Foam::solvers::incompressibleThermoVoF::thermophysicalTransportPredictor()
-{}
-
-
-void Foam::solvers::incompressibleThermoVoF::thermophysicalPredictor()
+void Foam::solvers::multiphysicsVoF::thermophysicalTransportPredictor()
 {
-    Info<< "This is actually my own thermophysical predictor" << endl;
+    thermophysicalTransport.predict();
 }
 
 
-void Foam::solvers::incompressibleThermoVoF::momentumTransportCorrector()
+void Foam::solvers::multiphysicsVoF::momentumTransportCorrector()
 {
     momentumTransport.correct();
 }
 
 
-void Foam::solvers::incompressibleThermoVoF::thermophysicalTransportCorrector()
-{}
+void Foam::solvers::multiphysicsVoF::thermophysicalTransportCorrector()
+{
+    thermophysicalTransport.correct();
+}
 
 
 // ************************************************************************* //

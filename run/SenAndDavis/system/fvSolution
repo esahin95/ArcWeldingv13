@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Version:  13
+    \\  /    A nd           | Version:  10
      \\/     M anipulation  |
 \*---------------------------------------------------------------------------*/
 FoamFile
@@ -23,64 +23,56 @@ solvers
 
         MULESCorr       yes;
 
-        MULES
-        {
-            nIter           10;
-            tolerance       1e-2;
-        }
-
         solver          smoothSolver;
         smoother        symGaussSeidel;
         tolerance       1e-8;
         relTol          0;
     }
 
-    "pcorr.*"
-    {
-        solver          PCG;
-        preconditioner  DIC;
-        tolerance       1e-5;
-        relTol          0;
-    }
-
     p_rgh
     {
-        solver          PCG;
-        preconditioner  DIC;
-        tolerance       1e-7;
+        solver          GAMG;
+        smoother        DICGaussSeidel;
+        tolerance       1e-08;
         relTol          0.05;
+        maxIter         50;
     }
 
     p_rghFinal
     {
-        $p_rgh          ;
+        $p_rgh;
         relTol          0;
     }
-
-    "(U|k|epsilon|omega).*"
+    
+    "pcorr.*"
     {
-        solver          smoothSolver;
-        smoother        symGaussSeidel;
-        tolerance       1e-6;
-        relTol          0;
-        minIter         1;
+        $p_rghFinal;
+    }
+    
+    T
+    {
+        solver          PBiCGStab;
+        preconditioner  DILU;
+        tolerance       1e-8;
+        relTol          0.05;
+    }
+
+    TFinal
+    {
+        $T;
+        relTol          0.0;
     }
 }
 
 PIMPLE
 {
-    momentumPredictor yes;
-    nOuterCorrectors 1;
+    momentumPredictor no;
     nCorrectors     3;
     nNonOrthogonalCorrectors 0;
-}
+    nOuterCorrectors 1;
 
-relaxationFactors
-{
-    equations
-    {
-        ".*"            1;
-    }
+    pRefCell    0;
+    pRefValue   0;
 }
 
 

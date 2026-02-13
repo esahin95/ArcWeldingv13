@@ -25,6 +25,10 @@ License
 
 #include "multiphysicsVoF.H"
 #include "fvmSup.H"
+#include "fvmDiv.H"
+#include "fvcGrad.H"
+#include "fvcSnGrad.H"
+#include "fvcReconstruct.H"
 
 // * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
 
@@ -40,11 +44,46 @@ Foam::tmp<Foam::fvVectorMatrix> Foam::solvers::multiphysicsVoF::divDevTau
 
 
 void Foam::solvers::multiphysicsVoF::momentumPredictor()
-{
-    twoPhaseVoFSolver::momentumPredictor();
+{    
+    volVectorField& U = U_;
+
+    volVectorField gradSigma(fvc::grad(sigmaPtr->sigma()));
+    volVectorField nHatv(interface.n());
+    volScalarField corr((scalar(2) * rho) / (mixture.rho1() + mixture.rho2()));
+
+    tUEqn =
+    (
+        fvm::ddt(rho, U) + fvm::div(rhoPhi, U)
+      + MRF.DDt(rho, U)
+      + divDevTau(U)
+     ==
+        fvModels().source(rho, U)
+      + (gradSigma - (gradSigma & nHatv) * nHatv) * mag(fvc::grad(alpha1)) * corr
+    );
+    fvVectorMatrix& UEqn = tUEqn.ref();
+
+    UEqn.relax();
+
+    fvConstraints().constrain(UEqn);
 
     if (pimple.momentumPredictor())
     {
+        solve
+        (
+            UEqn
+         ==
+            fvc::reconstruct
+            (
+                (
+                    surfaceTensionForce()
+                  - buoyancy.ghf*fvc::snGrad(rho)
+                  - fvc::snGrad(p_rgh)
+                ) * mesh.magSf()
+            )
+        );
+
+        fvConstraints().constrain(U);
+
         K = 0.5*magSqr(U);
     }
 }

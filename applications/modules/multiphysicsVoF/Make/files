@@ -6,6 +6,7 @@ alphaSuSp.C
 momentumPredictor.C
 thermophysicalPredictor.C
 pressureCorrector.C
+setInterfaceRDeltaT.C
 multiphysicsVoF.C
 
 LIB = $(FOAM_USER_LIBBIN)/libmultiphysicsVoF

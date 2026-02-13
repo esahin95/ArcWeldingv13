@@ -16,6 +16,7 @@ FoamFile
 
 phases          ( water air );
 
+
 sigma
 {
   type  temperatureDependent;
@@ -31,5 +32,14 @@ sigma
     interpolationScheme linear;
   }
 }
+
+
+/*
+sigma
+{
+  type  constant;
+  sigma 0.07;
+}
+*/
 
 // ************************************************************************* //

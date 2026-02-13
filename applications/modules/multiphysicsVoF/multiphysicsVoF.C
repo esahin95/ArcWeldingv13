@@ -27,6 +27,10 @@ License
 #include "localEulerDdtScheme.H"
 #include "fvcDdt.H"
 #include "fvcDiv.H"
+#include "fvcGrad.H"
+#include "fvcSnGrad.H"
+#include "fvcAverage.H"
+#include "interfaceCompression.H"
 #include "addToRunTimeSelectionTable.H"
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
@@ -41,11 +45,36 @@ namespace solvers
 }
 
 
+// * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
+
+void Foam::solvers::multiphysicsVoF::correctCoNum()
+{
+    twoPhaseSolver::correctCoNum();
+
+    const scalarField sumPhi
+    (
+        interface.nearInterface()().primitiveField()
+       *fvc::surfaceSum(mag(phi))().primitiveField()
+    );
+
+    alphaCoNum =
+        0.5*gMax(sumPhi/mesh.V().primitiveField())*runTime.deltaTValue();
+
+    const scalar meanAlphaCoNum =
+        0.5
+       *(gSum(sumPhi)/gSum(mesh.V().primitiveField()))
+       *runTime.deltaTValue();
+
+    Info<< "Interface Courant Number mean: " << meanAlphaCoNum
+        << " max: " << alphaCoNum << endl;
+}
+
+
 // * * * * * * * * * * * * * Protected Member Functions  * * * * * * * * * * //
 
 bool Foam::solvers::multiphysicsVoF::read()
 {
-    twoPhaseVoFSolver::read();
+    twoPhaseSolver::read();
 
     const dictionary& alphaControls = mesh.solution().solverDict(alpha1.name());
 
@@ -55,12 +84,22 @@ bool Foam::solvers::multiphysicsVoF::read()
     return true;
 }
 
+void Foam::solvers::multiphysicsVoF::correctInterface()
+{
+    interface.correct();
+}
+
+Foam::tmp<Foam::surfaceScalarField>
+Foam::solvers::multiphysicsVoF::surfaceTensionForce() const
+{    
+    return interface.surfaceTensionForce() * corrf;
+}
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
 Foam::solvers::multiphysicsVoF::multiphysicsVoF(fvMesh& mesh)
 :
-    twoPhaseVoFSolver
+    twoPhaseSolver
     (
         mesh,
         autoPtr<twoPhaseVoFMixture>(new compressibleTwoPhaseVoFMixture(mesh))
@@ -68,7 +107,27 @@ Foam::solvers::multiphysicsVoF::multiphysicsVoF(fvMesh& mesh)
 
     mixture_
     (
-        refCast<compressibleTwoPhaseVoFMixture>(twoPhaseVoFSolver::mixture)
+        refCast<compressibleTwoPhaseVoFMixture>(twoPhaseSolver::mixture)
+    ),
+
+    interface(mixture_, alpha1, alpha2, U),
+
+    sigmaPtr
+    (
+        surfaceTensionModel::New
+        (
+            IOdictionary
+            (
+                IOobject
+                (
+                    "phaseProperties",
+                    runTime.constant(),
+                    mesh,
+                    IOobject::MUST_READ_IF_MODIFIED,
+                    IOobject::NO_WRITE
+                )
+            ), mesh
+        )
     ),
 
     p(mixture_.p()),
@@ -108,6 +167,12 @@ Foam::solvers::multiphysicsVoF::multiphysicsVoF(fvMesh& mesh)
 
     K("K", 0.5*magSqr(U)),
 
+    corrf
+    (
+        "corrf",
+        fvc::interpolate(scalar(2) * mixture_.rho() / (mixture_.rho1() + mixture_.rho2()))
+    ),
+
     momentumTransport
     (
         rho,
@@ -125,6 +190,33 @@ Foam::solvers::multiphysicsVoF::multiphysicsVoF(fvMesh& mesh)
 
     mixture(mixture_)
 {
+    const word alphaScheme(mesh.schemes().div(divAlphaName)[1].wordToken());
+
+    if (!compressionSchemes.found(alphaScheme))
+    {
+        WarningInFunction
+            << "Scheme " << alphaScheme << " for " << divAlphaName
+            << " is not an interface compression scheme:"
+            << compressionSchemes.toc() << endl;
+    }
+
+    const dictionary& alphaControls = mesh.solution().solverDict(alpha1.name());
+
+    if (alphaControls.found("cAlpha"))
+    {
+        FatalErrorInFunction
+            << "Deprecated and unused cAlpha entry specified in "
+            << alphaControls.name() << nl
+            << "Please update the case to use one of the run-time "
+               "selectable interface compression schemes:"
+            << compressionSchemes.toc() << exit(FatalError);
+    }
+
+    if (transient())
+    {
+        correctCoNum();
+    }
+    
     read();
 
     if (correctPhi || mesh.topoChanging())
@@ -156,7 +248,7 @@ Foam::solvers::multiphysicsVoF::~multiphysicsVoF()
 
 void Foam::solvers::multiphysicsVoF::prePredictor()
 {
-    twoPhaseVoFSolver::prePredictor();
+    twoPhaseSolver::prePredictor();
 
     const volScalarField& rho1 = mixture_.thermo1().rho();
     const volScalarField& rho2 = mixture_.thermo2().rho();
@@ -165,6 +257,8 @@ void Foam::solvers::multiphysicsVoF::prePredictor()
     alphaRhoPhi2 = fvc::interpolate(rho2)*alphaPhi2;
 
     rhoPhi = alphaRhoPhi1 + alphaRhoPhi2;
+
+    corrf = fvc::interpolate(scalar(2) * mixture_.rho() / (rho1 + rho2));
 
     contErr1 =
     (

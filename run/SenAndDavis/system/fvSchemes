@@ -28,12 +28,12 @@ divSchemes
 {
     default         none;
 
-    div(phi,alpha)  Gauss MPLIC;
+    div(phi,alpha)  Gauss interfaceCompression vanLeer 1;
 
-    div(rhoPhi,U)   Gauss linearUpwindV grad(U);
+    div(rhoPhi,U)   Gauss limitedLinear 1;
 
-    div(alphaRhoPhi,h) Gauss linearUpwind grad(h);
-    div(alphaRhoPhi,T) Gauss linearUpwind grad(T);
+    div(alphaRhoPhi,h) Gauss limitedLinear 1;
+    div(alphaRhoPhi,T) Gauss limitedLinear 1;
 
     div(rhoPhi,K)   Gauss upwind;
     div(phi,p)      Gauss upwind;

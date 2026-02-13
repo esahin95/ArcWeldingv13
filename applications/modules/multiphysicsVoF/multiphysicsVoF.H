@@ -58,10 +58,14 @@ See also
 #ifndef multiphysicsVoF_H
 #define multiphysicsVoF_H
 
-#include "twoPhaseVoFSolver.H"
+#include "twoPhaseSolver.H"
 #include "compressibleTwoPhaseVoFMixture.H"
 #include "compressibleInterPhaseTransportModel.H"
 #include "compressibleInterPhaseThermophysicalTransportModel.H"
+
+#include "interfaceThermoProperties.H"
+#include "interfaceProperties.H"
+#include "surfaceTensionModel.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -76,8 +80,15 @@ namespace solvers
 
 class multiphysicsVoF
 :
-    public twoPhaseVoFSolver
+    public twoPhaseSolver
 {
+
+private:
+
+    // Private Member Functions
+
+        //- Correct the cached Courant numbers
+        virtual void correctCoNum();
 
 protected:
 
@@ -86,6 +97,12 @@ protected:
         //- The compressible two-phase mixture
         compressibleTwoPhaseVoFMixture& mixture_;
 
+
+    // Interface properties
+
+        interfaceProperties interface;
+
+        autoPtr<surfaceTensionModel> sigmaPtr;
 
     // Thermophysical properties
 
@@ -116,6 +133,9 @@ protected:
         //- Kinetic energy field
         //  Used in the energy equation
         volScalarField K;
+
+        //- Correction for surface forces
+        surfaceScalarField corrf;
 
 
     // Momentum transport
@@ -181,6 +201,16 @@ protected:
 
         //- Return the momentum equation stress term
         virtual tmp<fvVectorMatrix> divDevTau(volVectorField& U);
+
+        //- Adjust the rDeltaT in the vicinity of the interface
+        virtual void setInterfaceRDeltaT(volScalarField& rDeltaT);
+
+        //- Correct the interface properties following mesh-change
+        //  and phase-fraction update
+        virtual void correctInterface();
+
+        //- Return the interface surface tension force for the momentum equation
+        virtual tmp<surfaceScalarField> surfaceTensionForce() const;
 
 public:
 

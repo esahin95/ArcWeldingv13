@@ -55,6 +55,7 @@ solvers
         preconditioner  DILU;
         tolerance       1e-8;
         relTol          0.05;
+        maxIter         0;
     }
 
     TFinal

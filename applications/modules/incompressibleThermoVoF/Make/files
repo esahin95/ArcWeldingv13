@@ -1,7 +1,9 @@
 incompressibleTwoPhaseVoFMixture/incompressibleTwoPhaseVoFMixture.C
 incompressibleInterPhaseTransportModel/incompressibleInterPhaseTransportModel.C
 alphaSuSp.C
+setInterfaceRDeltaT.C
 momentumPredictor.C
+thermophysicalPredictor.C
 pressureCorrector.C
 incompressibleThermoVoF.C
 

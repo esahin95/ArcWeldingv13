@@ -33,6 +33,14 @@ sigma
   }
 }
 
+L           0;
+Cu          0;
+alphaSolidT
+{
+    type    errorFunction;
+    Tliq    302.0;
+    Tsol    298.0;
+}
 
 /*
 sigma

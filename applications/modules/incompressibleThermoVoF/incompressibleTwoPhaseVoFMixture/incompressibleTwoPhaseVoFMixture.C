@@ -75,13 +75,64 @@ Foam::incompressibleTwoPhaseVoFMixture::incompressibleTwoPhaseVoFMixture
         mesh,
         dimensionedScalar(dimKinematicViscosity, 0),
         calculatedFvPatchScalarField::typeName
-    )
+    ),
+
+    thermo1_(thermoModel::New(mesh, phase1Name())),
+
+    thermo2_(thermoModel::New(mesh, phase2Name()))
 {
     correct();
 }
 
 
 // * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
+
+Foam::tmp<Foam::volScalarField>
+Foam::incompressibleTwoPhaseVoFMixture::Cp() const
+{
+    const volScalarField limitedAlpha1
+    (
+        min(max(alpha1(), scalar(0)), scalar(1))
+    );
+
+    return volScalarField::New
+    (
+        "Cp",
+        limitedAlpha1*thermo1_->Cp() + (scalar(1) - limitedAlpha1)*thermo2_->Cp()
+    );
+}
+
+
+Foam::tmp<Foam::volScalarField>
+Foam::incompressibleTwoPhaseVoFMixture::kappa() const
+{
+    const volScalarField limitedAlpha1
+    (
+        min(max(alpha1(), scalar(0)), scalar(1))
+    );
+
+    return volScalarField::New
+    (
+        "kappa",
+        limitedAlpha1*thermo1_->kappa() + (scalar(1) - limitedAlpha1)*thermo2_->kappa()
+    );
+}
+
+
+Foam::tmp<Foam::volScalarField>
+Foam::incompressibleTwoPhaseVoFMixture::beta() const
+{
+    const volScalarField limitedAlpha1
+    (
+        min(max(alpha1(), scalar(0)), scalar(1))
+    );
+
+    return volScalarField::New
+    (
+        "beta",
+        limitedAlpha1*thermo1_->beta() + (scalar(1) - limitedAlpha1)*thermo2_->beta()
+    );
+}
 
 bool Foam::incompressibleTwoPhaseVoFMixture::read()
 {
@@ -105,6 +156,9 @@ void Foam::incompressibleTwoPhaseVoFMixture::correct()
 
     nuModel1_->correct();
     nuModel2_->correct();
+
+    thermo1_->correct();
+    thermo2_->correct();
 
     const volScalarField limitedAlpha1
     (

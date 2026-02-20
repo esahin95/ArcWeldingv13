@@ -40,8 +40,6 @@ License
 
 void Foam::solvers::incompressibleThermoVoF::pressureCorrector()
 {
-    Info<< "This is actually my own pressure corrector" << endl;
-
     volScalarField& p_rgh = p_rgh_;
     volVectorField& U = U_;
     surfaceScalarField& phi(phi_);

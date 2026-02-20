@@ -78,9 +78,6 @@ class interfaceThermoProperties
         //- ...
         volScalarField K_;
 
-        //- ...
-        volVectorField force_;
-
 
     // Private Member Functions
 

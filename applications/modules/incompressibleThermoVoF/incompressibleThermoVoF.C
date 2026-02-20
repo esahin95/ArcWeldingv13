@@ -29,17 +29,9 @@ License
 #include "geometricZeroField.H"
 #include "addToRunTimeSelectionTable.H"
 
-#include "constrainHbyA.H"
-#include "constrainPressure.H"
-#include "adjustPhi.H"
-#include "findRefCell.H"
-#include "fvcMeshPhi.H"
-#include "fvcFlux.H"
-#include "fvcDdt.H"
-#include "fvcDiv.H"
-#include "fvcSnGrad.H"
-#include "fvcReconstruct.H"
-#include "fvmLaplacian.H"
+#include "fvcAverage.H"
+#include "interfaceCompression.H"
+#include "zeroGradientFvPatchFields.H"
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
@@ -52,12 +44,49 @@ namespace solvers
 }
 }
 
+// * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
+
+void Foam::solvers::incompressibleThermoVoF::correctCoNum()
+{
+    twoPhaseSolver::correctCoNum();
+
+    const scalarField sumPhi
+    (
+        interface.nearInterface()().primitiveField()
+       *fvc::surfaceSum(mag(phi))().primitiveField()
+    );
+
+    alphaCoNum =
+        0.5*gMax(sumPhi/mesh.V().primitiveField())*runTime.deltaTValue();
+
+    const scalar meanAlphaCoNum =
+        0.5
+       *(gSum(sumPhi)/gSum(mesh.V().primitiveField()))
+       *runTime.deltaTValue();
+
+    Info<< "Interface Courant Number mean: " << meanAlphaCoNum
+        << " max: " << alphaCoNum << endl;
+}
+
+// * * * * * * * * * * * * * Protected Member Functions  * * * * * * * * * * //
+
+void Foam::solvers::incompressibleThermoVoF::correctInterface()
+{
+    interface.correct();
+}
+
+
+Foam::tmp<Foam::surfaceScalarField>
+Foam::solvers::incompressibleThermoVoF::surfaceTensionForce() const
+{
+    return interface.surfaceTensionForce() * corrf;
+}
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
 Foam::solvers::incompressibleThermoVoF::incompressibleThermoVoF(fvMesh& mesh)
 :
-    twoPhaseVoFSolver
+    twoPhaseSolver
     (
         mesh,
         autoPtr<twoPhaseVoFMixture>(new incompressibleTwoPhaseVoFMixture(mesh))
@@ -65,7 +94,22 @@ Foam::solvers::incompressibleThermoVoF::incompressibleThermoVoF(fvMesh& mesh)
 
     mixture
     (
-        refCast<incompressibleTwoPhaseVoFMixture>(twoPhaseVoFSolver::mixture)
+        refCast<incompressibleTwoPhaseVoFMixture>(twoPhaseSolver::mixture)
+    ),
+
+    interface(mixture, alpha1, alpha2, U),
+
+    corrf
+    (
+        IOobject
+        (
+            "corrf",
+            runTime.name(),
+            mesh,
+            IOobject::NO_READ,
+            IOobject::NO_WRITE
+        ),
+        scalar(2.0) * fvc::interpolate(mixture.rho()) / (mixture.rho1() + mixture.rho2())
     ),
 
     p
@@ -81,6 +125,40 @@ Foam::solvers::incompressibleThermoVoF::incompressibleThermoVoF(fvMesh& mesh)
         p_rgh + rho*buoyancy.gh
     ),
 
+    T
+    (
+        IOobject
+        (
+            "T",
+            runTime.name(),
+            mesh,
+            IOobject::MUST_READ,
+            IOobject::AUTO_WRITE
+        ),
+        mesh
+    ),
+
+    alphaSolid
+    (
+        IOobject
+        (
+            "alphaSolid",
+            runTime.name(),
+            mesh,
+            IOobject::READ_IF_PRESENT,
+            IOobject::AUTO_WRITE
+        ),
+        mesh,
+        dimensionedScalar(dimless, 0),
+        zeroGradientFvPatchScalarField::typeName
+    ),
+
+    alphaSolidT_(),
+
+    L_("L", dimensionSet(0, 2, -2, 0, 0), mixture.lookupOrDefault("L", 0.0)),
+
+    Cu_("Cu", dimensionSet(0, 0, -1, 0, 0), mixture.lookupOrDefault("Cu", 0.0)),
+
     pressureReference_
     (
         p,
@@ -95,8 +173,61 @@ Foam::solvers::incompressibleThermoVoF::incompressibleThermoVoF(fvMesh& mesh)
         alphaPhi1,
         alphaPhi2,
         mixture
+    ),
+
+    rhoCp
+    (
+        IOobject
+        (
+            "rhoCp",
+            runTime.name(),
+            mesh,
+            IOobject::NO_READ,
+            IOobject::NO_WRITE
+        ),
+        mixture.rho() * mixture.Cp() 
+    ),
+
+    rhoPhiCp
+    (
+        IOobject
+        (
+            "rhoPhiCp",
+            runTime.name(),
+            mesh,
+            IOobject::NO_READ,
+            IOobject::NO_WRITE
+        ),
+        phi * fvc::interpolate(rhoCp)
     )
 {
+    const word alphaScheme(mesh.schemes().div(divAlphaName)[1].wordToken());
+
+    if (!compressionSchemes.found(alphaScheme))
+    {
+        WarningInFunction
+            << "Scheme " << alphaScheme << " for " << divAlphaName
+            << " is not an interface compression scheme:"
+            << compressionSchemes.toc() << endl;
+    }
+
+    const dictionary& alphaControls = mesh.solution().solverDict(alpha1.name());
+
+    if (alphaControls.found("cAlpha"))
+    {
+        FatalErrorInFunction
+            << "Deprecated and unused cAlpha entry specified in "
+            << alphaControls.name() << nl
+            << "Please update the case to use one of the run-time "
+               "selectable interface compression schemes:"
+            << compressionSchemes.toc() << exit(FatalError);
+    }
+
+    if (transient())
+    {
+        correctCoNum();
+    }
+    
     if (correctPhi || mesh.topoChanging())
     {
         rAU = new volScalarField
@@ -129,6 +260,20 @@ Foam::solvers::incompressibleThermoVoF::incompressibleThermoVoF(fvMesh& mesh)
             pimple
         );
     }
+
+    alphaSolidT_.reset
+    (
+        Function1<scalar>::New
+        (
+            "alphaSolidT",
+            dimTemperature,
+            unitFraction,
+            refCast<dictionary>(mixture)
+        ).ptr()
+    );
+
+    alphaSolid.primitiveFieldRef() = alpha1 * alphaSolidT_->value(T.primitiveField());
+    alphaSolid.correctBoundaryConditions();
 }
 
 
@@ -141,14 +286,28 @@ Foam::solvers::incompressibleThermoVoF::~incompressibleThermoVoF()
 // * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
 
 void Foam::solvers::incompressibleThermoVoF::prePredictor()
-{
-    twoPhaseVoFSolver::prePredictor();
+{    
+    // Correct solid fraction field
+    scalar relax(0.9);
+    alphaSolid.storePrevIter();
+    alphaSolid.primitiveFieldRef() = min
+    (
+        relax * alpha1 * alphaSolidT_->value(T.primitiveField()) + (1-relax) * alphaSolid.primitiveField(),
+        alpha1
+    );
+    alphaSolid.correctBoundaryConditions();
+    Info << "Maximum change in solid fraction: " << gMax(mag(alphaSolid.prevIter().primitiveField()-alphaSolid.primitiveField())) << endl;
+    
+    twoPhaseSolver::prePredictor();
 
     const dimensionedScalar& rho1 = mixture.rho1();
     const dimensionedScalar& rho2 = mixture.rho2();
 
     // Calculate the mass-flux
     rhoPhi = alphaPhi1*rho1 + alphaPhi2*rho2;
+
+    // Correction factor
+    corrf = fvc::interpolate(rho) * (scalar(2) / (rho1 + rho2));
 }
 
 
@@ -159,14 +318,13 @@ void Foam::solvers::incompressibleThermoVoF::momentumTransportPredictor()
 
 
 void Foam::solvers::incompressibleThermoVoF::thermophysicalTransportPredictor()
-{}
-
-
-void Foam::solvers::incompressibleThermoVoF::thermophysicalPredictor()
 {
-    Info<< "This is actually my own thermophysical predictor" << endl;
-}
+    //volScalarField Cp(mixture.Cp());
+    
+    //rhoCp == rho * Cp;
 
+    //rhoPhiCp = rhoPhi * fvc::interpolate(Cp);
+}
 
 void Foam::solvers::incompressibleThermoVoF::momentumTransportCorrector()
 {

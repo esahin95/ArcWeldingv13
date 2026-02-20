@@ -38,6 +38,7 @@ SourceFiles
 #include "twoPhaseVoFMixture.H"
 #include "incompressibleTwoPhases.H"
 #include "viscosityModel.H"
+#include "thermoModel.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -73,6 +74,12 @@ class incompressibleTwoPhaseVoFMixture
 
         //- Mixture viscosity
         volScalarField nu_;
+
+        //- Viscosity model for phase 1
+        autoPtr<thermoModel> thermo1_;
+
+        //- Viscosity model for phase 2
+        autoPtr<thermoModel> thermo2_;
 
 
 public:
@@ -134,6 +141,15 @@ public:
         {
             return nu_.boundaryField()[patchi];
         }
+
+        //- Return the specific heat capacity
+        tmp<volScalarField> Cp() const;
+
+        //- Return the heat conductivity
+        tmp<volScalarField> kappa() const;
+
+        //- Return the thermal expansion coefficient
+        tmp<volScalarField> beta() const;
 
         //- Correct the mixture density and laminar viscosity
         virtual void correct();

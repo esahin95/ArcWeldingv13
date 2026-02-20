@@ -31,9 +31,7 @@ License
 // * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
 
 void Foam::solvers::incompressibleThermoVoF::momentumPredictor()
-{
-    Info<< "Why is this method not called?" << endl;
-    
+{    
     volVectorField& U = U_;
 
     tUEqn =
@@ -41,6 +39,7 @@ void Foam::solvers::incompressibleThermoVoF::momentumPredictor()
         fvm::ddt(rho, U) + fvm::div(rhoPhi, U)
       + MRF.DDt(rho, U)
       + divDevTau(U)
+      + fvm::Sp(rho * Cu_ * Foam::sqr(alphaSolid) / (pow3(1-alphaSolid) + scalar(0.001)), U)
      ==
         fvModels().source(rho, U)
     );

@@ -189,20 +189,6 @@ Foam::interfaceThermoProperties::interfaceThermoProperties
         ),
         alpha1_.mesh(),
         dimensionedScalar(dimless/dimLength, 0)
-    ),
-
-    force_
-    (
-        IOobject
-        (
-            "interfaceThermoProperties:force",
-            alpha1_.time().name(),
-            alpha1_.mesh(),
-            IOobject::NO_READ,
-            IOobject::AUTO_WRITE
-        ),
-        alpha1_.mesh(),
-        dimensionedVector(dimensionSet(1,-2,-2,0,0), vector::zero)
     )
 {
     calculateK();
@@ -228,14 +214,13 @@ Foam::interfaceThermoProperties::sigmaK() const
 
 Foam::tmp<Foam::surfaceScalarField>
 Foam::interfaceThermoProperties::surfaceTensionForce() const
-{    
+{        
     Foam::volScalarField sigma(sigmaPtr_->sigma());
 
     return 
     (
-        fvc::interpolate(sigma * K_)*fvc::snGrad(alpha1_)
+        fvc::interpolate(sigma * K_ - (n() & fvc::grad(sigma))) * fvc::snGrad(alpha1_)
         + fvc::interpolate(mag(fvc::grad(alpha1_))) * fvc::snGrad(sigma)
-        - fvc::interpolate(n() & fvc::grad(sigma)) * fvc::snGrad(alpha1_)
     );
 }
 
@@ -250,8 +235,6 @@ Foam::interfaceThermoProperties::nearInterface() const
 void Foam::interfaceThermoProperties::correct()
 {
     calculateK();
-
-    force_ == fvc::reconstruct(surfaceTensionForce() * alpha1_.mesh().magSf());
 }
 
 

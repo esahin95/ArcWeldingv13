@@ -1,0 +1,14 @@
+EXE_INC = \
+    -I$(WM_PROJECT_USER_DIR)/applications/modules/incompressibleThermoVoF/lnInclude \
+	-I$(FOAM_MODULES)/twoPhaseSolver/lnInclude \
+	-I$(FOAM_MODULES)/VoFSolver/lnInclude \
+	-I$(LIB_SRC)/physicalProperties/lnInclude \
+	-I$(WM_PROJECT_USER_DIR)/src/physicalProperties/lnInclude \
+	-I$(LIB_SRC)/twoPhaseModels/twoPhaseMixture/lnInclude \
+	-I$(LIB_SRC)/twoPhaseModels/incompressibleTwoPhases/lnInclude \
+    -I$(LIB_SRC)/finiteVolume/lnInclude \
+    -I$(LIB_SRC)/meshTools/lnInclude
+
+LIB_LIBS = \
+	-L$(FOAM_USER_LIBBIN) \
+    -lincompressibleThermoVoF

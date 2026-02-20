@@ -1,0 +1,35 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+  =========                 |
+  \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+   \\    /   O peration     | Website:  https://openfoam.org
+    \\  /    A nd           | Version:  10
+     \\/     M anipulation  |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    format      ascii;
+    class       dictionary;
+    location    "constant";
+    object      fvModels;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+/*
+phaseChangeBismuth
+{
+    type        VoFEnthalpyPorosity;
+
+    L           44600;
+
+    Cu          100000;
+
+    alphaSolidT
+    {
+        type    errorFunction;
+        Tliq    545.0;
+        Tsol    544.0;
+    }
+}
+*/
+
+//************************************************************************* //

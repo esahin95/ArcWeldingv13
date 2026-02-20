@@ -16,7 +16,7 @@ FoamFile
 
 application     foamRun;
 
-solver          multiphysicsVoF;
+solver          incompressibleThermoVoF;
 
 startFrom       startTime;
 
@@ -52,6 +52,11 @@ maxCo           0.5;
 maxAlphaCo      0.5;
 
 maxDeltaT       5e-5;
+
+libs
+(
+    "liberrorFunction1.so"
+);
 
 DebugSwitches
 {

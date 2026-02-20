@@ -58,7 +58,9 @@ See also
 #ifndef incompressibleThermoVoF_H
 #define incompressibleThermoVoF_H
 
-#include "twoPhaseVoFSolver.H"
+#include "twoPhaseSolver.H"
+#include "interfaceThermoProperties.H"
+
 #include "incompressibleTwoPhaseVoFMixture.H"
 #include "incompressibleInterPhaseTransportModel.H"
 
@@ -75,7 +77,7 @@ namespace solvers
 
 class incompressibleThermoVoF
 :
-    public twoPhaseVoFSolver
+    public twoPhaseSolver
 {
 
 protected:
@@ -85,11 +87,31 @@ protected:
         //- The compressible two-phase mixture
         incompressibleTwoPhaseVoFMixture& mixture;
 
+    // Interface properties
+
+        interfaceThermoProperties interface;
+
+        surfaceScalarField corrf;
 
     // Thermophysical properties
 
         //- Static pressure field
         volScalarField p;
+
+        //- Temperature field
+        volScalarField T;
+
+        //- Solid fraction field
+        volScalarField alphaSolid;
+
+        //- Solid fraction function
+        autoPtr<Function1<scalar>> alphaSolidT_;
+
+        //- Latent heat of fusion
+        dimensionedScalar L_;
+
+        //- Porosity
+        dimensionedScalar Cu_;
 
 
     // Pressure reference
@@ -103,8 +125,34 @@ protected:
         //- Momentum transport model
         incompressibleInterPhaseTransportModel momentumTransport;
 
+    // Thermophysical transport
+
+        //- Time coefficient
+        volScalarField rhoCp;
+
+        //- Convective transport
+        surfaceScalarField rhoPhiCp;
+
+private:
+
+    // Private Member functions
+
+        //- Correct the cached Courant numbers
+        virtual void correctCoNum();
+
+protected:
 
     // Protected Member Functions
+
+        //- Adjust the rDeltaT in the vicinity of the interface
+        virtual void setInterfaceRDeltaT(volScalarField& rDeltaT);
+
+        //- Correct the interface properties following mesh-change
+        //  and phase-fraction update
+        virtual void correctInterface();
+
+        //- Return the interface surface tension force for the momentum equation
+        virtual tmp<surfaceScalarField> surfaceTensionForce() const;
 
         //- Return the pressure reference
         virtual const Foam::pressureReference& pressureReference() const

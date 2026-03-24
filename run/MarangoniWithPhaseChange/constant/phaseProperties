@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Version:  10
+    \\  /    A nd           | Version:  13
      \\/     M anipulation  |
 \*---------------------------------------------------------------------------*/
 FoamFile
@@ -32,15 +32,5 @@ sigma
     interpolationScheme linear;
   }
 }
-
-L           44600;
-Cu          100000;
-alphaSolidT
-{
-    type    errorFunction;
-    Tliq    545.0;
-    Tsol    544.0;
-}
-
 
 // ************************************************************************* //

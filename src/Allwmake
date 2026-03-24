@@ -6,8 +6,6 @@ cd ${0%/*} || exit 1    # Run from this directory
 
 wmake $targetType OpenFOAM/primitives/functions/ErrorFunction
 
-wmake $targetType physicalProperties
-
-wmake $targetType twoPhaseModels/interfaceThermoProperties
+wmake $targetType twoPhaseModels/interfaceProperties
 
 fvModels/Allwmake $targetType $*

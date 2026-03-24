@@ -14,19 +14,41 @@ FoamFile
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-viscosityModel  Newtonian;
+thermoType
+{
+    type            heRhoThermo;
+    mixture         pureMixture;
+    transport       const;
+    thermo          hConst;
+    equationOfState rhoConst;
+    specie          specie;
+    energy          sensibleEnthalpy;
+}
 
-nu              1.3834e-04;
+mixture
+{
+    specie
+    {
+        molWeight   28.9;
+    }
 
-rho             1.6337;
+    equationOfState
+    {
+        rho         1.6337;
+    }
 
-thermoModel     Simple;
-
-Cp              520;
-
-kappa           0.0177;
-
-beta            0;
+    thermodynamics
+    {
+        Cp          520;
+        hf          0;
+    }
+    
+    transport
+    {
+        mu          2.2601e-04;
+        kappa       0.0177;
+    }
+}
 
 
 // ************************************************************************* //

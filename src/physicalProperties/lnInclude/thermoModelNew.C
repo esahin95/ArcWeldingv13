@@ -1,1 +1,0 @@
-../thermoModels/thermoModel/thermoModelNew.C

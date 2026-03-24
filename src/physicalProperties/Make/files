@@ -1,5 +1,0 @@
-thermoModels/thermoModel/thermoModel.C
-thermoModels/thermoModel/thermoModelNew.C
-thermoModels/constant/constantThermoModel.C
-
-LIB = $(FOAM_USER_LIBBIN)/libthermoModels

@@ -29,6 +29,7 @@ solvers
         relTol          0;
     }
 
+    /*
     p_rgh
     {
         solver          GAMG;
@@ -36,6 +37,15 @@ solvers
         tolerance       1e-08;
         relTol          0.05;
         maxIter         50;
+    }
+    */
+
+    p_rgh
+    {
+        solver          PCG;
+        preconditioner  DIC;
+        tolerance       1e-8;
+        relTol          0.05;
     }
 
     p_rghFinal

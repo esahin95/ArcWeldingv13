@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Version:  10
+    \\  /    A nd           | Version:  13
      \\/     M anipulation  |
 \*---------------------------------------------------------------------------*/
 FoamFile
@@ -16,15 +16,16 @@ FoamFile
 
 application     foamRun;
 
-solver          incompressibleThermoVoF;
+solver          compressibleVoF;
 
 startFrom       startTime;
 
 startTime       0;
 
 stopAt          endTime;
+//stopAt          nextWrite;
 
-endTime         1000e-5;
+endTime         10e-5;
 
 deltaT          1e-5;
 
@@ -34,7 +35,7 @@ writeInterval   100e-5;
 
 purgeWrite      0;
 
-writeFormat     ascii;
+writeFormat     binary;
 
 writePrecision  6;
 
@@ -48,22 +49,23 @@ runTimeModifiable yes;
 
 adjustTimeStep  yes;
 
-maxCo           0.02;
-maxAlphaCo      0.02;
+maxCo           0.5;
+maxAlphaCo      0.5;
 
-maxDeltaT       1e-5;
+maxDeltaT       5e-4;
 
 libs
 (
     "liberrorFunction1.so"
 );
 
+
+// ************************************************************************* //
+
 DebugSwitches
 {
     MULES           1;
 }
-
-// ************************************************************************* //
 
 OptimisationSwitches
 {
@@ -72,28 +74,13 @@ OptimisationSwitches
 
 functions
 {
-    residuals
-    {
-        type            residuals;
-
-        libs            ("libutilityFunctionObjects.so");
-
-        writeControl    timeStep;
-        writeInterval   1;
-
-        fields          (p_rgh);
-    }
-
     divU
     {
         type            div;
-
         libs            ("libfieldFunctionObjects.so");
 
         writeControl    writeTime;
-
-        writeFields     true;
-
+        writeFields     false;
         regionType      all;
 
         result          divU;
@@ -109,7 +96,49 @@ functions
 
         log             true;
 
-        writeControl    writeTime;
+        writeControl    timeStep;
+
+        writeFields     false;
+
+        regionType      all;
+
+        cellZone        all;
+
+        operation       max;
+
+        fields (p_rgh T divU);
+    }
+
+    minValue
+    {
+        type            volFieldValue;
+
+        libs            ("libfieldFunctionObjects.so");
+
+        log             true;
+
+        writeControl    timeStep;
+
+        writeFields     false;
+
+        regionType      all;
+
+        cellZone        all;
+
+        operation       min;
+
+        fields (p_rgh T divU);
+    }
+
+    maxMagValue
+    {
+        type            volFieldValue;
+
+        libs            ("libfieldFunctionObjects.so");
+
+        log             true;
+
+        writeControl    timeStep;
 
         writeFields     false;
 
@@ -119,6 +148,6 @@ functions
 
         operation       maxMag;
 
-        fields (p_rgh U T divU);
+        fields (U);
     }
 }

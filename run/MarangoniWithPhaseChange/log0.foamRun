@@ -1,0 +1,669 @@
+/*---------------------------------------------------------------------------*\
+  =========                 |
+  \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+   \\    /   O peration     | Website:  https://openfoam.org
+    \\  /    A nd           | Version:  13
+     \\/     M anipulation  |
+\*---------------------------------------------------------------------------*/
+Build  : 13-58ed5c2046ef
+Exec   : foamRun -parallel
+Date   : Mar 25 2026
+Time   : 15:45:49
+Host   : "Erazer"
+PID    : 144760
+I/O    : collated (maxThreadFileBufferSize 2e+09)
+         Threading activated since maxThreadFileBufferSize > 0.
+         Requires large enough buffer to collect all data or thread support 
+         enabled in MPI. If thread support cannot be enabled, deactivate
+         threading by setting maxThreadFileBufferSize to 0 in
+         $FOAM_ETC/controlDict
+Case   : /home/sahin/OpenFOAM/sahin-13/run/MarangoniWithPhaseChange
+nProcs : 4
+Slaves : 
+3
+(
+"Erazer.144761"
+"Erazer.144762"
+"Erazer.144763"
+)
+
+Pstream initialised with:
+    floatTransfer      : false
+    nProcsSimpleSum    : 0
+    commsType          : nonBlocking
+    polling iterations : 0
+sigFpe : Enabling floating point exception trapping (FOAM_SIGFPE).
+fileModificationChecking : Monitoring run-time modified files using timeStamp (fileModificationSkew 10)
+allowSystemOperations : Allowing user-supplied system call operations
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+Create time
+
+Create mesh for time = 0
+
+Selecting solver compressibleReactingVoF
+Selecting thermodynamics package 
+{
+    type            heRhoThermo;
+    mixture         pureMixture;
+    transport       const;
+    thermo          hConst;
+    equationOfState rhoConst;
+    specie          specie;
+    energy          sensibleEnthalpy;
+}
+
+Selecting thermodynamics package 
+{
+    type            heRhoThermo;
+    mixture         pureMixture;
+    transport       const;
+    thermo          hConst;
+    equationOfState rhoConst;
+    specie          specie;
+    energy          sensibleEnthalpy;
+}
+
+No MRF models present
+
+Selecting surfaceTensionModel temperatureDependent
+Heavy fluid assumed to be: alpha.bismuth
+Courant Number mean: 0 max: 0
+Interface Courant Number mean: 0 max: 0
+Selecting turbulence model type laminar
+    Selecting laminar stress model Stokes
+Creating fvModels from "constant/fvModels"
+
+
+PIMPLE: No convergence criteria found
+
+
+PIMPLE: Operating solver in transient mode with 1 outer corrector
+PIMPLE: Operating solver in PISO mode
+
+
+volFieldValue maxValue read:
+    number of cells = 15000
+    volume = 7.5e-08
+    operation = max
+
+volFieldValue minValue read:
+    number of cells = 15000
+    volume = 7.5e-08
+    operation = min
+
+volFieldValue maxMagValue read:
+    number of cells = 15000
+    volume = 7.5e-08
+    operation = maxMag
+
+
+Starting time loop
+
+volFieldValue maxValue write:
+    max(all) of p_rgh = 0 at location (0.00755 0.002525 0.0005) in cell 0 on processor 3
+    max(all) of T = 552.51 at location (5e-05 2.5e-05 0.0005) in cell 0 on processor 0
+    max(all) of divU = 0 at location (0.00755 0.002525 0.0005) in cell 0 on processor 3
+
+volFieldValue minValue write:
+    min(all) of p_rgh = 0 at location (0.00755 0.002525 0.0005) in cell 0 on processor 3
+    min(all) of T = 540.59 at location (0.01495 0.002525 0.0005) in cell 74 on processor 3
+    min(all) of divU = 0 at location (0.00755 0.002525 0.0005) in cell 0 on processor 3
+
+volFieldValue maxMagValue write:
+    maxMag(all) of U = 0 at location (0.00755 0.002525 0.0005) in cell 0 on processor 3
+
+Courant Number mean: 0 max: 0
+Interface Courant Number mean: 0 max: 0
+deltaT = 1.19048e-05
+Time = 1.19048e-05s
+
+smoothSolver:  Solving for alpha.bismuth, Initial residual = 0, Final residual = 0, No Iterations 0
+Phase-1 volume fraction = 0.8  Min(alpha.bismuth) = 0  Max(alpha.bismuth) = 1
+MULES: Correcting alpha.bismuth
+MULES: Correcting alpha.bismuth
+Phase-1 volume fraction = 0.8  Min(alpha.bismuth) = 0  Max(alpha.bismuth) = 1
+DILUPBiCGStab:  Solving for T, Initial residual = 1.00319e-14, Final residual = 1.00319e-14, No Iterations 0
+DICPCG:  Solving for p_rgh, Initial residual = 1, Final residual = 0.0142814, No Iterations 1
+DICPCG:  Solving for p_rgh, Initial residual = 0.00982824, Final residual = 0.000420625, No Iterations 92
+DICPCG:  Solving for p_rgh, Initial residual = 0.00413934, Final residual = 7.96546e-09, No Iterations 214
+ExecutionTime = 0.162384 s  ClockTime = 0 s
+
+volFieldValue maxValue write:
+    max(all) of p_rgh = 0.0667937 at location (0.01065 0.003975 0.0005) in cell 2206 on processor 3
+    max(all) of T = 552.51 at location (5e-05 2.5e-05 0.0005) in cell 0 on processor 0
+    max(all) of divU = 5.73587e-08 at location (0.00015 0.004125 0.0005) in cell 3085 on processor 0
+
+volFieldValue minValue write:
+    min(all) of p_rgh = -0.0960738 at location (5e-05 0.004025 0.0005) in cell 3010 on processor 0
+    min(all) of T = 540.59 at location (0.01495 0.002525 0.0005) in cell 74 on processor 3
+    min(all) of divU = -4.41851e-08 at location (0.00855 0.004825 0.0005) in cell 3460 on processor 3
+
+volFieldValue maxMagValue write:
+    maxMag(all) of U = 0.000947232 at location (0.00785 0.004025 0.0005) in cell 2253 on processor 3
+
+Courant Number mean: 2.12222e-06 max: 0.000112766
+Interface Courant Number mean: 0 max: 0
+deltaT = 1.41156e-05
+Time = 2.60204e-05s
+
+smoothSolver:  Solving for alpha.bismuth, Initial residual = 3.73691e-11, Final residual = 3.73691e-11, No Iterations 0
+Phase-1 volume fraction = 0.8  Min(alpha.bismuth) = 0  Max(alpha.bismuth) = 1
+MULES: Correcting alpha.bismuth
+MULES: Correcting alpha.bismuth
+Phase-1 volume fraction = 0.8  Min(alpha.bismuth) = 0  Max(alpha.bismuth) = 1
+DILUPBiCGStab:  Solving for T, Initial residual = 5.89891e-11, Final residual = 5.89891e-11, No Iterations 0
+DICPCG:  Solving for p_rgh, Initial residual = 0.00217362, Final residual = 8.2442e-05, No Iterations 92
+DICPCG:  Solving for p_rgh, Initial residual = 0.000771136, Final residual = 3.56028e-05, No Iterations 93
+DICPCG:  Solving for p_rgh, Initial residual = 0.000226079, Final residual = 9.5485e-09, No Iterations 172
+ExecutionTime = 0.192316 s  ClockTime = 0 s
+
+volFieldValue maxValue write:
+    max(all) of p_rgh = 0.0453651 at location (0.01065 0.003975 0.0005) in cell 2206 on processor 3
+    max(all) of T = 552.51 at location (5e-05 2.5e-05 0.0005) in cell 0 on processor 0
+    max(all) of divU = 7.58831e-08 at location (0.00015 0.004125 0.0005) in cell 3085 on processor 0
+
+volFieldValue minValue write:
+    min(all) of p_rgh = -0.0576757 at location (5e-05 0.004025 0.0005) in cell 3010 on processor 0
+    min(all) of T = 540.59 at location (0.01495 0.002525 0.0005) in cell 74 on processor 3
+    min(all) of divU = -6.84818e-08 at location (0.01005 0.004325 0.0005) in cell 2725 on processor 3
+
+volFieldValue maxMagValue write:
+    maxMag(all) of U = 0.00122505 at location (0.00765 0.004025 0.0005) in cell 2251 on processor 3
+
+Courant Number mean: 3.77978e-06 max: 0.000172925
+Interface Courant Number mean: 0 max: 0
+deltaT = 1.67928e-05
+Time = 4.28132e-05s
+
+smoothSolver:  Solving for alpha.bismuth, Initial residual = 9.62676e-11, Final residual = 9.62676e-11, No Iterations 0
+Phase-1 volume fraction = 0.8  Min(alpha.bismuth) = 0  Max(alpha.bismuth) = 1
+MULES: Correcting alpha.bismuth
+MULES: Correcting alpha.bismuth
+Phase-1 volume fraction = 0.8  Min(alpha.bismuth) = 0  Max(alpha.bismuth) = 1
+DILUPBiCGStab:  Solving for T, Initial residual = 1.25589e-10, Final residual = 1.25589e-10, No Iterations 0
+DICPCG:  Solving for p_rgh, Initial residual = 0.000764851, Final residual = 2.96381e-05, No Iterations 91
+DICPCG:  Solving for p_rgh, Initial residual = 0.000316322, Final residual = 1.43546e-05, No Iterations 93
+DICPCG:  Solving for p_rgh, Initial residual = 0.000129851, Final residual = 9.55974e-09, No Iterations 165
+ExecutionTime = 0.221561 s  ClockTime = 0 s
+
+volFieldValue maxValue write:
+    max(all) of p_rgh = 0.0384417 at location (0.01065 0.003975 0.0005) in cell 2206 on processor 3
+    max(all) of T = 552.51 at location (5e-05 2.5e-05 0.0005) in cell 0 on processor 0
+    max(all) of divU = 9.39152e-08 at location (0.00035 0.004175 0.0005) in cell 3124 on processor 0
+
+volFieldValue minValue write:
+    min(all) of p_rgh = -0.0451972 at location (5e-05 0.004025 0.0005) in cell 3010 on processor 0
+    min(all) of T = 540.59 at location (0.01495 0.002525 0.0005) in cell 74 on processor 3
+    min(all) of divU = -8.25547e-08 at location (0.00035 0.004225 0.0005) in cell 3161 on processor 0
+
+volFieldValue maxMagValue write:
+    maxMag(all) of U = 0.00131758 at location (0.00595 0.004025 0.0005) in cell 3012 on processor 1
+
+Courant Number mean: 5.48562e-06 max: 0.00022126
+Interface Courant Number mean: 0 max: 0
+deltaT = 1.99414e-05
+Time = 6.27546e-05s
+
+smoothSolver:  Solving for alpha.bismuth, Initial residual = 1.88587e-10, Final residual = 1.88587e-10, No Iterations 0
+Phase-1 volume fraction = 0.8  Min(alpha.bismuth) = 0  Max(alpha.bismuth) = 1
+MULES: Correcting alpha.bismuth
+MULES: Correcting alpha.bismuth
+Phase-1 volume fraction = 0.8  Min(alpha.bismuth) = 0  Max(alpha.bismuth) = 1
+DILUPBiCGStab:  Solving for T, Initial residual = 2.14467e-10, Final residual = 2.14467e-10, No Iterations 0
+DICPCG:  Solving for p_rgh, Initial residual = 0.000351581, Final residual = 1.58078e-05, No Iterations 88
+DICPCG:  Solving for p_rgh, Initial residual = 0.00017424, Final residual = 7.23701e-06, No Iterations 93
+DICPCG:  Solving for p_rgh, Initial residual = 8.98132e-05, Final residual = 8.44024e-09, No Iterations 161
+ExecutionTime = 0.252226 s  ClockTime = 0 s
+
+volFieldValue maxValue write:
+    max(all) of p_rgh = 0.0354706 at location (0.01065 0.003975 0.0005) in cell 2206 on processor 3
+    max(all) of T = 552.51 at location (5e-05 2.5e-05 0.0005) in cell 0 on processor 0
+    max(all) of divU = 8.16884e-08 at location (0.00065 0.004125 0.0005) in cell 3090 on processor 0
+
+volFieldValue minValue write:
+    min(all) of p_rgh = -0.039924 at location (5e-05 0.004025 0.0005) in cell 3010 on processor 0
+    min(all) of T = 540.59 at location (0.01495 0.002525 0.0005) in cell 74 on processor 3
+    min(all) of divU = -6.04269e-08 at location (0.00055 0.004075 0.0005) in cell 3052 on processor 0
+
+volFieldValue maxMagValue write:
+    maxMag(all) of U = 0.00135854 at location (0.00615 0.004025 0.0005) in cell 3014 on processor 1
+
+Courant Number mean: 7.43996e-06 max: 0.000270916
+Interface Courant Number mean: 0 max: 0
+deltaT = 2.34311e-05
+Time = 8.61857e-05s
+
+smoothSolver:  Solving for alpha.bismuth, Initial residual = 3.254e-10, Final residual = 3.254e-10, No Iterations 0
+Phase-1 volume fraction = 0.8  Min(alpha.bismuth) = 0  Max(alpha.bismuth) = 1
+MULES: Correcting alpha.bismuth
+MULES: Correcting alpha.bismuth
+Phase-1 volume fraction = 0.8  Min(alpha.bismuth) = 0  Max(alpha.bismuth) = 1
+DILUPBiCGStab:  Solving for T, Initial residual = 3.35497e-10, Final residual = 3.35497e-10, No Iterations 0
+DICPCG:  Solving for p_rgh, Initial residual = 0.000198532, Final residual = 8.73444e-06, No Iterations 80
+DICPCG:  Solving for p_rgh, Initial residual = 0.000112264, Final residual = 5.01383e-06, No Iterations 91
+DICPCG:  Solving for p_rgh, Initial residual = 6.85518e-05, Final residual = 8.38346e-09, No Iterations 160
+ExecutionTime = 0.280857 s  ClockTime = 0 s
+
+volFieldValue maxValue write:
+    max(all) of p_rgh = 0.0338295 at location (0.01065 0.003975 0.0005) in cell 2206 on processor 3
+    max(all) of T = 552.51 at location (5e-05 2.5e-05 0.0005) in cell 0 on processor 0
+    max(all) of divU = 9.97875e-08 at location (0.00035 0.004225 0.0005) in cell 3161 on processor 0
+
+volFieldValue minValue write:
+    min(all) of p_rgh = -0.0370535 at location (5e-05 0.004025 0.0005) in cell 3010 on processor 0
+    min(all) of T = 540.59 at location (0.01495 0.002525 0.0005) in cell 74 on processor 3
+    min(all) of divU = -9.20659e-08 at location (0.00035 0.004175 0.0005) in cell 3124 on processor 0
+
+volFieldValue maxMagValue write:
+    maxMag(all) of U = 0.0013829 at location (0.00655 0.004025 0.0005) in cell 3018 on processor 1
+
+Courant Number mean: 9.70433e-06 max: 0.000324035
+Interface Courant Number mean: 0 max: 0
+deltaT = 2.76913e-05
+Time = 0.000113877s
+
+smoothSolver:  Solving for alpha.bismuth, Initial residual = 5.29273e-10, Final residual = 5.29273e-10, No Iterations 0
+Phase-1 volume fraction = 0.8  Min(alpha.bismuth) = 0  Max(alpha.bismuth) = 1
+MULES: Correcting alpha.bismuth
+MULES: Correcting alpha.bismuth
+Phase-1 volume fraction = 0.8  Min(alpha.bismuth) = 0  Max(alpha.bismuth) = 1
+DILUPBiCGStab:  Solving for T, Initial residual = 5.06997e-10, Final residual = 5.06997e-10, No Iterations 0
+DICPCG:  Solving for p_rgh, Initial residual = 0.000140193, Final residual = 6.39868e-06, No Iterations 73
+DICPCG:  Solving for p_rgh, Initial residual = 7.97827e-05, Final residual = 3.82265e-06, No Iterations 92
+DICPCG:  Solving for p_rgh, Initial residual = 5.49274e-05, Final residual = 8.85943e-09, No Iterations 159
+ExecutionTime = 0.314248 s  ClockTime = 1 s
+
+volFieldValue maxValue write:
+    max(all) of p_rgh = 0.0327678 at location (0.01065 0.003975 0.0005) in cell 2206 on processor 3
+    max(all) of T = 552.51 at location (5e-05 2.5e-05 0.0005) in cell 0 on processor 0
+    max(all) of divU = 9.43039e-08 at location (0.00015 0.004175 0.0005) in cell 3122 on processor 0
+
+volFieldValue minValue write:
+    min(all) of p_rgh = -0.0352144 at location (5e-05 0.004025 0.0005) in cell 3010 on processor 0
+    min(all) of T = 540.59 at location (0.01495 0.002525 0.0005) in cell 74 on processor 3
+    min(all) of divU = -8.98233e-08 at location (0.00015 0.004225 0.0005) in cell 3159 on processor 0
+
+volFieldValue maxMagValue write:
+    maxMag(all) of U = 0.00140049 at location (0.00645 0.004025 0.0005) in cell 3017 on processor 1
+
+Courant Number mean: 1.24268e-05 max: 0.000387821
+Interface Courant Number mean: 0 max: 0
+deltaT = 3.28194e-05
+Time = 0.000146696s
+
+smoothSolver:  Solving for alpha.bismuth, Initial residual = 8.30784e-10, Final residual = 8.30784e-10, No Iterations 0
+Phase-1 volume fraction = 0.8  Min(alpha.bismuth) = 0  Max(alpha.bismuth) = 1
+MULES: Correcting alpha.bismuth
+MULES: Correcting alpha.bismuth
+Phase-1 volume fraction = 0.8  Min(alpha.bismuth) = 0  Max(alpha.bismuth) = 1
+DILUPBiCGStab:  Solving for T, Initial residual = 7.4913e-10, Final residual = 7.4913e-10, No Iterations 0
+DICPCG:  Solving for p_rgh, Initial residual = 0.000113055, Final residual = 4.1034e-06, No Iterations 73
+DICPCG:  Solving for p_rgh, Initial residual = 6.15223e-05, Final residual = 2.54258e-06, No Iterations 92
+DICPCG:  Solving for p_rgh, Initial residual = 4.52348e-05, Final residual = 9.36215e-09, No Iterations 158
+ExecutionTime = 0.344174 s  ClockTime = 1 s
+
+volFieldValue maxValue write:
+    max(all) of p_rgh = 0.0320276 at location (0.01065 0.003975 0.0005) in cell 2206 on processor 3
+    max(all) of T = 552.51 at location (5e-05 2.5e-05 0.0005) in cell 0 on processor 0
+    max(all) of divU = 9.02549e-08 at location (0.00185 0.004125 0.0005) in cell 3102 on processor 0
+
+volFieldValue minValue write:
+    min(all) of p_rgh = -0.033929 at location (5e-05 0.004025 0.0005) in cell 3010 on processor 0
+    min(all) of T = 540.59 at location (0.01495 0.002525 0.0005) in cell 74 on processor 3
+    min(all) of divU = -1.00339e-07 at location (0.00135 0.004125 0.0005) in cell 3097 on processor 0
+
+volFieldValue maxMagValue write:
+    maxMag(all) of U = 0.00141464 at location (0.00645 0.004025 0.0005) in cell 3017 on processor 1
+
+Courant Number mean: 1.57314e-05 max: 0.000464286
+Interface Courant Number mean: 0 max: 0
+deltaT = 3.87865e-05
+Time = 0.000185483s
+
+smoothSolver:  Solving for alpha.bismuth, Initial residual = 1.26736e-09, Final residual = 1.26736e-09, No Iterations 0
+Phase-1 volume fraction = 0.8  Min(alpha.bismuth) = 0  Max(alpha.bismuth) = 1
+MULES: Correcting alpha.bismuth
+MULES: Correcting alpha.bismuth
+Phase-1 volume fraction = 0.8  Min(alpha.bismuth) = 0  Max(alpha.bismuth) = 1
+DILUPBiCGStab:  Solving for T, Initial residual = 1.0883e-09, Final residual = 1.0883e-09, No Iterations 0
+DICPCG:  Solving for p_rgh, Initial residual = 9.56382e-05, Final residual = 4.72679e-06, No Iterations 65
+DICPCG:  Solving for p_rgh, Initial residual = 5.41066e-05, Final residual = 2.08097e-06, No Iterations 92
+DICPCG:  Solving for p_rgh, Initial residual = 3.9927e-05, Final residual = 9.99464e-09, No Iterations 157
+ExecutionTime = 0.3751 s  ClockTime = 1 s
+
+volFieldValue maxValue write:
+    max(all) of p_rgh = 0.0314996 at location (0.01065 0.003975 0.0005) in cell 2206 on processor 3
+    max(all) of T = 552.51 at location (5e-05 2.5e-05 0.0005) in cell 0 on processor 0
+    max(all) of divU = 1.24973e-07 at location (0.00015 0.004225 0.0005) in cell 3159 on processor 0
+
+volFieldValue minValue write:
+    min(all) of p_rgh = -0.0330046 at location (5e-05 0.004025 0.0005) in cell 3010 on processor 0
+    min(all) of T = 540.59 at location (0.01495 0.002525 0.0005) in cell 74 on processor 3
+    min(all) of divU = -1.40686e-07 at location (0.00015 0.004175 0.0005) in cell 3122 on processor 0
+
+volFieldValue maxMagValue write:
+    maxMag(all) of U = 0.00142685 at location (0.00635 0.004025 0.0005) in cell 3016 on processor 1
+
+Courant Number mean: 1.9764e-05 max: 0.000553442
+Interface Courant Number mean: 0 max: 0
+deltaT = 4.52509e-05
+Time = 0.000230734s
+
+smoothSolver:  Solving for alpha.bismuth, Initial residual = 1.87274e-09, Final residual = 1.87274e-09, No Iterations 0
+Phase-1 volume fraction = 0.8  Min(alpha.bismuth) = 0  Max(alpha.bismuth) = 1
+MULES: Correcting alpha.bismuth
+MULES: Correcting alpha.bismuth
+Phase-1 volume fraction = 0.8  Min(alpha.bismuth) = 0  Max(alpha.bismuth) = 1
+DILUPBiCGStab:  Solving for T, Initial residual = 1.54609e-09, Final residual = 1.54609e-09, No Iterations 0
+DICPCG:  Solving for p_rgh, Initial residual = 8.80694e-05, Final residual = 4.07013e-06, No Iterations 6
+DICPCG:  Solving for p_rgh, Initial residual = 4.87518e-05, Final residual = 2.38618e-06, No Iterations 89
+DICPCG:  Solving for p_rgh, Initial residual = 3.70294e-05, Final residual = 9.18029e-09, No Iterations 158
+ExecutionTime = 0.39886 s  ClockTime = 1 s
+
+volFieldValue maxValue write:
+    max(all) of p_rgh = 0.0311222 at location (0.01065 0.003975 0.0005) in cell 2206 on processor 3
+    max(all) of T = 552.51 at location (5e-05 2.5e-05 0.0005) in cell 0 on processor 0
+    max(all) of divU = 9.01327e-08 at location (0.00035 0.004175 0.0005) in cell 3124 on processor 0
+
+volFieldValue minValue write:
+    min(all) of p_rgh = -0.0323353 at location (5e-05 0.004025 0.0005) in cell 3010 on processor 0
+    min(all) of T = 540.59 at location (0.01495 0.002525 0.0005) in cell 74 on processor 3
+    min(all) of divU = -9.35384e-08 at location (0.00135 0.004125 0.0005) in cell 3097 on processor 0
+
+volFieldValue maxMagValue write:
+    maxMag(all) of U = 0.00143794 at location (0.00665 0.004025 0.0005) in cell 3019 on processor 1
+
+Courant Number mean: 2.42751e-05 max: 0.000650701
+Interface Courant Number mean: 0 max: 0
+deltaT = 5.12844e-05
+Time = 0.000282018s
+
+smoothSolver:  Solving for alpha.bismuth, Initial residual = 2.64566e-09, Final residual = 2.64566e-09, No Iterations 0
+Phase-1 volume fraction = 0.8  Min(alpha.bismuth) = 0  Max(alpha.bismuth) = 1
+MULES: Correcting alpha.bismuth
+MULES: Correcting alpha.bismuth
+Phase-1 volume fraction = 0.8  Min(alpha.bismuth) = 0  Max(alpha.bismuth) = 1
+DILUPBiCGStab:  Solving for T, Initial residual = 2.11194e-09, Final residual = 2.11194e-09, No Iterations 0
+DICPCG:  Solving for p_rgh, Initial residual = 8.50035e-05, Final residual = 3.93195e-06, No Iterations 71
+DICPCG:  Solving for p_rgh, Initial residual = 4.67793e-05, Final residual = 2.2738e-06, No Iterations 80
+DICPCG:  Solving for p_rgh, Initial residual = 3.42889e-05, Final residual = 9.51591e-09, No Iterations 158
+ExecutionTime = 0.437497 s  ClockTime = 1 s
+
+volFieldValue maxValue write:
+    max(all) of p_rgh = 0.0308566 at location (0.01065 0.003975 0.0005) in cell 2206 on processor 3
+    max(all) of T = 552.51 at location (5e-05 2.5e-05 0.0005) in cell 0 on processor 0
+    max(all) of divU = 9.40844e-08 at location (0.00095 0.004125 0.0005) in cell 3093 on processor 0
+
+volFieldValue minValue write:
+    min(all) of p_rgh = -0.0318549 at location (5e-05 0.004025 0.0005) in cell 3010 on processor 0
+    min(all) of T = 540.59 at location (0.01495 0.002525 0.0005) in cell 74 on processor 3
+    min(all) of divU = -9.82035e-08 at location (0.00135 0.004125 0.0005) in cell 3097 on processor 0
+
+volFieldValue maxMagValue write:
+    maxMag(all) of U = 0.00144831 at location (0.00685 0.004025 0.0005) in cell 3021 on processor 1
+
+Courant Number mean: 2.87382e-05 max: 0.000742787
+Interface Courant Number mean: 0 max: 0
+deltaT = 5.98318e-05
+Time = 0.00034185s
+
+smoothSolver:  Solving for alpha.bismuth, Initial residual = 3.77868e-09, Final residual = 3.77868e-09, No Iterations 0
+Phase-1 volume fraction = 0.8  Min(alpha.bismuth) = 0  Max(alpha.bismuth) = 1
+MULES: Correcting alpha.bismuth
+MULES: Correcting alpha.bismuth
+Phase-1 volume fraction = 0.8  Min(alpha.bismuth) = 0  Max(alpha.bismuth) = 1
+DILUPBiCGStab:  Solving for T, Initial residual = 2.93375e-09, Final residual = 2.93375e-09, No Iterations 0
+DICPCG:  Solving for p_rgh, Initial residual = 9.0759e-05, Final residual = 4.4681e-06, No Iterations 73
+DICPCG:  Solving for p_rgh, Initial residual = 4.90022e-05, Final residual = 2.02881e-06, No Iterations 75
+DICPCG:  Solving for p_rgh, Initial residual = 3.40541e-05, Final residual = 7.78031e-09, No Iterations 159
+ExecutionTime = 0.468433 s  ClockTime = 1 s
+
+volFieldValue maxValue write:
+    max(all) of p_rgh = 0.0306845 at location (0.01065 0.003975 0.0005) in cell 2206 on processor 3
+    max(all) of T = 552.51 at location (5e-05 2.5e-05 0.0005) in cell 0 on processor 0
+    max(all) of divU = 6.96077e-08 at location (0.00065 0.004075 0.0005) in cell 3053 on processor 0
+
+volFieldValue minValue write:
+    min(all) of p_rgh = -0.0315254 at location (5e-05 0.004025 0.0005) in cell 3010 on processor 0
+    min(all) of T = 540.59 at location (0.01495 0.002525 0.0005) in cell 74 on processor 3
+    min(all) of divU = -6.78087e-08 at location (0.00065 0.004125 0.0005) in cell 3090 on processor 0
+
+volFieldValue maxMagValue write:
+    maxMag(all) of U = 0.00145854 at location (0.00635 0.004025 0.0005) in cell 3016 on processor 1
+
+Courant Number mean: 3.48211e-05 max: 0.000872708
+Interface Courant Number mean: 0 max: 0
+deltaT = 6.5815e-05
+Time = 0.000407665s
+
+smoothSolver:  Solving for alpha.bismuth, Initial residual = 5.04457e-09, Final residual = 5.04457e-09, No Iterations 0
+Phase-1 volume fraction = 0.8  Min(alpha.bismuth) = 0  Max(alpha.bismuth) = 1
+MULES: Correcting alpha.bismuth
+MULES: Correcting alpha.bismuth
+Phase-1 volume fraction = 0.8  Min(alpha.bismuth) = 0  Max(alpha.bismuth) = 1
+DILUPBiCGStab:  Solving for T, Initial residual = 3.82488e-09, Final residual = 3.82488e-09, No Iterations 0
+DICPCG:  Solving for p_rgh, Initial residual = 8.61342e-05, Final residual = 4.231e-06, No Iterations 74
+DICPCG:  Solving for p_rgh, Initial residual = 4.95339e-05, Final residual = 1.72313e-06, No Iterations 75
+DICPCG:  Solving for p_rgh, Initial residual = 3.32769e-05, Final residual = 9.88357e-09, No Iterations 158
+ExecutionTime = 0.495228 s  ClockTime = 1 s
+
+volFieldValue maxValue write:
+    max(all) of p_rgh = 0.0305782 at location (0.01065 0.003975 0.0005) in cell 2206 on processor 3
+    max(all) of T = 552.51 at location (5e-05 2.5e-05 0.0005) in cell 0 on processor 0
+    max(all) of divU = 1.13075e-07 at location (0.00035 0.004175 0.0005) in cell 3124 on processor 0
+
+volFieldValue minValue write:
+    min(all) of p_rgh = -0.0313072 at location (5e-05 0.004025 0.0005) in cell 3010 on processor 0
+    min(all) of T = 540.59 at location (0.01495 0.002525 0.0005) in cell 74 on processor 3
+    min(all) of divU = -8.43907e-08 at location (0.00035 0.004225 0.0005) in cell 3161 on processor 0
+
+volFieldValue maxMagValue write:
+    maxMag(all) of U = 0.0014686 at location (0.00875 0.004025 0.0005) in cell 2262 on processor 3
+
+Courant Number mean: 3.95827e-05 max: 0.000966607
+Interface Courant Number mean: 0 max: 0
+deltaT = 7.40419e-05
+Time = 0.000481707s
+
+smoothSolver:  Solving for alpha.bismuth, Initial residual = 6.77361e-09, Final residual = 6.77361e-09, No Iterations 0
+Phase-1 volume fraction = 0.8  Min(alpha.bismuth) = 0  Max(alpha.bismuth) = 1
+MULES: Correcting alpha.bismuth
+MULES: Correcting alpha.bismuth
+Phase-1 volume fraction = 0.8  Min(alpha.bismuth) = 0  Max(alpha.bismuth) = 1
+DILUPBiCGStab:  Solving for T, Initial residual = 5.03768e-09, Final residual = 5.03768e-09, No Iterations 0
+DICPCG:  Solving for p_rgh, Initial residual = 8.88724e-05, Final residual = 3.53182e-06, No Iterations 80
+DICPCG:  Solving for p_rgh, Initial residual = 5.20826e-05, Final residual = 2.55047e-06, No Iterations 77
+DICPCG:  Solving for p_rgh, Initial residual = 3.40892e-05, Final residual = 8.10048e-09, No Iterations 159
+ExecutionTime = 0.521001 s  ClockTime = 1 s
+
+volFieldValue maxValue write:
+    max(all) of p_rgh = 0.0305343 at location (0.01065 0.003975 0.0005) in cell 2206 on processor 3
+    max(all) of T = 552.51 at location (5e-05 2.5e-05 0.0005) in cell 0 on processor 0
+    max(all) of divU = 8.0515e-08 at location (0.00015 0.004175 0.0005) in cell 3122 on processor 0
+
+volFieldValue minValue write:
+    min(all) of p_rgh = -0.031187 at location (5e-05 0.004025 0.0005) in cell 3010 on processor 0
+    min(all) of T = 540.59 at location (0.01495 0.002525 0.0005) in cell 74 on processor 3
+    min(all) of divU = -7.2482e-08 at location (0.00015 0.004225 0.0005) in cell 3159 on processor 0
+
+volFieldValue maxMagValue write:
+    maxMag(all) of U = 0.00147883 at location (0.00895 0.004025 0.0005) in cell 2264 on processor 3
+
+Courant Number mean: 4.59784e-05 max: 0.00109502
+Interface Courant Number mean: 0 max: 0
+deltaT = 8.63822e-05
+Time = 0.000568089s
+
+smoothSolver:  Solving for alpha.bismuth, Initial residual = 9.34423e-09, Final residual = 9.34423e-09, No Iterations 0
+Phase-1 volume fraction = 0.8  Min(alpha.bismuth) = 0  Max(alpha.bismuth) = 1
+MULES: Correcting alpha.bismuth
+MULES: Correcting alpha.bismuth
+Phase-1 volume fraction = 0.8  Min(alpha.bismuth) = 0  Max(alpha.bismuth) = 1
+DILUPBiCGStab:  Solving for T, Initial residual = 6.83707e-09, Final residual = 6.83707e-09, No Iterations 0
+DICPCG:  Solving for p_rgh, Initial residual = 9.64524e-05, Final residual = 4.74314e-06, No Iterations 80
+DICPCG:  Solving for p_rgh, Initial residual = 5.86733e-05, Final residual = 2.33352e-06, No Iterations 79
+DICPCG:  Solving for p_rgh, Initial residual = 3.5945e-05, Final residual = 8.69664e-09, No Iterations 159
+ExecutionTime = 0.549773 s  ClockTime = 1 s
+
+volFieldValue maxValue write:
+    max(all) of p_rgh = 0.0305524 at location (0.01065 0.003975 0.0005) in cell 2206 on processor 3
+    max(all) of T = 552.51 at location (5e-05 2.5e-05 0.0005) in cell 0 on processor 0
+    max(all) of divU = 8.50522e-08 at location (0.00015 0.004075 0.0005) in cell 3048 on processor 0
+
+volFieldValue minValue write:
+    min(all) of p_rgh = -0.0311628 at location (5e-05 0.004025 0.0005) in cell 3010 on processor 0
+    min(all) of T = 540.59 at location (0.01495 0.002525 0.0005) in cell 74 on processor 3
+    min(all) of divU = -7.47554e-08 at location (0.00155 0.004075 0.0005) in cell 3062 on processor 0
+
+volFieldValue maxMagValue write:
+    maxMag(all) of U = 0.00148972 at location (0.00905 0.004025 0.0005) in cell 2265 on processor 3
+
+Courant Number mean: 5.52788e-05 max: 0.00128694
+Interface Courant Number mean: 0 max: 0
+deltaT = 8.63822e-05
+Time = 0.000654471s
+
+smoothSolver:  Solving for alpha.bismuth, Initial residual = 1.10259e-08, Final residual = 9.79754e-15, No Iterations 1
+Phase-1 volume fraction = 0.8  Min(alpha.bismuth) = 0  Max(alpha.bismuth) = 1
+MULES: Correcting alpha.bismuth
+MULES: Correcting alpha.bismuth
+Phase-1 volume fraction = 0.8  Min(alpha.bismuth) = 0  Max(alpha.bismuth) = 1
+DILUPBiCGStab:  Solving for T, Initial residual = 7.95412e-09, Final residual = 7.95412e-09, No Iterations 0
+DICPCG:  Solving for p_rgh, Initial residual = 0.0149481, Final residual = 0.000187708, No Iterations 1
+DICPCG:  Solving for p_rgh, Initial residual = 0.000271516, Final residual = 1.28815e-05, No Iterations 71
+DICPCG:  Solving for p_rgh, Initial residual = 0.000106867, Final residual = 9.17009e-09, No Iterations 164
+ExecutionTime = 0.5776 s  ClockTime = 1 s
+
+volFieldValue maxValue write:
+    max(all) of p_rgh = 0.0397204 at location (0.01065 0.003975 0.0005) in cell 2206 on processor 3
+    max(all) of T = 552.51 at location (5e-05 2.5e-05 0.0005) in cell 0 on processor 0
+    max(all) of divU = 1.31598e-07 at location (0.00015 0.004125 0.0005) in cell 3085 on processor 0
+
+volFieldValue minValue write:
+    min(all) of p_rgh = -0.0331922 at location (5e-05 0.003975 0.0005) in cell 2973 on processor 0
+    min(all) of T = 540.59 at location (0.01495 0.002525 0.0005) in cell 74 on processor 3
+    min(all) of divU = -8.90044e-08 at location (0.00015 0.004175 0.0005) in cell 3122 on processor 0
+
+volFieldValue maxMagValue write:
+    maxMag(all) of U = 0.00150031 at location (0.00905 0.004025 0.0005) in cell 2265 on processor 3
+
+Courant Number mean: 5.67719e-05 max: 0.0012961
+Interface Courant Number mean: 0 max: 0
+deltaT = 8.63822e-05
+Time = 0.000740853s
+
+smoothSolver:  Solving for alpha.bismuth, Initial residual = 1.27927e-08, Final residual = 1.11053e-14, No Iterations 1
+Phase-1 volume fraction = 0.8  Min(alpha.bismuth) = 0  Max(alpha.bismuth) = 1
+MULES: Correcting alpha.bismuth
+MULES: Correcting alpha.bismuth
+Phase-1 volume fraction = 0.8  Min(alpha.bismuth) = 0  Max(alpha.bismuth) = 1
+DILUPBiCGStab:  Solving for T, Initial residual = 9.0735e-09, Final residual = 9.0735e-09, No Iterations 0
+DICPCG:  Solving for p_rgh, Initial residual = 0.0129643, Final residual = 8.76489e-05, No Iterations 1
+DICPCG:  Solving for p_rgh, Initial residual = 0.000154691, Final residual = 7.67529e-06, No Iterations 72
+DICPCG:  Solving for p_rgh, Initial residual = 7.12669e-05, Final residual = 8.61219e-09, No Iterations 165
+ExecutionTime = 0.600297 s  ClockTime = 1 s
+
+volFieldValue maxValue write:
+    max(all) of p_rgh = 0.0477697 at location (0.01065 0.003975 0.0005) in cell 2206 on processor 3
+    max(all) of T = 552.51 at location (5e-05 2.5e-05 0.0005) in cell 0 on processor 0
+    max(all) of divU = 7.15512e-08 at location (0.00185 0.004125 0.0005) in cell 3102 on processor 0
+
+volFieldValue minValue write:
+    min(all) of p_rgh = -0.0493332 at location (5e-05 0.003975 0.0005) in cell 2973 on processor 0
+    min(all) of T = 540.59 at location (0.01495 0.002525 0.0005) in cell 74 on processor 3
+    min(all) of divU = -8.6279e-08 at location (5e-05 0.004125 0.0005) in cell 3084 on processor 0
+
+volFieldValue maxMagValue write:
+    maxMag(all) of U = 0.0015106 at location (0.00915 0.004025 0.0005) in cell 2266 on processor 3
+
+Courant Number mean: 5.81411e-05 max: 0.001305
+Interface Courant Number mean: 0 max: 0
+deltaT = 8.63822e-05
+Time = 0.000827236s
+
+smoothSolver:  Solving for alpha.bismuth, Initial residual = 1.46978e-08, Final residual = 1.24268e-14, No Iterations 1
+Phase-1 volume fraction = 0.8  Min(alpha.bismuth) = 0  Max(alpha.bismuth) = 1
+MULES: Correcting alpha.bismuth
+MULES: Correcting alpha.bismuth
+Phase-1 volume fraction = 0.8  Min(alpha.bismuth) = 0  Max(alpha.bismuth) = 1
+DILUPBiCGStab:  Solving for T, Initial residual = 1.01976e-08, Final residual = 2.48654e-10, No Iterations 1
+DICPCG:  Solving for p_rgh, Initial residual = 0.0116445, Final residual = 8.14489e-05, No Iterations 1
+DICPCG:  Solving for p_rgh, Initial residual = 0.000151419, Final residual = 7.32874e-06, No Iterations 75
+DICPCG:  Solving for p_rgh, Initial residual = 6.9476e-05, Final residual = 9.94752e-09, No Iterations 163
+ExecutionTime = 0.625917 s  ClockTime = 1 s
+
+volFieldValue maxValue write:
+    max(all) of p_rgh = 0.0530805 at location (0.01065 0.003975 0.0005) in cell 2206 on processor 3
+    max(all) of T = 552.51 at location (5e-05 0.004075 0.0005) in cell 3047 on processor 0
+    max(all) of divU = 8.35019e-08 at location (0.00135 0.004125 0.0005) in cell 3097 on processor 0
+
+volFieldValue minValue write:
+    min(all) of p_rgh = -0.0597166 at location (5e-05 0.003975 0.0005) in cell 2973 on processor 0
+    min(all) of T = 540.59 at location (0.01495 0.000175 0.0005) in cell 299 on processor 2
+    min(all) of divU = -9.44125e-08 at location (0.00095 0.004125 0.0005) in cell 3093 on processor 0
+
+volFieldValue maxMagValue write:
+    maxMag(all) of U = 0.00152061 at location (0.00925 0.004025 0.0005) in cell 2267 on processor 3
+
+Courant Number mean: 5.9404e-05 max: 0.00131367
+Interface Courant Number mean: 0 max: 0
+deltaT = 8.63822e-05
+Time = 0.000913618s
+
+smoothSolver:  Solving for alpha.bismuth, Initial residual = 1.68107e-08, Final residual = 1.3781e-14, No Iterations 1
+Phase-1 volume fraction = 0.8  Min(alpha.bismuth) = 0  Max(alpha.bismuth) = 1
+MULES: Correcting alpha.bismuth
+MULES: Correcting alpha.bismuth
+Phase-1 volume fraction = 0.8  Min(alpha.bismuth) = 0  Max(alpha.bismuth) = 1
+DILUPBiCGStab:  Solving for T, Initial residual = 1.11635e-08, Final residual = 2.51107e-10, No Iterations 1
+DICPCG:  Solving for p_rgh, Initial residual = 0.0117629, Final residual = 8.0376e-05, No Iterations 1
+DICPCG:  Solving for p_rgh, Initial residual = 0.000157337, Final residual = 7.25086e-06, No Iterations 74
+DICPCG:  Solving for p_rgh, Initial residual = 7.26931e-05, Final residual = 9.77483e-09, No Iterations 164
+ExecutionTime = 0.65494 s  ClockTime = 1 s
+
+volFieldValue maxValue write:
+    max(all) of p_rgh = 0.0552796 at location (0.01065 0.003975 0.0005) in cell 2206 on processor 3
+    max(all) of T = 552.51 at location (5e-05 0.004075 0.0005) in cell 3047 on processor 0
+    max(all) of divU = 1.01482e-07 at location (0.00175 0.004125 0.0005) in cell 3101 on processor 0
+
+volFieldValue minValue write:
+    min(all) of p_rgh = -0.0636464 at location (5e-05 0.003975 0.0005) in cell 2973 on processor 0
+    min(all) of T = 540.59 at location (0.01495 0.000175 0.0005) in cell 299 on processor 2
+    min(all) of divU = -9.36956e-08 at location (0.00015 0.004275 0.0005) in cell 3196 on processor 0
+
+volFieldValue maxMagValue write:
+    maxMag(all) of U = 0.00153038 at location (0.00935 0.004025 0.0005) in cell 2268 on processor 3
+
+Courant Number mean: 6.05749e-05 max: 0.00132213
+Interface Courant Number mean: 0 max: 0
+deltaT = 8.63822e-05
+Time = 0.001s
+
+smoothSolver:  Solving for alpha.bismuth, Initial residual = 1.90456e-08, Final residual = 1.5169e-14, No Iterations 1
+Phase-1 volume fraction = 0.8  Min(alpha.bismuth) = 0  Max(alpha.bismuth) = 1
+MULES: Correcting alpha.bismuth
+MULES: Correcting alpha.bismuth
+Phase-1 volume fraction = 0.8  Min(alpha.bismuth) = 0  Max(alpha.bismuth) = 1
+DILUPBiCGStab:  Solving for T, Initial residual = 1.21972e-08, Final residual = 2.49239e-10, No Iterations 1
+DICPCG:  Solving for p_rgh, Initial residual = 0.0125119, Final residual = 8.41682e-05, No Iterations 1
+DICPCG:  Solving for p_rgh, Initial residual = 0.000164424, Final residual = 7.37846e-06, No Iterations 75
+DICPCG:  Solving for p_rgh, Initial residual = 7.52807e-05, Final residual = 9.42023e-09, No Iterations 164
+ExecutionTime = 0.683135 s  ClockTime = 1 s
+
+volFieldValue maxValue write:
+    max(all) of p_rgh = 0.054998 at location (0.01065 0.003975 0.0005) in cell 2206 on processor 3
+    max(all) of T = 552.51 at location (5e-05 0.004075 0.0005) in cell 3047 on processor 0
+    max(all) of divU = 9.22929e-08 at location (0.00015 0.004225 0.0005) in cell 3159 on processor 0
+
+volFieldValue minValue write:
+    min(all) of p_rgh = -0.0627776 at location (5e-05 0.003975 0.0005) in cell 2973 on processor 0
+    min(all) of T = 540.59 at location (0.01495 0.000175 0.0005) in cell 299 on processor 2
+    min(all) of divU = -9.17418e-08 at location (0.00085 0.004075 0.0005) in cell 3055 on processor 0
+
+volFieldValue maxMagValue write:
+    maxMag(all) of U = 0.00153995 at location (0.00935 0.004025 0.0005) in cell 2268 on processor 3
+
+End
+
+Finalising parallel run

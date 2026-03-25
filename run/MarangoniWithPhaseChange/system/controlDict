@@ -16,7 +16,7 @@ FoamFile
 
 application     foamRun;
 
-solver          compressibleVoF;
+solver          compressibleReactingVoF;
 
 startFrom       startTime;
 
@@ -25,13 +25,13 @@ startTime       0;
 stopAt          endTime;
 //stopAt          nextWrite;
 
-endTime         10e-5;
+endTime         5.0;
 
 deltaT          1e-5;
 
 writeControl    adjustableRunTime;
 
-writeInterval   100e-5;
+writeInterval   0.25;
 
 purgeWrite      0;
 
@@ -52,7 +52,7 @@ adjustTimeStep  yes;
 maxCo           0.5;
 maxAlphaCo      0.5;
 
-maxDeltaT       5e-4;
+maxDeltaT       5e-5;
 
 libs
 (
@@ -65,6 +65,7 @@ libs
 DebugSwitches
 {
     MULES           1;
+    VoFSolidificationMelting    1;
 }
 
 OptimisationSwitches

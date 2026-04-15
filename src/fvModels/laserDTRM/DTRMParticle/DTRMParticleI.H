@@ -29,58 +29,34 @@ License
 
 inline Foam::DTRMParticle::trackingData::trackingData
 (
-    const DTRMParticleCloud& spc,
-    const interpolationCellPoint<scalar>& rhoInterp,
-    const interpolationCellPoint<vector>& UInterp,
-    const interpolationCellPoint<scalar>& nuInterp,
-    const vector& g
+    const lagrangian::Cloud<DTRMParticle>& cloud,
+    const interpolationCellPoint<scalar>& alphaInterp,
+    volScalarField& Q
 )
 :
-    particle::trackingData(spc),
-    rhoInterp_(rhoInterp),
-    UInterp_(UInterp),
-    nuInterp_(nuInterp),
-    g_(g)
+    particle::trackingData(cloud),
+    alphaInterp_(alphaInterp),
+    Q_(Q)
 {}
 
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
 inline const Foam::interpolationCellPoint<Foam::scalar>&
-Foam::DTRMParticle::trackingData::rhoInterp() const
+Foam::DTRMParticle::trackingData::alphaInterp() const
 {
-    return rhoInterp_;
+    return alphaInterp_;
+}
+
+inline Foam::scalar Foam::DTRMParticle::q() const
+{
+    return q_;
 }
 
 
-inline const Foam::interpolationCellPoint<Foam::vector>&
-Foam::DTRMParticle::trackingData::UInterp() const
-{
-    return UInterp_;
-}
-
-
-inline const Foam::interpolationCellPoint<Foam::scalar>&
-Foam::DTRMParticle::trackingData::nuInterp() const
-{
-    return nuInterp_;
-}
-
-inline const Foam::vector& Foam::DTRMParticle::trackingData::g() const
-{
-    return g_;
-}
-
-
-inline Foam::scalar Foam::DTRMParticle::d() const
+inline const Foam::vector& Foam::DTRMParticle::d() const
 {
     return d_;
-}
-
-
-inline const Foam::vector& Foam::DTRMParticle::U() const
-{
-    return U_;
 }
 
 

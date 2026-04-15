@@ -23,7 +23,7 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-#include "DTRMParticleCloud.H"
+#include "DTRMParticle.H"
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
@@ -37,7 +37,7 @@ namespace Foam
 
 bool Foam::DTRMParticle::move
 (
-    DTRMParticleCloud& cloud,
+    lagrangian::Cloud<DTRMParticle>& cloud,
     trackingData& td
 )
 {
@@ -55,6 +55,7 @@ bool Foam::DTRMParticle::move
                 << " stepFraction() = " << stepFraction() << endl;
         }
 
+        /*
         const scalar sfrac = stepFraction();
 
         const scalar f = 1 - stepFraction();
@@ -81,6 +82,9 @@ bool Foam::DTRMParticle::move
         scalar Dc = (24.0*nuc/d_)*ReFunc*(3.0/4.0)*(rhoc/(d_*rhop));
 
         U_ = (U_ + dt*(Dc*Uc + (1.0 - rhoc/rhop)*td.g()))/(1.0 + dt*Dc);
+        */
+
+        td.keepParticle = false;
     }
 
     return td.keepParticle;
@@ -89,28 +93,11 @@ bool Foam::DTRMParticle::move
 
 void Foam::DTRMParticle::hitWallPatch
 (
-    DTRMParticleCloud& cloud,
+    lagrangian::Cloud<DTRMParticle>& cloud,
     trackingData& td
 )
 {
-    const vector nw = normal(td.mesh);
-
-    const scalar Un = U_ & nw;
-    const vector Ut = U_ - Un*nw;
-
-    if (Un > 0)
-    {
-        U_ -= (1.0 + cloud.e())*Un*nw;
-    }
-
-    U_ -= cloud.mu()*Ut;
-}
-
-
-void Foam::DTRMParticle::transformProperties(const transformer& transform)
-{
-    particle::transformProperties(transform);
-    U_ = transform.transform(U_);
+    td.keepParticle = false;
 }
 
 

@@ -24,7 +24,7 @@ License
 \*---------------------------------------------------------------------------*/
 
 #include "DTRMParticle.H"
-#include "DTRMParticleCloud.H"
+//#include "Cloud.H"
 #include "IOstreams.H"
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
@@ -45,12 +45,12 @@ Foam::DTRMParticle::DTRMParticle(Istream& is, bool readFields)
     {
         if (is.format() == IOstream::ASCII)
         {
-            d_ = readScalar(is);
-            is >> U_;
+            q_ = readScalar(is);
+            is >> d_;
         }
         else
         {
-            is.read(reinterpret_cast<char*>(&d_), sizeofFields_);
+            is.read(reinterpret_cast<char*>(&q_), sizeofFields_);
         }
     }
 
@@ -58,26 +58,26 @@ Foam::DTRMParticle::DTRMParticle(Istream& is, bool readFields)
     is.check("DTRMParticle::DTRMParticle(Istream&)");
 }
 
-
+/*
 void Foam::DTRMParticle::readFields(lagrangian::Cloud<DTRMParticle>& c)
 {
     bool valid = c.size();
 
     particle::readFields(c);
 
-    IOField<scalar> d(c.fieldIOobject("d", IOobject::MUST_READ), valid);
-    c.checkFieldIOobject(c, d);
+    IOField<scalar> q(c.fieldIOobject("q", IOobject::MUST_READ), valid);
+    c.checkFieldIOobject(c, q);
 
-    IOField<vector> U(c.fieldIOobject("U", IOobject::MUST_READ), valid);
-    c.checkFieldIOobject(c, U);
+    IOField<vector> d(c.fieldIOobject("d", IOobject::MUST_READ), valid);
+    c.checkFieldIOobject(c, d);
 
     label i = 0;
     forAllIter(lagrangian::Cloud<DTRMParticle>, c, iter)
     {
         DTRMParticle& p = iter();
 
+        p.q_ = q[i];
         p.d_ = d[i];
-        p.U_ = U[i];
         i++;
     }
 }
@@ -89,23 +89,23 @@ void Foam::DTRMParticle::writeFields(const lagrangian::Cloud<DTRMParticle>& c)
 
     label np = c.size();
 
-    IOField<scalar> d(c.fieldIOobject("d", IOobject::NO_READ), np);
-    IOField<vector> U(c.fieldIOobject("U", IOobject::NO_READ), np);
+    IOField<scalar> q(c.fieldIOobject("q", IOobject::NO_READ), np);
+    IOField<vector> d(c.fieldIOobject("d", IOobject::NO_READ), np);
 
     label i = 0;
     forAllConstIter(lagrangian::Cloud<DTRMParticle>, c, iter)
     {
         const DTRMParticle& p = iter();
 
+        q[i] = p.q_;
         d[i] = p.d_;
-        U[i] = p.U_;
         i++;
     }
 
+    q.write(np > 0);
     d.write(np > 0);
-    U.write(np > 0);
 }
-
+*/
 
 // * * * * * * * * * * * * * * * IOstream Operators  * * * * * * * * * * * * //
 
@@ -114,15 +114,15 @@ Foam::Ostream& Foam::operator<<(Ostream& os, const DTRMParticle& p)
     if (os.format() == IOstream::ASCII)
     {
         os  << static_cast<const particle&>(p)
-            << token::SPACE << p.d_
-            << token::SPACE << p.U_;
+            << token::SPACE << p.q_
+            << token::SPACE << p.d_;
     }
     else
     {
         os  << static_cast<const particle&>(p);
         os.write
         (
-            reinterpret_cast<const char*>(&p.d_),
+            reinterpret_cast<const char*>(&p.q_),
             DTRMParticle::sizeofFields_
         );
     }

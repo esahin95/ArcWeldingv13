@@ -25,8 +25,7 @@ Class
     Foam::DTRMParticle
 
 Description
-    Simple solid spherical particle class with one-way coupling with the
-    continuous phase.
+    Laser particle class with coupling to the phase field.
 
 SourceFiles
     DTRMParticleI.H
@@ -50,9 +49,6 @@ SourceFiles
 namespace Foam
 {
 
-class DTRMParticleCloud;
-
-
 // Forward declaration of friend functions and operators
 
 class DTRMParticle;
@@ -73,11 +69,22 @@ class DTRMParticle
         //- Size in bytes of the fields
         static const std::size_t sizeofFields_;
 
-        //- Diameter
-        scalar d_;
+        /*
+        //- Initial power
+        const scalar q0_;
 
-        //- Velocity of parcel
-        vector U_;
+        //- Track index
+        const label trackIndex_;
+
+        //- Absorption rate at reflection
+        const scalar a_;
+        */
+
+        //- Current power
+        scalar q_;
+
+        //- Direction
+        vector d_;
 
 
 public:
@@ -92,13 +99,11 @@ public:
     {
         // Interpolators for continuous phase fields
 
-            const interpolationCellPoint<scalar>& rhoInterp_;
-            const interpolationCellPoint<vector>& UInterp_;
-            const interpolationCellPoint<scalar>& nuInterp_;
+            const interpolationCellPoint<scalar>& alphaInterp_;
 
-        //- Local gravitational or other body-force acceleration
-        const vector& g_;
+        // Reference to heat source
 
+            volScalarField& Q_;
 
     public:
 
@@ -106,23 +111,15 @@ public:
 
             inline trackingData
             (
-                const DTRMParticleCloud& spc,
-                const interpolationCellPoint<scalar>& rhoInterp,
-                const interpolationCellPoint<vector>& UInterp,
-                const interpolationCellPoint<scalar>& nuInterp,
-                const vector& g
+                const lagrangian::Cloud<DTRMParticle>& cloud,
+                const interpolationCellPoint<scalar>& alphaInterp_,
+                volScalarField& Q
             );
 
 
         // Member Functions
 
-            inline const interpolationCellPoint<scalar>& rhoInterp() const;
-
-            inline const interpolationCellPoint<vector>& UInterp() const;
-
-            inline const interpolationCellPoint<scalar>& nuInterp() const;
-
-            inline const vector& g() const;
+            inline const interpolationCellPoint<scalar>& alphaInterp() const;
     };
 
 
@@ -131,6 +128,19 @@ public:
 
 
     // Constructors
+
+        //- Construct from components
+        /*
+        DTRMParticle
+        (
+            const polyMesh& mesh,
+            const vector& position,
+            const vector& direction,
+            const scalar power,
+            const scalar absorption,
+            const label trackIndex
+        );
+        */
 
         //- Construct from Istream
         DTRMParticle(Istream& is, bool readFields = true);
@@ -152,34 +162,30 @@ public:
 
         // Access
 
-            //- Return diameter
-            inline scalar d() const;
+            //- Return power
+            inline scalar q() const;
 
-            //- Return velocity
-            inline const vector& U() const;
+            //- Return direction
+            inline const vector& d() const;
 
 
         // Tracking
 
             //- Move
-            bool move(DTRMParticleCloud&, trackingData&);
+            bool move(lagrangian::Cloud<DTRMParticle>&, trackingData&);
 
 
         // Patch interactions
 
             //- Overridable function to handle the particle hitting a wallPatch
-            void hitWallPatch(DTRMParticleCloud& cloud, trackingData& td);
-
-            //- Transform the physical properties of the particle
-            //  according to the given transformation
-            virtual void transformProperties(const transformer&);
+            void hitWallPatch(lagrangian::Cloud<DTRMParticle>& cloud, trackingData& td);
 
 
     // I-O
 
-        static void readFields(lagrangian::Cloud<DTRMParticle>& c);
+        //static void readFields(lagrangian::Cloud<DTRMParticle>& c);
 
-        static void writeFields(const lagrangian::Cloud<DTRMParticle>& c);
+        //static void writeFields(const lagrangian::Cloud<DTRMParticle>& c);
 
 
     // Ostream Operator

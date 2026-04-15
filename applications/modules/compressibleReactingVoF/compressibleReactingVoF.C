@@ -51,7 +51,7 @@ namespace solvers
 Foam::solvers::compressibleReactingVoF::compressibleReactingVoF(fvMesh& mesh)
 :
     compressibleVoF(mesh),
-    
+
     dict_
     (
         IOobject
@@ -66,38 +66,40 @@ Foam::solvers::compressibleReactingVoF::compressibleReactingVoF(fvMesh& mesh)
 
     phase_(dict_.lookup<word>("phase")),
 
-    alphaSolidT_
+    alphaVoF_
     (
-        Function1<scalar>::New
+        mesh_.lookupObject<volScalarField>
         (
-            "alphaSolidT",
-            dimTemperature,
-            unitFraction,
-            dict_
+            IOobject::groupName("alpha", phase_)
         )
+    ),
+
+    solidFraction_
+    (
+        IOobject
+        (
+            IOobject::groupName(alphaVoF_.name(), "solidFraction"),
+            runTime.name(),
+            mesh,
+            IOobject::NO_READ,
+            IOobject::NO_WRITE
+        ),
+        mesh,
+        dimensionedScalar(dimless, 0.0)
     ),
 
     alphaSolid_
     (
         IOobject
         (
-            IOobject::groupName(phase_, "solid"),
+            IOobject::groupName(alphaVoF_.name(), "solid"),
             runTime.name(),
             mesh,
             IOobject::NO_READ,
             IOobject::AUTO_WRITE
         ),
         mesh,
-        dimensionedScalar(dimless, 0.0),
-        zeroGradientFvPatchField<scalar>::typeName
-    ),
-
-    alphaVoF_
-    (
-        mesh_.lookupObjectRef<volScalarField>
-        (
-            IOobject::groupName("alpha", phase_)
-        )
+        dimensionedScalar(dimless, 0.0)
     ),
 
     L_
@@ -107,6 +109,20 @@ Foam::solvers::compressibleReactingVoF::compressibleReactingVoF(fvMesh& mesh)
         dict_.lookup<scalar>("L")
     ),
 
+    Tsol_
+    (
+        "Tsol",
+        dimTemperature,
+        dict_.lookup<scalar>("Tsol")
+    ),
+
+    Tliq_
+    (
+        "Tliq",
+        dimTemperature,
+        dict_.lookup<scalar>("Tliq")
+    ),
+
     relax_(dict_.lookupOrDefault<scalar>("relax", 1.0)),
 
     Cu_
@@ -114,20 +130,25 @@ Foam::solvers::compressibleReactingVoF::compressibleReactingVoF(fvMesh& mesh)
         "Cu",
         dimDensity/dimTime,
         dict_.lookupOrDefault<scalar>("Cu", 1e5)
-    ), 
+    ),
 
     q_(dict_.lookupOrDefault<scalar>("q", 0.001))
 {
 
-    // Initialize solid fraction field
+    // Initialize solid phase fraction field
     const volScalarField& T = mixture_.T();
-    alphaSolid_.primitiveFieldRef() = 
-        min 
+
+    solidFraction_ =
+        max
         (
-            alphaVoF_,
-            alphaSolidT_->value(T.primitiveField())
+            min
+            (
+                (Tliq_ - T) / (Tliq_ - Tsol_),
+                1.0
+            ),
+            0.0
         );
-    alphaSolid_.correctBoundaryConditions();
+    alphaSolid_ = alphaVoF_ * solidFraction_;
 }
 
 
@@ -143,30 +164,5 @@ void Foam::solvers::compressibleReactingVoF::prePredictor()
 {
     compressibleVoF::prePredictor();
 }
-
-/*
-void Foam::solvers::compressibleReactingVoF::momentumTransportPredictor()
-{
-    momentumTransport.predict();
-}
-
-
-void Foam::solvers::compressibleReactingVoF::thermophysicalTransportPredictor()
-{
-    thermophysicalTransport.predict();
-}
-
-
-void Foam::solvers::compressibleReactingVoF::momentumTransportCorrector()
-{
-    momentumTransport.correct();
-}
-
-
-void Foam::solvers::compressibleReactingVoF::thermophysicalTransportCorrector()
-{
-    thermophysicalTransport.correct();
-}
-*/
 
 // ************************************************************************* //

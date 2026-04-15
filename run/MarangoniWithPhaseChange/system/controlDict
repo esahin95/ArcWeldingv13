@@ -23,7 +23,7 @@ startFrom       startTime;
 startTime       0;
 
 stopAt          endTime;
-//stopAt          nextWrite;
+stopAt          nextWrite;
 
 endTime         5.0;
 
@@ -31,7 +31,7 @@ deltaT          1e-5;
 
 writeControl    adjustableRunTime;
 
-writeInterval   0.25;
+writeInterval   0.15;
 
 purgeWrite      0;
 

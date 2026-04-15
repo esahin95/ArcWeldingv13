@@ -81,30 +81,36 @@ protected:
     // Phase change properties
 
         //- Properties
-        IOdictionary dict_;
+        const IOdictionary dict_;
 
         //- Active phase name
-        word phase_;
+        const word phase_;
 
-        //- Solid phase fraction as function of temperature
-        autoPtr<Function1<scalar>> alphaSolidT_;
+        //- Active volume fraction field
+        const volScalarField& alphaVoF_;
+
+        //- Solid fraction
+        volScalarField solidFraction_;
 
         //- Solid phase fraction
         volScalarField alphaSolid_;
 
-        //- Active phase field
-        volScalarField& alphaVoF_;
-        
         //- Latent heat of fusion [J/kg]
         const dimensionedScalar L_;
+
+        //- Solidus temperature
+        const dimensionedScalar Tsol_;
+
+        //- Liquidus temperature
+        const dimensionedScalar Tliq_;
 
         //- Phase fraction under-relaxation coefficient
         const scalar relax_;
 
-        //- Mushy region momentum sink coefficient [1/s]; default = 10^5
+        //- Mushy region momentum sink coefficient [1/s]
         const dimensionedScalar Cu_;
 
-        //- Coefficient used in porosity calc - default = 0.001
+        //- Coefficient used in porosity calc
         const scalar q_;
 
 
@@ -140,26 +146,11 @@ public:
         //- Called at the start of the PIMPLE loop
         virtual void prePredictor();
 
-        //- Predict the momentum transport
-        //virtual void momentumTransportPredictor();
-
-        //- Predict thermophysical transport
-        //virtual void thermophysicalTransportPredictor();
-
         //- Construct and optionally solve the momentum equation
         virtual void momentumPredictor();
 
-        //- Construct and solve the energy equation,
-        //  convert to temperature
-        //  and update thermophysical and transport properties
+        //- Construct and solve the energy equation
         virtual void thermophysicalPredictor();
-
-        //- Correct the momentum transport
-        //virtual void momentumTransportCorrector();
-
-        //- Correct the thermophysical transport
-        //virtual void thermophysicalTransportCorrector();
-
 
     // Member Operators
 

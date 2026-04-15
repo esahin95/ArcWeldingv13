@@ -8,36 +8,28 @@
 FoamFile
 {
     format      ascii;
-    class       dictionary;
-    location    "constant";
-    object      phaseChangeProperties;
+    class       volScalarField;
+    location    "0";
+    object      p;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-phase   bismuth;
+dimensions      [1 -1 -2 0 0 0 0];
 
-/*
-alphaSolidT table
-(
-    (544 1)
-    (545 0)
-);
-*/
-alphaSolidT
+internalField   uniform 0;
+
+boundaryField
 {
-    type    errorFunction;
-    Tsol    544;
-    Tliq    545;
+    walls
+    {
+        type            calculated;
+        value           uniform 5e+08;
+    }
+    frontAndBack
+    {
+        type            empty;
+    }
 }
 
-L       44600;
-
-Tsol    544;
-
-Tliq    545;
-
-Cu      100000;
-
-relax   0.7;
 
 // ************************************************************************* //

@@ -32,14 +32,14 @@ divSchemes
     div(phi,alpha)  Gauss MPLIC;
 
     div(rhoPhi,U)   Gauss limitedLinear 1;
-    div(rhoPhi,bismuth)   Gauss limitedLinear 1;
+    div(rhoPhi,alpha)   Gauss limitedLinear 1;
 
     div(alphaRhoPhi,h) Gauss limitedLinear 1;
     div(alphaRhoPhi,T) Gauss limitedLinear 1;
 
     div(rhoPhi,K)   Gauss upwind;
     div(phi,p)      Gauss upwind;
-    
+
     div(((rho*nuEff)*dev2(T(grad(U))))) Gauss linear;
 }
 

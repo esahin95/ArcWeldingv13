@@ -1,0 +1,7 @@
+DTRMParticle/DTRMParticle.C
+DTRMParticle/DTRMParticleIO.C
+DTRMParticle/DTRMParticleCloud.C
+
+laserDTRM.C
+
+LIB = $(FOAM_USER_LIBBIN)/liblaserDTRM

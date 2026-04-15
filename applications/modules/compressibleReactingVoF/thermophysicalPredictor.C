@@ -90,61 +90,75 @@ void Foam::solvers::compressibleReactingVoF::thermophysicalPredictor()
       + (e2Source&e2)
     );
 
-    TEqn.relax();
+    //TEqn.relax();
 
-    fvConstraints().constrain(TEqn);
+    //fvConstraints().constrain(TEqn);
 
-    label iter(0);
+    label iter = 0;
     scalar res;
-    do 
+    do
     {
         T.storePrevIter();
         alphaSolid_.storePrevIter();
-        
+
         solve
         (
-            TEqn 
-            == 
+            TEqn
+            ==
             L_ * ((fvc::ddt(rho, alphaSolid_) + fvc::div(rhoPhi, alphaSolid_)))
         );
 
-        alphaSolid_.primitiveFieldRef() = 
-            min 
-            (
-                alphaVoF_,
-                alphaSolidT_->value(T.primitiveField())
-            );
-        alphaSolid_.relax(relax_);
-        alphaSolid_.correctBoundaryConditions();
-
-        res = 
-        gMax
+        tmp<volScalarField> Cp
         (
-            mag
-            (
-                  T.primitiveField() 
-                - T.prevIter().primitiveField()
-            )
+              alpha1 * mixture.thermo1().Cp()
+            + alpha2 * mixture.thermo2().Cp()
         );
+
+        tmp<volScalarField> Tcorr
+        (
+            Tliq_ - solidFraction_ * (Tliq_ - Tsol_)
+        );
+
+        solidFraction_ =
+            max
+            (
+                min
+                (
+                    solidFraction_ + relax_ * Cp / L_ * (Tcorr - T),
+                    1.0
+                ),
+                0.0
+            );
+        alphaSolid_ = solidFraction_ * alphaVoF_;
+
+        res =
+            gMax
+            (
+                mag
+                (
+                      T.primitiveField()
+                    - T.prevIter().primitiveField()
+                )
+            );
         Info<< "Maximum residual in temperature: " << res << endl;
 
-        res = 
+        res =
         gMax
         (
             mag
             (
-                  alphaSolid_.primitiveField() 
+                  alphaSolid_.primitiveField()
                 - alphaSolid_.prevIter().primitiveField()
             )
         );
         Info<< "Maximum residual in solid fraction: " << res << endl;
     }
-    while 
+    while
     (
-        ++iter < 1 && res > 1e-3
+        ++iter < 50 && res > 1e-5
     );
 
-    fvConstraints().constrain(T);
+    //fvConstraints().constrain(T);
 
     mixture_.correctThermo();
     mixture_.correct();

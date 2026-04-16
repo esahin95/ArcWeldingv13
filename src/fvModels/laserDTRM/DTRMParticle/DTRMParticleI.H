@@ -48,9 +48,14 @@ Foam::DTRMParticle::trackingData::alphaInterp() const
     return alphaInterp_;
 }
 
+inline Foam::scalar& Foam::DTRMParticle::trackingData::Q(label cellI)
+{
+    return Q_[cellI];
+}
+
 inline Foam::scalar Foam::DTRMParticle::q() const
 {
-    return q_;
+    return q0_;
 }
 
 

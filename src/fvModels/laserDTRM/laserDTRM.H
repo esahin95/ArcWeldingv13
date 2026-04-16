@@ -54,8 +54,6 @@ SourceFiles
 #include "fluidThermo.H"
 
 #include "Function1.H"
-//#include "Cloud.H"
-//#include "laserParticle.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -79,6 +77,9 @@ class laserDTRM
 
         //- Reference to the carrier phase thermo
         const fluidThermo& thermo_;
+
+        //- Reference to the carrier phase field
+        const volScalarField& alpha_;
 
         //- Total laser power
         const scalar Qtot_;

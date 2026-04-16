@@ -30,6 +30,9 @@ License
 #include "addToRunTimeSelectionTable.H"
 
 #include "zeroGradientFvPatchFields.H"
+#include "Cloud.H"
+#include "DTRMParticle.H"
+#include "fvcVolumeIntegrate.H"
 
 // * * * * * * * * * * * * * Static Member Functions * * * * * * * * * * * * //
 
@@ -68,6 +71,14 @@ Foam::fv::laserDTRM::laserDTRM
         mesh.lookupObject<fluidThermo>
         (
             IOobject::groupName(physicalProperties::typeName, phaseName_)
+        )
+    ),
+
+    alpha_
+    (
+        mesh.lookupObject<volScalarField>
+        (
+            IOobject::groupName("alpha", phaseName_)
         )
     ),
 
@@ -120,7 +131,7 @@ Foam::fv::laserDTRM::laserDTRM
             IOobject::AUTO_WRITE
         ),
         mesh,
-        dimensionedScalar(dimPower, 0.0),
+        dimensionedScalar(dimPower/dimVolume, 0.0),
         zeroGradientFvPatchScalarField::typeName
     ),
 
@@ -148,15 +159,138 @@ void Foam::fv::laserDTRM::correct()
     Q_ = Zero;
 
     // Populate the cloud
-    //IDLList
+    const meshSearch& searchEngine = meshSearch::New(mesh());
+
+    lagrangian::Cloud<DTRMParticle> cloud
+    (
+        mesh(),
+        "DTRMCloud",
+        IDLList<DTRMParticle>()
+    );
+
+    List<vector> positions(4, pos_->value(0.0));
+    positions[1].x() += 0.01;
+    positions[2].x() -= 0.01;
+    positions[3].x() += 0.02;
+
+    label nLocateBoundaryHits = 0;
+    forAll(positions, trackIndex)
+    {
+        const vector& position = positions[trackIndex];
+
+        const label cellI = searchEngine.findCell(position);
+
+        label candidate = -1;
+        if (cellI != -1)
+        {
+            candidate = Pstream::myProcNo();
+        }
+        label owner = returnReduce(candidate, maxOp<label>());
+        DebugInfo<< owner <<endl;
+
+        if (owner == Pstream::myProcNo())
+        {
+            cloud.addParticle(new DTRMParticle
+                (
+                    searchEngine,
+                    position,
+                    cellI,
+                    nLocateBoundaryHits,
+                    normal_,
+                    Qtot_,
+                    a_,
+                    trackIndex
+                )
+            );
+        }
+
+        if (owner == -1)
+        {
+            DebugInfo
+                <<"Cannot find owner cell for position = "
+                <<position<<endl;
+        }
+    }
+
+    /*
+    forAll(positions, trackIndex)
+    {
+        const vector& position = positions[trackIndex];
+
+        const label cellI = searchEngine.findCell(position);
+
+        if (cellI!=-1)
+        {
+            if
+            (
+                true//returnReduce(myProcNo, minOp<label>()) == Pstream::myProcNo()
+            )
+            {
+                cloud.addParticle(new DTRMParticle
+                    (
+                        searchEngine,
+                        position,
+                        cellI,
+                        nLocateBoundaryHits,
+                        normal_,
+                        Qtot_,
+                        a_,
+                        1
+                    )
+                );
+            }
+        }
+
+        if (returnReduce(cellI, maxOp<label>()) == -1)
+        {
+            DebugInfo
+                <<"Cannot find owner cell for position = "
+                <<position<<endl;
+        }
+
+        label inProc = cellI == -1? 0 : 1;
+        DebugInfo
+            << "Particle added "
+            << returnReduce(inProc, sumOp<label>())
+            << " times"
+            <<endl;
+    }
+    */
 
     // Tracking data
+    interpolationCellPoint<scalar> alphaInterp(alpha_);
+    DTRMParticle::trackingData td
+    (
+        cloud,
+        alphaInterp,
+        Q_
+    );
 
+    DebugInfo
+        << "Cloud size at start: "
+        << returnReduce(cloud.size(), sumOp<label>())
+        << endl;
 
     // Ray tracing
+    cloud.move(cloud, td);
 
+    DebugInfo
+        << "Cloud size at end: "
+        << returnReduce(cloud.size(), sumOp<label>())
+        << endl;
+    forAllConstIter(lagrangian::Cloud<DTRMParticle>, cloud, iter)
+    {
+        const DTRMParticle& p = iter();
+
+        DebugInfo<<p.position(mesh())<<endl;
+    }
 
     // Finalize computation
+    const scalarField& V = mesh().V();
+    forAll(Q_, cellI)
+    {
+        Q_[cellI] /= V[cellI];
+    }
 
     curTimeIndex_ = mesh().time().timeIndex();
 }
@@ -177,7 +311,14 @@ void Foam::fv::laserDTRM::addSup
 
     if (&he == &thermo_.he())
     {
-        Info<< "This part is called with: &he == &thermo_.he()" << endl;
+
+        if (debug)
+        {
+            const dimensionedScalar Qtot = fvc::domainIntegrate(Q_);
+            Info<< "Adding laser deposition to source: " << Qtot << endl;
+        }
+
+        eqn -= Q_;
     }
     else
     {

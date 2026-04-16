@@ -44,6 +44,8 @@ SourceFiles
 #include "interpolationCellPoint.H"
 #include "contiguous.H"
 
+#include "meshSearch.H"
+
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam
@@ -69,16 +71,14 @@ class DTRMParticle
         //- Size in bytes of the fields
         static const std::size_t sizeofFields_;
 
-        /*
         //- Initial power
-        const scalar q0_;
+        scalar q0_;
 
         //- Track index
-        const label trackIndex_;
+        label trackIndex_;
 
         //- Absorption rate at reflection
-        const scalar a_;
-        */
+        scalar a_;
 
         //- Current power
         scalar q_;
@@ -120,6 +120,8 @@ public:
         // Member Functions
 
             inline const interpolationCellPoint<scalar>& alphaInterp() const;
+
+            inline scalar& Q(label cellI);
     };
 
 
@@ -130,17 +132,17 @@ public:
     // Constructors
 
         //- Construct from components
-        /*
         DTRMParticle
         (
-            const polyMesh& mesh,
+            const meshSearch& searchEngine,
             const vector& position,
+            const label cellI,
+            label& nLocateBoundaryHits,
             const vector& direction,
             const scalar power,
             const scalar absorption,
             const label trackIndex
         );
-        */
 
         //- Construct from Istream
         DTRMParticle(Istream& is, bool readFields = true);

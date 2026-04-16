@@ -45,12 +45,12 @@ Foam::DTRMParticle::DTRMParticle(Istream& is, bool readFields)
     {
         if (is.format() == IOstream::ASCII)
         {
-            q_ = readScalar(is);
-            is >> d_;
+            q0_ = readScalar(is);
+            is >> trackIndex_ >> a_ >> q_ >> d_;
         }
         else
         {
-            is.read(reinterpret_cast<char*>(&q_), sizeofFields_);
+            is.read(reinterpret_cast<char*>(&q0_), sizeofFields_);
         }
     }
 
@@ -114,7 +114,7 @@ Foam::Ostream& Foam::operator<<(Ostream& os, const DTRMParticle& p)
     if (os.format() == IOstream::ASCII)
     {
         os  << static_cast<const particle&>(p)
-            << token::SPACE << p.q_
+            << token::SPACE << p.q0_
             << token::SPACE << p.d_;
     }
     else
@@ -122,7 +122,7 @@ Foam::Ostream& Foam::operator<<(Ostream& os, const DTRMParticle& p)
         os  << static_cast<const particle&>(p);
         os.write
         (
-            reinterpret_cast<const char*>(&p.q_),
+            reinterpret_cast<const char*>(&p.q0_),
             DTRMParticle::sizeofFields_
         );
     }

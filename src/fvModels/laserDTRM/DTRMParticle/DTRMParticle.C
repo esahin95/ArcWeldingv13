@@ -33,6 +33,29 @@ namespace Foam
 }
 
 
+// * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
+
+Foam::DTRMParticle::DTRMParticle
+(
+    const meshSearch& searchEngine,
+    const vector& position,
+    const label cellI,
+    label& nLocateBoundaryHits,
+    const vector& direction,
+    const scalar power,
+    const scalar absorption,
+    const label trackIndex
+)
+:
+    particle(searchEngine, position, cellI, nLocateBoundaryHits),
+    q0_(power),
+    trackIndex_(trackIndex),
+    a_(absorption),
+    q_(power),
+    d_(direction)
+{}
+
+
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
 bool Foam::DTRMParticle::move
@@ -52,7 +75,40 @@ bool Foam::DTRMParticle::move
         {
             Info<< "Time = " << td.mesh.time().name()
                 << " trackTime = " << trackTime
-                << " stepFraction() = " << stepFraction() << endl;
+                << " stepFraction() = " << stepFraction()
+                << " trackIndex = "<< trackIndex_ << endl;
+        }
+
+        scalar alpha = td.alphaInterp().interpolate
+            (
+                this->coordinates(),
+                this->currentTetIndices(td.mesh)
+            );
+
+        DebugInfo<<"Tracking alpha: "<< alpha;
+        while
+        (
+            alpha > 0.5 &&
+            td.keepParticle && td.sendToProc == -1 && stepFraction() < 1
+        )
+        {
+            trackToAndHitFace(d_, 1.0, cloud, td);
+
+            alpha = td.alphaInterp().interpolate
+                (
+                    this->coordinates(),
+                    this->currentTetIndices(td.mesh)
+                );
+
+            DebugInfo<< " " << alpha;
+        }
+        DebugInfo<<endl;
+
+        if (alpha <= 0.5)
+        {
+            td.Q(this->cell()) += q_;
+            q_ = Zero;
+            stepFraction() = 1.0;
         }
 
         /*
@@ -83,8 +139,6 @@ bool Foam::DTRMParticle::move
 
         U_ = (U_ + dt*(Dc*Uc + (1.0 - rhoc/rhop)*td.g()))/(1.0 + dt*Dc);
         */
-
-        td.keepParticle = false;
     }
 
     return td.keepParticle;

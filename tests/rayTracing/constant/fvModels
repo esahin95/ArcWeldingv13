@@ -26,9 +26,9 @@ laser
 
     Q 1.0;
 
-    nRays 1;
+    nRays 4;
 
-    radius 0.01;
+    radius 0.1;
 
     absorption 1.0;
 

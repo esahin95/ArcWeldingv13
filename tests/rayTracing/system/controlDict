@@ -57,8 +57,11 @@ maxDeltaT       1;
 
 DebugSwitches
 {
-    MULES       1;
     laserDTRM   1;
     DTRMParticle 1;
-    Cloud       1;
+}
+
+OptimisationSwitches
+{
+    fileHandler collated;
 }

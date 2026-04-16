@@ -158,7 +158,6 @@ void Foam::fv::laserDTRM::correct()
 
     Q_ = Zero;
 
-    // Populate the cloud
     const meshSearch& searchEngine = meshSearch::New(mesh());
 
     lagrangian::Cloud<DTRMParticle> cloud
@@ -168,11 +167,37 @@ void Foam::fv::laserDTRM::correct()
         IDLList<DTRMParticle>()
     );
 
-    List<vector> positions(4, pos_->value(0.0));
-    positions[1].x() += 0.01;
-    positions[2].x() -= 0.01;
-    positions[3].x() += 0.02;
+    // Compute particle positions
+    List<vector> positions
+    (
+        nRays_, pos_->value(mesh().time().value())
+    );
 
+    randomGenerator rndGen(261782, true);
+
+    forAll(positions, trackIndex)
+    {
+        // Rejection sampling from arbitrary distribution
+        vector delta;
+        scalar deltaMag;
+        do
+        {
+            delta =
+                  radial1_ * rndGen.scalarAB(-rad_, rad_)
+                + radial2_ * rndGen.scalarAB(-rad_, rad_);
+
+            deltaMag = mag(delta);
+        }
+        while
+        (
+            deltaMag > rad_ ||
+            rndGen.scalar01() > powerDist_->value(deltaMag)
+        );
+
+        positions[trackIndex] += delta;
+    }
+
+    // Populate cloud
     label nLocateBoundaryHits = 0;
     forAll(positions, trackIndex)
     {
@@ -180,14 +205,9 @@ void Foam::fv::laserDTRM::correct()
 
         const label cellI = searchEngine.findCell(position);
 
-        label candidate = -1;
-        if (cellI != -1)
-        {
-            candidate = Pstream::myProcNo();
-        }
+        // Generate particle for a single processor only
+        label candidate = cellI!=-1? Pstream::myProcNo() : -1;
         label owner = returnReduce(candidate, maxOp<label>());
-        DebugInfo<< owner <<endl;
-
         if (owner == Pstream::myProcNo())
         {
             cloud.addParticle(new DTRMParticle
@@ -203,59 +223,7 @@ void Foam::fv::laserDTRM::correct()
                 )
             );
         }
-
-        if (owner == -1)
-        {
-            DebugInfo
-                <<"Cannot find owner cell for position = "
-                <<position<<endl;
-        }
     }
-
-    /*
-    forAll(positions, trackIndex)
-    {
-        const vector& position = positions[trackIndex];
-
-        const label cellI = searchEngine.findCell(position);
-
-        if (cellI!=-1)
-        {
-            if
-            (
-                true//returnReduce(myProcNo, minOp<label>()) == Pstream::myProcNo()
-            )
-            {
-                cloud.addParticle(new DTRMParticle
-                    (
-                        searchEngine,
-                        position,
-                        cellI,
-                        nLocateBoundaryHits,
-                        normal_,
-                        Qtot_,
-                        a_,
-                        1
-                    )
-                );
-            }
-        }
-
-        if (returnReduce(cellI, maxOp<label>()) == -1)
-        {
-            DebugInfo
-                <<"Cannot find owner cell for position = "
-                <<position<<endl;
-        }
-
-        label inProc = cellI == -1? 0 : 1;
-        DebugInfo
-            << "Particle added "
-            << returnReduce(inProc, sumOp<label>())
-            << " times"
-            <<endl;
-    }
-    */
 
     // Tracking data
     interpolationCellPoint<scalar> alphaInterp(alpha_);
@@ -278,19 +246,18 @@ void Foam::fv::laserDTRM::correct()
         << "Cloud size at end: "
         << returnReduce(cloud.size(), sumOp<label>())
         << endl;
+
+    /*
     forAllConstIter(lagrangian::Cloud<DTRMParticle>, cloud, iter)
     {
         const DTRMParticle& p = iter();
 
         DebugInfo<<p.position(mesh())<<endl;
     }
+    */
 
     // Finalize computation
-    const scalarField& V = mesh().V();
-    forAll(Q_, cellI)
-    {
-        Q_[cellI] /= V[cellI];
-    }
+    Q_.primitiveFieldRef() /= mesh().V().primitiveField();
 
     curTimeIndex_ = mesh().time().timeIndex();
 }

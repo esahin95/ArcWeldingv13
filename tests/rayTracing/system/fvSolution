@@ -98,6 +98,8 @@ PIMPLE
     nOuterCorrectors 1;
     nCorrectors     3;
     nNonOrthogonalCorrectors 0;
+
+    flow false;
 }
 
 

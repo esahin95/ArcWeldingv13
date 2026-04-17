@@ -33,6 +33,30 @@ License
 #include "Cloud.H"
 #include "DTRMParticle.H"
 #include "fvcVolumeIntegrate.H"
+#include "writeFile.H"
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+namespace Foam
+{
+
+template<class Type>
+void gatherAndFlatten(DynamicField<Type>& field)
+{
+    List<List<Type>> gatheredField(Pstream::nProcs());
+    gatheredField[Pstream::myProcNo()] = field;
+    Pstream::gatherList(gatheredField);
+
+    field =
+        ListListOps::combine<List<Type>>
+        (
+            gatheredField,
+            accessOp<List<Type>>()
+        );
+}
+
+}
+
 
 // * * * * * * * * * * * * * Static Member Functions * * * * * * * * * * * * //
 
@@ -48,6 +72,9 @@ namespace Foam
             laserDTRM,
             dictionary
         );
+
+
+        randomGenerator laserDTRM::rndGen_(261782, true);
     }
 }
 
@@ -135,9 +162,24 @@ Foam::fv::laserDTRM::laserDTRM
         zeroGradientFvPatchScalarField::typeName
     ),
 
-    curTimeIndex_(-1)
+    curTimeIndex_(-1),
+
+    formatterPtr_(setWriter::New(dict.lookup("setFormat"), dict)),
+
+    outputPath_
+    (
+        mesh().time().globalPath()
+        /functionObjects::writeFile::outputPrefix
+        /name()
+    ),
+
+    allPositions_(),
+    allTracks_(),
+    allPowers_()
 {
     Q_.oldTime();
+
+    mkDir(outputPath_);
 }
 
 
@@ -166,14 +208,13 @@ void Foam::fv::laserDTRM::correct()
         "DTRMCloud",
         IDLList<DTRMParticle>()
     );
+    DTRMParticle::nParticles = 0;
 
     // Compute particle positions
     List<vector> positions
     (
         nRays_, pos_->value(mesh().time().value())
     );
-
-    randomGenerator rndGen(261782, true);
 
     forAll(positions, trackIndex)
     {
@@ -183,15 +224,15 @@ void Foam::fv::laserDTRM::correct()
         do
         {
             delta =
-                  radial1_ * rndGen.scalarAB(-rad_, rad_)
-                + radial2_ * rndGen.scalarAB(-rad_, rad_);
+                  radial1_ * rndGen_.scalarAB(-rad_, rad_)
+                + radial2_ * rndGen_.scalarAB(-rad_, rad_);
 
             deltaMag = mag(delta);
         }
         while
         (
             deltaMag > rad_ ||
-            rndGen.scalar01() > powerDist_->value(deltaMag)
+            rndGen_.scalar01() > powerDist_->value(deltaMag)
         );
 
         positions[trackIndex] += delta;
@@ -218,8 +259,7 @@ void Foam::fv::laserDTRM::correct()
                     nLocateBoundaryHits,
                     normal_,
                     Qtot_,
-                    a_,
-                    trackIndex
+                    a_
                 )
             );
         }
@@ -227,11 +267,17 @@ void Foam::fv::laserDTRM::correct()
 
     // Tracking data
     interpolationCellPoint<scalar> alphaInterp(alpha_);
+    allPositions_.clear();
+    allTracks_.clear();
+    allPowers_.clear();
     DTRMParticle::trackingData td
     (
         cloud,
         alphaInterp,
-        Q_
+        Q_,
+        allPositions_,
+        allTracks_,
+        allPowers_
     );
 
     DebugInfo
@@ -247,14 +293,17 @@ void Foam::fv::laserDTRM::correct()
         << returnReduce(cloud.size(), sumOp<label>())
         << endl;
 
-    /*
+
+
     forAllConstIter(lagrangian::Cloud<DTRMParticle>, cloud, iter)
     {
         const DTRMParticle& p = iter();
 
-        DebugInfo<<p.position(mesh())<<endl;
+        //DebugInfo<<p.position(mesh())<<endl;
+        DebugInfo<< p << token::SPACE << p.position(mesh()) << endl;
     }
-    */
+
+
 
     // Finalize computation
     Q_.primitiveFieldRef() /= mesh().V().primitiveField();
@@ -312,6 +361,36 @@ bool Foam::fv::laserDTRM::movePoints()
 {
     return true;
 }
+
+bool Foam::fv::laserDTRM::write(const bool write) const
+ {
+    if (Pstream::parRun())
+    {
+        gatherAndFlatten(allPositions_);
+        gatherAndFlatten(allTracks_);
+        gatherAndFlatten(allPowers_);
+    }
+
+    if (Pstream::master() && allPositions_.size())
+    {
+        DebugInfo<< "Writing out rays for time "
+                 << mesh().time().name()
+                 << " in directory "
+                 << outputPath_
+                 <<endl;
+
+        formatterPtr_->write
+        (
+            outputPath_,
+            mesh().time().name(),
+            coordSet(allTracks_, word::null, allPositions_),
+            "Power",
+            allPowers_
+        );
+    }
+
+    return true;
+ }
 
 
 // ************************************************************************* //

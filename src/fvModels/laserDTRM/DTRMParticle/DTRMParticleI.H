@@ -31,12 +31,18 @@ inline Foam::DTRMParticle::trackingData::trackingData
 (
     const lagrangian::Cloud<DTRMParticle>& cloud,
     const interpolationCellPoint<scalar>& alphaInterp,
-    volScalarField& Q
+    volScalarField& Q,
+    DynamicField<vector>& allPositions,
+    DynamicField<label>& allTracks,
+    DynamicField<scalar>& allPowers
 )
 :
     particle::trackingData(cloud),
     alphaInterp_(alphaInterp),
-    Q_(Q)
+    Q_(Q),
+    allPositions_(allPositions),
+    allTracks_(allTracks),
+    allPowers_(allPowers)
 {}
 
 
@@ -53,16 +59,16 @@ inline Foam::scalar& Foam::DTRMParticle::trackingData::Q(label cellI)
     return Q_[cellI];
 }
 
-inline Foam::scalar Foam::DTRMParticle::q() const
+inline void Foam::DTRMParticle::trackingData::append
+(
+    vector position,
+    label trackIndex,
+    scalar power
+)
 {
-    return q0_;
+    allPositions_.append(position);
+    allTracks_.append(trackIndex);
+    allPowers_.append(power);
 }
-
-
-inline const Foam::vector& Foam::DTRMParticle::d() const
-{
-    return d_;
-}
-
 
 // ************************************************************************* //

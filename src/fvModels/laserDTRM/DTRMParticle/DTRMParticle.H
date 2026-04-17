@@ -45,6 +45,7 @@ SourceFiles
 #include "contiguous.H"
 
 #include "meshSearch.H"
+#include "DynamicField.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -89,6 +90,9 @@ class DTRMParticle
 
 public:
 
+    static label nParticles;
+
+
     friend class lagrangian::Cloud<DTRMParticle>;
 
 
@@ -105,6 +109,12 @@ public:
 
             volScalarField& Q_;
 
+        // Ray tracing
+
+            DynamicField<vector>& allPositions_;
+            DynamicField<label>& allTracks_;
+            DynamicField<scalar>& allPowers_;
+
     public:
 
         // Constructors
@@ -113,7 +123,10 @@ public:
             (
                 const lagrangian::Cloud<DTRMParticle>& cloud,
                 const interpolationCellPoint<scalar>& alphaInterp_,
-                volScalarField& Q
+                volScalarField& Q,
+                DynamicField<vector>& allPositions,
+                DynamicField<label>& allTracks,
+                DynamicField<scalar>& allPowers
             );
 
 
@@ -122,6 +135,13 @@ public:
             inline const interpolationCellPoint<scalar>& alphaInterp() const;
 
             inline scalar& Q(label cellI);
+
+            inline void append
+            (
+                vector position,
+                label trackIndex,
+                scalar power
+            );
     };
 
 
@@ -140,8 +160,7 @@ public:
             label& nLocateBoundaryHits,
             const vector& direction,
             const scalar power,
-            const scalar absorption,
-            const label trackIndex
+            const scalar absorption
         );
 
         //- Construct from Istream
@@ -165,10 +184,10 @@ public:
         // Access
 
             //- Return power
-            inline scalar q() const;
+            //inline scalar q() const;
 
             //- Return direction
-            inline const vector& d() const;
+            //inline const vector& d() const;
 
 
         // Tracking
@@ -181,13 +200,6 @@ public:
 
             //- Overridable function to handle the particle hitting a wallPatch
             void hitWallPatch(lagrangian::Cloud<DTRMParticle>& cloud, trackingData& td);
-
-
-    // I-O
-
-        //static void readFields(lagrangian::Cloud<DTRMParticle>& c);
-
-        //static void writeFields(const lagrangian::Cloud<DTRMParticle>& c);
 
 
     // Ostream Operator

@@ -24,7 +24,6 @@ License
 \*---------------------------------------------------------------------------*/
 
 #include "DTRMParticle.H"
-//#include "Cloud.H"
 #include "IOstreams.H"
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
@@ -58,55 +57,6 @@ Foam::DTRMParticle::DTRMParticle(Istream& is, bool readFields)
     is.check("DTRMParticle::DTRMParticle(Istream&)");
 }
 
-/*
-void Foam::DTRMParticle::readFields(lagrangian::Cloud<DTRMParticle>& c)
-{
-    bool valid = c.size();
-
-    particle::readFields(c);
-
-    IOField<scalar> q(c.fieldIOobject("q", IOobject::MUST_READ), valid);
-    c.checkFieldIOobject(c, q);
-
-    IOField<vector> d(c.fieldIOobject("d", IOobject::MUST_READ), valid);
-    c.checkFieldIOobject(c, d);
-
-    label i = 0;
-    forAllIter(lagrangian::Cloud<DTRMParticle>, c, iter)
-    {
-        DTRMParticle& p = iter();
-
-        p.q_ = q[i];
-        p.d_ = d[i];
-        i++;
-    }
-}
-
-
-void Foam::DTRMParticle::writeFields(const lagrangian::Cloud<DTRMParticle>& c)
-{
-    particle::writeFields(c);
-
-    label np = c.size();
-
-    IOField<scalar> q(c.fieldIOobject("q", IOobject::NO_READ), np);
-    IOField<vector> d(c.fieldIOobject("d", IOobject::NO_READ), np);
-
-    label i = 0;
-    forAllConstIter(lagrangian::Cloud<DTRMParticle>, c, iter)
-    {
-        const DTRMParticle& p = iter();
-
-        q[i] = p.q_;
-        d[i] = p.d_;
-        i++;
-    }
-
-    q.write(np > 0);
-    d.write(np > 0);
-}
-*/
-
 // * * * * * * * * * * * * * * * IOstream Operators  * * * * * * * * * * * * //
 
 Foam::Ostream& Foam::operator<<(Ostream& os, const DTRMParticle& p)
@@ -115,6 +65,9 @@ Foam::Ostream& Foam::operator<<(Ostream& os, const DTRMParticle& p)
     {
         os  << static_cast<const particle&>(p)
             << token::SPACE << p.q0_
+            << token::SPACE << p.trackIndex_
+            << token::SPACE << p.a_
+            << token::SPACE << p.q_
             << token::SPACE << p.d_;
     }
     else

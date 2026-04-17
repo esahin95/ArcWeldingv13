@@ -30,6 +30,8 @@ License
 namespace Foam
 {
     defineTypeNameAndDebug(DTRMParticle, 0);
+
+    label DTRMParticle::nParticles = 0;
 }
 
 
@@ -43,13 +45,12 @@ Foam::DTRMParticle::DTRMParticle
     label& nLocateBoundaryHits,
     const vector& direction,
     const scalar power,
-    const scalar absorption,
-    const label trackIndex
+    const scalar absorption
 )
 :
     particle(searchEngine, position, cellI, nLocateBoundaryHits),
     q0_(power),
-    trackIndex_(trackIndex),
+    trackIndex_(nParticles++),
     a_(absorption),
     q_(power),
     d_(direction)
@@ -68,6 +69,16 @@ bool Foam::DTRMParticle::move
     td.sendToProc = -1;
 
     const scalar trackTime = td.mesh.time().deltaTValue();
+
+    // Initial position
+    td.append
+    (
+        this->position(td.mesh),
+        trackIndex_,
+        q_
+    );
+
+    const scalar limitAlpha = 0.5 + 0.001;
 
     while (td.keepParticle && td.sendToProc == -1 && stepFraction() < 1)
     {
@@ -88,7 +99,7 @@ bool Foam::DTRMParticle::move
         DebugInfo<<"Tracking alpha: "<< alpha;
         while
         (
-            alpha > 0.5 &&
+            alpha > limitAlpha &&
             td.keepParticle && td.sendToProc == -1 && stepFraction() < 1
         )
         {
@@ -104,41 +115,21 @@ bool Foam::DTRMParticle::move
         }
         DebugInfo<<endl;
 
-        if (alpha <= 0.5)
+        if (alpha <= limitAlpha)
         {
+            // Final position
+            td.append
+            (
+                this->position(td.mesh),
+                trackIndex_,
+                q_
+            );
+
+            // Reflection
             td.Q(this->cell()) += q_;
             q_ = Zero;
             stepFraction() = 1.0;
         }
-
-        /*
-        const scalar sfrac = stepFraction();
-
-        const scalar f = 1 - stepFraction();
-        trackToAndHitFace(f*trackTime*U_, f, cloud, td);
-
-        const scalar dt = (stepFraction() - sfrac)*trackTime;
-
-        const tetIndices tetIs = this->currentTetIndices(td.mesh);
-        scalar rhoc = td.rhoInterp().interpolate(this->coordinates(), tetIs);
-        vector Uc = td.UInterp().interpolate(this->coordinates(), tetIs);
-        scalar nuc = td.nuInterp().interpolate(this->coordinates(), tetIs);
-
-        scalar rhop = cloud.rhop();
-        scalar magUr = mag(Uc - U_);
-
-        scalar ReFunc = 1.0;
-        scalar Re = magUr*d_/nuc;
-
-        if (Re > 0.01)
-        {
-            ReFunc += 0.15*pow(Re, 0.687);
-        }
-
-        scalar Dc = (24.0*nuc/d_)*ReFunc*(3.0/4.0)*(rhoc/(d_*rhop));
-
-        U_ = (U_ + dt*(Dc*Uc + (1.0 - rhoc/rhop)*td.g()))/(1.0 + dt*Dc);
-        */
     }
 
     return td.keepParticle;

@@ -54,6 +54,9 @@ SourceFiles
 #include "fluidThermo.H"
 
 #include "Function1.H"
+#include "setWriter.H"
+#include "DynamicField.H"
+#include "randomGenerator.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -71,6 +74,9 @@ class laserDTRM
     public fvModel
 {
     // Private Data
+
+        //- Random number generator
+        static randomGenerator rndGen_;
 
         //- The name of the Lagrangian phase
         const word phaseName_;
@@ -114,6 +120,17 @@ class laserDTRM
 
         //- Current time index (used for updating)
         mutable label curTimeIndex_;
+
+        //- File writer
+        autoPtr<setWriter> formatterPtr_;
+
+        //- Output path
+        const fileName outputPath_;
+
+        //- Stored rays
+        mutable DynamicField<vector> allPositions_;
+        mutable DynamicField<label> allTracks_;
+        mutable DynamicField<scalar> allPowers_;
 
 
 public:
@@ -180,6 +197,10 @@ public:
 
             //- Update for mesh motion
             virtual bool movePoints();
+
+        // Ray tracing
+
+            bool write(const bool write) const;
 
 
     // Member Operators

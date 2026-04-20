@@ -78,9 +78,6 @@ class DTRMParticle
         //- Track index
         label trackIndex_;
 
-        //- Absorption rate at reflection
-        scalar a_;
-
         //- Current power
         scalar q_;
 
@@ -103,7 +100,7 @@ public:
     {
         // Interpolators for continuous phase fields
 
-            const interpolationCellPoint<scalar>& alphaInterp_;
+            const interpolationCellPoint<scalar>& absorpInterp_;
 
         // Reference to heat source
 
@@ -122,7 +119,7 @@ public:
             inline trackingData
             (
                 const lagrangian::Cloud<DTRMParticle>& cloud,
-                const interpolationCellPoint<scalar>& alphaInterp_,
+                const interpolationCellPoint<scalar>& absorpInterp_,
                 volScalarField& Q,
                 DynamicField<vector>& allPositions,
                 DynamicField<label>& allTracks,
@@ -132,7 +129,7 @@ public:
 
         // Member Functions
 
-            inline const interpolationCellPoint<scalar>& alphaInterp() const;
+            inline const interpolationCellPoint<scalar>& absorpInterp() const;
 
             inline scalar& Q(label cellI);
 
@@ -159,8 +156,7 @@ public:
             const label cellI,
             label& nLocateBoundaryHits,
             const vector& direction,
-            const scalar power,
-            const scalar absorption
+            const scalar power
         );
 
         //- Construct from Istream

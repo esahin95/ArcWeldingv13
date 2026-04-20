@@ -73,7 +73,6 @@ namespace Foam
             dictionary
         );
 
-
         randomGenerator laserDTRM::rndGen_(261782, true);
     }
 }
@@ -145,7 +144,7 @@ Foam::fv::laserDTRM::laserDTRM
 
     relax_(dict.lookupOrDefault<scalar>("relax", 1.0)),
 
-    a_(dict.lookupOrDefault<scalar>("absorption", 1.0)),
+    a_(dict.lookupOrDefault<scalar>("absorption", 1e+6)),
 
     Q_
     (
@@ -208,7 +207,7 @@ void Foam::fv::laserDTRM::correct()
         "DTRMCloud",
         IDLList<DTRMParticle>()
     );
-    DTRMParticle::nParticles = 0;
+    DTRMParticle::nParticles = 0; // Maybe rename to nTracks
 
     // Compute particle positions
     List<vector> positions
@@ -258,52 +257,47 @@ void Foam::fv::laserDTRM::correct()
                     cellI,
                     nLocateBoundaryHits,
                     normal_,
-                    Qtot_,
-                    a_
+                    Qtot_ / nRays_
                 )
             );
         }
     }
 
     // Tracking data
-    interpolationCellPoint<scalar> alphaInterp(alpha_);
+    interpolationCellPoint<scalar> absorpInterp(a_ * (1 - alpha_));
     allPositions_.clear();
     allTracks_.clear();
     allPowers_.clear();
     DTRMParticle::trackingData td
     (
         cloud,
-        alphaInterp,
+        absorpInterp,
         Q_,
         allPositions_,
         allTracks_,
         allPowers_
     );
-
+    /*
     DebugInfo
         << "Cloud size at start: "
         << returnReduce(cloud.size(), sumOp<label>())
         << endl;
-
+    */
     // Ray tracing
     cloud.move(cloud, td);
-
+    /*
     DebugInfo
         << "Cloud size at end: "
         << returnReduce(cloud.size(), sumOp<label>())
         << endl;
-
-
-
+    */
+    /*
     forAllConstIter(lagrangian::Cloud<DTRMParticle>, cloud, iter)
     {
         const DTRMParticle& p = iter();
-
-        //DebugInfo<<p.position(mesh())<<endl;
         DebugInfo<< p << token::SPACE << p.position(mesh()) << endl;
     }
-
-
+    */
 
     // Finalize computation
     Q_.primitiveFieldRef() /= mesh().V().primitiveField();

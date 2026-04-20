@@ -30,7 +30,7 @@ License
 inline Foam::DTRMParticle::trackingData::trackingData
 (
     const lagrangian::Cloud<DTRMParticle>& cloud,
-    const interpolationCellPoint<scalar>& alphaInterp,
+    const interpolationCellPoint<scalar>& absorpInterp,
     volScalarField& Q,
     DynamicField<vector>& allPositions,
     DynamicField<label>& allTracks,
@@ -38,7 +38,7 @@ inline Foam::DTRMParticle::trackingData::trackingData
 )
 :
     particle::trackingData(cloud),
-    alphaInterp_(alphaInterp),
+    absorpInterp_(absorpInterp),
     Q_(Q),
     allPositions_(allPositions),
     allTracks_(allTracks),
@@ -49,9 +49,9 @@ inline Foam::DTRMParticle::trackingData::trackingData
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
 inline const Foam::interpolationCellPoint<Foam::scalar>&
-Foam::DTRMParticle::trackingData::alphaInterp() const
+Foam::DTRMParticle::trackingData::absorpInterp() const
 {
-    return alphaInterp_;
+    return absorpInterp_;
 }
 
 inline Foam::scalar& Foam::DTRMParticle::trackingData::Q(label cellI)

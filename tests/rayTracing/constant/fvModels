@@ -26,11 +26,11 @@ laser
 
     Q 1.0;
 
-    nRays 4;
+    nRays 400;
 
     radius 0.1;
 
-    absorption 1.0;
+    absorption 1e+6;
 
     powerDist constant 1;
 

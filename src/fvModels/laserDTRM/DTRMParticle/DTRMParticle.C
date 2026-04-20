@@ -44,14 +44,12 @@ Foam::DTRMParticle::DTRMParticle
     const label cellI,
     label& nLocateBoundaryHits,
     const vector& direction,
-    const scalar power,
-    const scalar absorption
+    const scalar power
 )
 :
     particle(searchEngine, position, cellI, nLocateBoundaryHits),
     q0_(power),
     trackIndex_(nParticles++),
-    a_(absorption),
     q_(power),
     d_(direction)
 {}
@@ -68,7 +66,7 @@ bool Foam::DTRMParticle::move
     td.keepParticle = true;
     td.sendToProc = -1;
 
-    const scalar trackTime = td.mesh.time().deltaTValue();
+    //const scalar trackTime = td.mesh.time().deltaTValue();
 
     // Initial position
     td.append
@@ -78,10 +76,13 @@ bool Foam::DTRMParticle::move
         q_
     );
 
-    const scalar limitAlpha = 0.5 + 0.001;
-
-    while (td.keepParticle && td.sendToProc == -1 && stepFraction() < 1)
+    while
+    (
+        q_ > 0.01 * q0_ &&
+        td.keepParticle && td.sendToProc == -1 && stepFraction() < 1
+    )
     {
+        /*
         if (debug)
         {
             Info<< "Time = " << td.mesh.time().name()
@@ -89,47 +90,38 @@ bool Foam::DTRMParticle::move
                 << " stepFraction() = " << stepFraction()
                 << " trackIndex = "<< trackIndex_ << endl;
         }
+        */
 
-        scalar alpha = td.alphaInterp().interpolate
+        // Initial values
+        const scalar absorpOld = td.absorpInterp().interpolate
             (
                 this->coordinates(),
                 this->currentTetIndices(td.mesh)
             );
+        const label cellIOld = this->cell();
+        const vector posOld = this->position(td.mesh);
 
-        DebugInfo<<"Tracking alpha: "<< alpha;
-        while
+        // Track to new face and cell
+        trackToAndHitFace(d_, 1.0, cloud, td);
+        const vector pos = this->position(td.mesh);
+        const scalar ds = mag(pos - posOld);
+
+        // Handle reflection
+
+
+
+        // Laser power absorption in ray
+        const scalar qAbsorped = max(min(ds * absorpOld, 1.0), 0.0) * q_;
+        td.Q(cellIOld) += qAbsorped;
+        q_ -= qAbsorped;
+
+        // New position
+        td.append
         (
-            alpha > limitAlpha &&
-            td.keepParticle && td.sendToProc == -1 && stepFraction() < 1
-        )
-        {
-            trackToAndHitFace(d_, 1.0, cloud, td);
-
-            alpha = td.alphaInterp().interpolate
-                (
-                    this->coordinates(),
-                    this->currentTetIndices(td.mesh)
-                );
-
-            DebugInfo<< " " << alpha;
-        }
-        DebugInfo<<endl;
-
-        if (alpha <= limitAlpha)
-        {
-            // Final position
-            td.append
-            (
-                this->position(td.mesh),
-                trackIndex_,
-                q_
-            );
-
-            // Reflection
-            td.Q(this->cell()) += q_;
-            q_ = Zero;
-            stepFraction() = 1.0;
-        }
+            pos,
+            trackIndex_,
+            q_
+        );
     }
 
     return td.keepParticle;

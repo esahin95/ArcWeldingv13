@@ -45,7 +45,7 @@ Foam::DTRMParticle::DTRMParticle(Istream& is, bool readFields)
         if (is.format() == IOstream::ASCII)
         {
             q0_ = readScalar(is);
-            is >> trackIndex_ >> a_ >> q_ >> d_;
+            is >> trackIndex_ >> q_ >> d_;
         }
         else
         {
@@ -66,7 +66,6 @@ Foam::Ostream& Foam::operator<<(Ostream& os, const DTRMParticle& p)
         os  << static_cast<const particle&>(p)
             << token::SPACE << p.q0_
             << token::SPACE << p.trackIndex_
-            << token::SPACE << p.a_
             << token::SPACE << p.q_
             << token::SPACE << p.d_;
     }

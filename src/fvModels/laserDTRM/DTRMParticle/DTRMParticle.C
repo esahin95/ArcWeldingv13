@@ -44,15 +44,19 @@ Foam::DTRMParticle::DTRMParticle
     const label cellI,
     label& nLocateBoundaryHits,
     const vector& direction,
-    const scalar power
+    const scalar power,
+    const bool transmissive
 )
 :
     particle(searchEngine, position, cellI, nLocateBoundaryHits),
     q0_(power),
     trackIndex_(nParticles++),
     q_(power),
-    d_(direction)
-{}
+    d_(direction),
+    transmissive_(transmissive)
+{
+    this->reset(0.0);
+}
 
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
@@ -65,8 +69,6 @@ bool Foam::DTRMParticle::move
 {
     td.keepParticle = true;
     td.sendToProc = -1;
-
-    //const scalar trackTime = td.mesh.time().deltaTValue();
 
     // Initial position
     td.append
@@ -82,38 +84,109 @@ bool Foam::DTRMParticle::move
         td.keepParticle && td.sendToProc == -1 && stepFraction() < 1
     )
     {
-        /*
-        if (debug)
-        {
-            Info<< "Time = " << td.mesh.time().name()
-                << " trackTime = " << trackTime
-                << " stepFraction() = " << stepFraction()
-                << " trackIndex = "<< trackIndex_ << endl;
-        }
-        */
-
         // Initial values
+        const scalar alphaOld = td.alphaInterp().interpolate
+            (
+                this->coordinates(),
+                this->currentTetIndices(td.mesh)
+            );
         const scalar absorpOld = td.absorpInterp().interpolate
             (
                 this->coordinates(),
                 this->currentTetIndices(td.mesh)
             );
+        const label origProcOld = this->origProc();
         const label cellIOld = this->cell();
         const vector posOld = this->position(td.mesh);
 
         // Track to new face and cell
         trackToAndHitFace(d_, 1.0, cloud, td);
+
+        // New values
+        const scalar alpha = td.alphaInterp().interpolate
+            (
+                this->coordinates(),
+                this->currentTetIndices(td.mesh)
+            );
         const vector pos = this->position(td.mesh);
+
         const scalar ds = mag(pos - posOld);
 
         // Handle reflection
+        const scalar reflectivity = 0.5;
+        if (alphaOld > 0.5 && alpha <= 0.5)
+        {
+            // Bounds
+            vector lBound = posOld;
+            vector rBound = pos;
+            scalar al = alphaOld;
+            scalar ar = alpha;
+            DebugInfo<< "Reflection detected: " << al << " - " << ar;
 
+            // Initial interface guess
+            scalar t = (0.5 - ar) / (al - ar);
+            vector p = t * lBound + (1-t) * rBound;
+            scalar a = td.alphaInterp().interpolate(p, cellIOld);
+            DebugInfo<< " : " << a;
 
+            // Track interface position
+            label i = 0;
+            while (mag(a - 0.5) > 0.01)
+            {
+                if (a > 0.5)
+                {
+                    lBound = p;
+                    al = a;
+                }
+                else
+                {
+                    rBound = p;
+                    ar = a;
+                }
+
+                t = (0.5 - ar) / (al - ar);
+                p = t * lBound + (1-t) * rBound;
+                a = td.alphaInterp().interpolate(p, cellIOld);
+
+                i++;
+                if (i > 20)
+                {
+                    break;
+                }
+            }
+            DebugInfo<< " -> " << a << " i = " << i << endl;
+
+            // New particle at interface
+            vector nHat = td.nHatInterp().interpolate(p, cellIOld);
+            nHat /= mag(nHat);
+            const scalar qReflected = reflectivity * q_;
+            if (origProcOld == Pstream::myProcNo())
+            {
+                cloud.addParticle(new DTRMParticle
+                    (
+                        td.searchEngine,
+                        p,
+                        cellIOld,
+                        td.nLocateBoundaryHits,
+                        normalised(d_ - 2.0 * (nHat & d_) * nHat),
+                        qReflected,
+                        true
+                    )
+                );
+            }
+
+            q_ -= qReflected;
+
+            transmissive_ = false;
+        }
 
         // Laser power absorption in ray
-        const scalar qAbsorped = max(min(ds * absorpOld, 1.0), 0.0) * q_;
-        td.Q(cellIOld) += qAbsorped;
-        q_ -= qAbsorped;
+        if (!transmissive_)
+        {
+            const scalar qAbsorped = max(min(ds * absorpOld, 1.0), 0.0) * q_;
+            td.Q(cellIOld) += qAbsorped;
+            q_ -= qAbsorped;
+        }
 
         // New position
         td.append

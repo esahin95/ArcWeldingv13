@@ -57,7 +57,7 @@ maxDeltaT       1;
 DebugSwitches
 {
     laserDTRM   1;
-    DTRMParticle 1;
+    DTRMParticle 0;
 }
 
 OptimisationSwitches

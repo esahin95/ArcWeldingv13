@@ -30,28 +30,48 @@ License
 inline Foam::DTRMParticle::trackingData::trackingData
 (
     const lagrangian::Cloud<DTRMParticle>& cloud,
+    const interpolationCellPoint<scalar>& alphaInterp,
     const interpolationCellPoint<scalar>& absorpInterp,
+    const interpolationCellPoint<vector>& nHatInterp,
     volScalarField& Q,
     DynamicField<vector>& allPositions,
     DynamicField<label>& allTracks,
-    DynamicField<scalar>& allPowers
+    DynamicField<scalar>& allPowers,
+    const meshSearch& searchEngine,
+    label& nLocateBoundaryHits
 )
 :
     particle::trackingData(cloud),
+    alphaInterp_(alphaInterp),
     absorpInterp_(absorpInterp),
+    nHatInterp_(nHatInterp),
     Q_(Q),
     allPositions_(allPositions),
     allTracks_(allTracks),
-    allPowers_(allPowers)
+    allPowers_(allPowers),
+    searchEngine(searchEngine),
+    nLocateBoundaryHits(nLocateBoundaryHits)
 {}
 
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
 inline const Foam::interpolationCellPoint<Foam::scalar>&
+Foam::DTRMParticle::trackingData::alphaInterp() const
+{
+    return alphaInterp_;
+}
+
+inline const Foam::interpolationCellPoint<Foam::scalar>&
 Foam::DTRMParticle::trackingData::absorpInterp() const
 {
     return absorpInterp_;
+}
+
+inline const Foam::interpolationCellPoint<Foam::vector>&
+Foam::DTRMParticle::trackingData::nHatInterp() const
+{
+    return nHatInterp_;
 }
 
 inline Foam::scalar& Foam::DTRMParticle::trackingData::Q(label cellI)
@@ -66,9 +86,12 @@ inline void Foam::DTRMParticle::trackingData::append
     scalar power
 )
 {
-    allPositions_.append(position);
-    allTracks_.append(trackIndex);
-    allPowers_.append(power);
+    if (mesh.time().writeTime())
+    {
+        allPositions_.append(position);
+        allTracks_.append(trackIndex);
+        allPowers_.append(power);
+    }
 }
 
 // ************************************************************************* //

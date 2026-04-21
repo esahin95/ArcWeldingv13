@@ -84,6 +84,9 @@ class DTRMParticle
         //- Direction
         vector d_;
 
+        //- Transmissivity
+        bool transmissive_;
+
 
 public:
 
@@ -100,7 +103,9 @@ public:
     {
         // Interpolators for continuous phase fields
 
+            const interpolationCellPoint<scalar>& alphaInterp_;
             const interpolationCellPoint<scalar>& absorpInterp_;
+            const interpolationCellPoint<vector>& nHatInterp_;
 
         // Reference to heat source
 
@@ -114,22 +119,36 @@ public:
 
     public:
 
+        // Public data
+
+            const meshSearch& searchEngine;
+
+            label& nLocateBoundaryHits;
+
         // Constructors
 
             inline trackingData
             (
                 const lagrangian::Cloud<DTRMParticle>& cloud,
+                const interpolationCellPoint<scalar>& alphaInterp_,
                 const interpolationCellPoint<scalar>& absorpInterp_,
+                const interpolationCellPoint<vector>& nHatInterp_,
                 volScalarField& Q,
                 DynamicField<vector>& allPositions,
                 DynamicField<label>& allTracks,
-                DynamicField<scalar>& allPowers
+                DynamicField<scalar>& allPowers,
+                const meshSearch& searchEngine,
+                label& nLocateBoundaryHits
             );
 
 
         // Member Functions
 
+            inline const interpolationCellPoint<scalar>& alphaInterp() const;
+
             inline const interpolationCellPoint<scalar>& absorpInterp() const;
+
+            inline const interpolationCellPoint<vector>& nHatInterp() const;
 
             inline scalar& Q(label cellI);
 
@@ -156,7 +175,8 @@ public:
             const label cellI,
             label& nLocateBoundaryHits,
             const vector& direction,
-            const scalar power
+            const scalar power,
+            const bool transmissive = true
         );
 
         //- Construct from Istream

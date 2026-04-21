@@ -34,6 +34,7 @@ License
 #include "DTRMParticle.H"
 #include "fvcVolumeIntegrate.H"
 #include "writeFile.H"
+#include "fvcGrad.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -264,43 +265,33 @@ void Foam::fv::laserDTRM::correct()
     }
 
     // Tracking data
+    interpolationCellPoint<scalar> alphaInterp(alpha_);
     interpolationCellPoint<scalar> absorpInterp(a_ * (1 - alpha_));
+    interpolationCellPoint<vector> nHatInterp(fvc::grad(alpha_));
     allPositions_.clear();
     allTracks_.clear();
     allPowers_.clear();
     DTRMParticle::trackingData td
     (
         cloud,
+        alphaInterp,
         absorpInterp,
+        nHatInterp,
         Q_,
         allPositions_,
         allTracks_,
-        allPowers_
+        allPowers_,
+        searchEngine,
+        nLocateBoundaryHits
     );
-    /*
-    DebugInfo
-        << "Cloud size at start: "
-        << returnReduce(cloud.size(), sumOp<label>())
-        << endl;
-    */
+
     // Ray tracing
     cloud.move(cloud, td);
-    /*
-    DebugInfo
-        << "Cloud size at end: "
-        << returnReduce(cloud.size(), sumOp<label>())
-        << endl;
-    */
-    /*
-    forAllConstIter(lagrangian::Cloud<DTRMParticle>, cloud, iter)
-    {
-        const DTRMParticle& p = iter();
-        DebugInfo<< p << token::SPACE << p.position(mesh()) << endl;
-    }
-    */
 
     // Finalize computation
     Q_.primitiveFieldRef() /= mesh().V().primitiveField();
+
+    Q_.relax(relax_);
 
     curTimeIndex_ = mesh().time().timeIndex();
 }

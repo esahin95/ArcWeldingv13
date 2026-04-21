@@ -30,7 +30,9 @@ laser
 
     radius 0.1;
 
-    absorption 1e+6;
+    absorption 1e+2;
+
+    reflectivity 0.5;
 
     powerDist constant 1;
 

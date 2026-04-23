@@ -177,11 +177,16 @@ public:
         //- Construct as a copy
         DTRMParticle(const DTRMParticle& p);
 
+        //- Disallow default bitwise copy construction
+        //DTRMParticle(const DTRMParticle&) = delete;
+
+        /*
         //- Construct and return a clone
         virtual autoPtr<particle> clone() const
         {
             return autoPtr<particle>(new DTRMParticle(*this));
         }
+        */
 
         //- Construct from Istream and return
         static autoPtr<DTRMParticle> New(Istream& is)

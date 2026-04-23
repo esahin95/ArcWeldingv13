@@ -266,7 +266,7 @@ void Foam::fv::laserDTRM::correct()
         }
     }
 
-    // Tracking data
+    // Tracking data fields
     const dimensionedScalar deltaN_
     (
         "deltaN_",
@@ -274,8 +274,11 @@ void Foam::fv::laserDTRM::correct()
     );
     volVectorField nHat = fvc::grad(alpha_);
     nHat /= (mag(nHat) + deltaN_);
+    volScalarField absorp = a_ * (1 - alpha_);
+
+    // Construct tracking data
     interpolationCellPoint<scalar> alphaInterp(alpha_);
-    interpolationCellPoint<scalar> absorpInterp(a_ * (1 - alpha_));
+    interpolationCellPoint<scalar> absorpInterp(absorp);
     interpolationCellPoint<vector> nHatInterp(nHat);
     allPositions_.clear();
     allTracks_.clear();

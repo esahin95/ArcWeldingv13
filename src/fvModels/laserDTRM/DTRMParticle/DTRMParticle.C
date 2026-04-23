@@ -62,7 +62,7 @@ Foam::DTRMParticle::DTRMParticle(const DTRMParticle& p)
 :
     particle(p),
     q0_(p.q0_),
-    trackIndex_(nParticles++),
+    trackIndex_(p.trackIndex_),
     q_(p.q_),
     d_(p.d_),
     transmissive_(p.transmissive_)
@@ -80,8 +80,6 @@ bool Foam::DTRMParticle::move
     td.keepParticle = true;
     td.sendToProc = -1;
 
-    //const label origProc = this->origProc();
-
     // Initial position
     td.append
     (
@@ -97,27 +95,31 @@ bool Foam::DTRMParticle::move
     )
     {
         // Initial data
+        const tetIndices oldTetIs = this->currentTetIndices(td.mesh);
         const scalar oldAlpha = td.alphaInterp().interpolate
             (
                 this->coordinates(),
-                this->currentTetIndices(td.mesh)
+                oldTetIs
             );
         const scalar oldAbsorp = td.absorpInterp().interpolate
             (
                 this->coordinates(),
-                this->currentTetIndices(td.mesh)
+                oldTetIs
             );
         const label oldCell = this->cell();
         const vector oldPos = this->position(td.mesh);
+        //const label oldProc = this->origProc();
 
         // Track to new face and cell
-        trackToFace(td.mesh, d_, 1.0);
+        //trackToFace(td.mesh, d_, 1.0);
+        trackToAndHitFace(d_, 1.0, cloud, td);
 
         // New data
+        const tetIndices tetIs = this->currentTetIndices(td.mesh);
         const scalar alpha = td.alphaInterp().interpolate
             (
                 this->coordinates(),
-                this->currentTetIndices(td.mesh)
+                tetIs
             );
         const vector pos = this->position(td.mesh);
 
@@ -127,9 +129,30 @@ bool Foam::DTRMParticle::move
         // Handle reflection
         const scalar reflectivity = 0.5;
         const scalar TOL = 1e-3;
-        if (oldAlpha >= 0.5 && alpha <= 0.5 && transmissive_)
+        if
+        (
+            oldAlpha >= 0.5 && alpha <= 0.5 && transmissive_
+        )
         {
-            DTRMParticle* pPtr(new DTRMParticle(*this));
+
+            const meshSearch& searchEngine = meshSearch::New(td.mesh);
+            label nLocateBoundaryHits = 0;
+
+            DTRMParticle* pPtr
+            (
+                new DTRMParticle
+                (
+                    searchEngine,
+                    oldPos,
+                    oldCell,
+                    nLocateBoundaryHits,
+                    d_,
+                    q0_,
+                    true
+                )
+            );
+
+            //DTRMParticle* pPtr(new DTRMParticle(*this));
 
             // Bounds
             vector lBound = oldPos;
@@ -142,7 +165,6 @@ bool Foam::DTRMParticle::move
             scalar t = (0.5 - ar) / (al - ar + TOL);
             vector p = t * lBound + (1-t) * rBound;
 
-            const meshSearch& searchEngine = meshSearch::New(td.mesh);
             pPtr->locate(searchEngine, p, oldCell);
             scalar a = td.alphaInterp().interpolate
                 (
@@ -191,15 +213,15 @@ bool Foam::DTRMParticle::move
                 );
             pPtr->d_ = normalised(d_ - 2.0 * (nHat & d_) * nHat);
             pPtr->q_ = reflectivity * q_;
-
-            //if (origProc == Pstream::myProcNo())
-            //{
-                cloud.addParticle(pPtr);
-            //}
-            //DebugInfo<<pPtr<<endl;
+            //DebugInfo<< "d: " << pPtr->d_ << ", q: " << pPtr->q_ << endl;
 
             q_ -= pPtr->q_;
             transmissive_ = false;
+
+            if (pPtr->cell() != -1)
+            {
+                cloud.addParticle(pPtr);
+            }
         }
 
         // Laser power absorption in ray
@@ -219,7 +241,7 @@ bool Foam::DTRMParticle::move
         );
 
         // Patch interactions
-        hitFace(d_, 1.0, cloud, td);
+        //hitFace(d_, 1.0, cloud, td);
     }
 
     return td.keepParticle;

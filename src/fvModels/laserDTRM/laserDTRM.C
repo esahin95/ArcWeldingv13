@@ -175,7 +175,8 @@ Foam::fv::laserDTRM::laserDTRM
 
     allPositions_(),
     allTracks_(),
-    allPowers_()
+    allPowers_(),
+    writeIndex_(-1)
 {
     Q_.oldTime();
 
@@ -198,6 +199,7 @@ void Foam::fv::laserDTRM::correct()
         return;
     }
 
+    Q_.storePrevIter();
     Q_ = Zero;
 
     const meshSearch& searchEngine = meshSearch::New(mesh());
@@ -265,9 +267,16 @@ void Foam::fv::laserDTRM::correct()
     }
 
     // Tracking data
+    const dimensionedScalar deltaN_
+    (
+        "deltaN_",
+        1e-8/pow(average(mesh().V()), 1.0/3.0)
+    );
+    volVectorField nHat = fvc::grad(alpha_);
+    nHat /= (mag(nHat) + deltaN_);
     interpolationCellPoint<scalar> alphaInterp(alpha_);
     interpolationCellPoint<scalar> absorpInterp(a_ * (1 - alpha_));
-    interpolationCellPoint<vector> nHatInterp(fvc::grad(alpha_));
+    interpolationCellPoint<vector> nHatInterp(nHat);
     allPositions_.clear();
     allTracks_.clear();
     allPowers_.clear();
@@ -280,9 +289,7 @@ void Foam::fv::laserDTRM::correct()
         Q_,
         allPositions_,
         allTracks_,
-        allPowers_,
-        searchEngine,
-        nLocateBoundaryHits
+        allPowers_
     );
 
     // Ray tracing
@@ -319,7 +326,7 @@ void Foam::fv::laserDTRM::addSup
             Info<< "Adding laser deposition to source: " << Qtot << endl;
         }
 
-        eqn -= Q_;
+        eqn += Q_;
     }
     else
     {
@@ -364,10 +371,11 @@ bool Foam::fv::laserDTRM::write(const bool write) const
                  << outputPath_
                  <<endl;
 
+        const word writeIndex = Time::timeName(++writeIndex_);
         formatterPtr_->write
         (
             outputPath_,
-            mesh().time().name(),
+            IOobject::groupName("traced", writeIndex),
             coordSet(allTracks_, word::null, allPositions_),
             "Power",
             allPowers_

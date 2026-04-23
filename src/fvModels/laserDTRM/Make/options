@@ -19,4 +19,6 @@ LIB_LIBS = \
     -lsampling \
     -lmeshTools \
     -lfiniteVolume \
-    -lfileFormats
+    -lfileFormats \
+    -lphysicalProperties \
+    -lfluidThermoThermophysicalTransportModels

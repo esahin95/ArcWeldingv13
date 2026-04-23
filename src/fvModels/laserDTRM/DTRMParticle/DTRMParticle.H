@@ -119,12 +119,6 @@ public:
 
     public:
 
-        // Public data
-
-            const meshSearch& searchEngine;
-
-            label& nLocateBoundaryHits;
-
         // Constructors
 
             inline trackingData
@@ -136,9 +130,7 @@ public:
                 volScalarField& Q,
                 DynamicField<vector>& allPositions,
                 DynamicField<label>& allTracks,
-                DynamicField<scalar>& allPowers,
-                const meshSearch& searchEngine,
-                label& nLocateBoundaryHits
+                DynamicField<scalar>& allPowers
             );
 
 
@@ -182,6 +174,9 @@ public:
         //- Construct from Istream
         DTRMParticle(Istream& is, bool readFields = true);
 
+        //- Construct as a copy
+        DTRMParticle(const DTRMParticle& p);
+
         //- Construct and return a clone
         virtual autoPtr<particle> clone() const
         {
@@ -213,6 +208,9 @@ public:
 
 
         // Patch interactions
+
+            //- Overridable function to handle the particle hitting a processorPatch
+            void hitProcessorPatch(lagrangian::Cloud<DTRMParticle>& cloud, trackingData& td);
 
             //- Overridable function to handle the particle hitting a wallPatch
             void hitWallPatch(lagrangian::Cloud<DTRMParticle>& cloud, trackingData& td);

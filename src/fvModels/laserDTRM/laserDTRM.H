@@ -131,6 +131,7 @@ class laserDTRM
         mutable DynamicField<vector> allPositions_;
         mutable DynamicField<label> allTracks_;
         mutable DynamicField<scalar> allPowers_;
+        mutable label writeIndex_;
 
 
 public:

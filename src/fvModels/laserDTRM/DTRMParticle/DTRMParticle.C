@@ -58,6 +58,16 @@ Foam::DTRMParticle::DTRMParticle
     this->reset(0.0);
 }
 
+Foam::DTRMParticle::DTRMParticle(const DTRMParticle& p)
+:
+    particle(p),
+    q0_(p.q0_),
+    trackIndex_(nParticles++),
+    q_(p.q_),
+    d_(p.d_),
+    transmissive_(p.transmissive_)
+{}
+
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
@@ -69,6 +79,8 @@ bool Foam::DTRMParticle::move
 {
     td.keepParticle = true;
     td.sendToProc = -1;
+
+    //const label origProc = this->origProc();
 
     // Initial position
     td.append
@@ -84,25 +96,24 @@ bool Foam::DTRMParticle::move
         td.keepParticle && td.sendToProc == -1 && stepFraction() < 1
     )
     {
-        // Initial values
-        const scalar alphaOld = td.alphaInterp().interpolate
+        // Initial data
+        const scalar oldAlpha = td.alphaInterp().interpolate
             (
                 this->coordinates(),
                 this->currentTetIndices(td.mesh)
             );
-        const scalar absorpOld = td.absorpInterp().interpolate
+        const scalar oldAbsorp = td.absorpInterp().interpolate
             (
                 this->coordinates(),
                 this->currentTetIndices(td.mesh)
             );
-        const label origProcOld = this->origProc();
-        const label cellIOld = this->cell();
-        const vector posOld = this->position(td.mesh);
+        const label oldCell = this->cell();
+        const vector oldPos = this->position(td.mesh);
 
         // Track to new face and cell
-        trackToAndHitFace(d_, 1.0, cloud, td);
+        trackToFace(td.mesh, d_, 1.0);
 
-        // New values
+        // New data
         const scalar alpha = td.alphaInterp().interpolate
             (
                 this->coordinates(),
@@ -110,28 +121,39 @@ bool Foam::DTRMParticle::move
             );
         const vector pos = this->position(td.mesh);
 
-        const scalar ds = mag(pos - posOld);
+        // Distance traveled by ray
+        const scalar ds = mag(pos - oldPos);
 
         // Handle reflection
         const scalar reflectivity = 0.5;
-        if (alphaOld > 0.5 && alpha <= 0.5)
+        const scalar TOL = 1e-3;
+        if (oldAlpha >= 0.5 && alpha <= 0.5 && transmissive_)
         {
+            DTRMParticle* pPtr(new DTRMParticle(*this));
+
             // Bounds
-            vector lBound = posOld;
+            vector lBound = oldPos;
             vector rBound = pos;
-            scalar al = alphaOld;
+            scalar al = oldAlpha;
             scalar ar = alpha;
             DebugInfo<< "Reflection detected: " << al << " - " << ar;
 
             // Initial interface guess
-            scalar t = (0.5 - ar) / (al - ar);
+            scalar t = (0.5 - ar) / (al - ar + TOL);
             vector p = t * lBound + (1-t) * rBound;
-            scalar a = td.alphaInterp().interpolate(p, cellIOld);
+
+            const meshSearch& searchEngine = meshSearch::New(td.mesh);
+            pPtr->locate(searchEngine, p, oldCell);
+            scalar a = td.alphaInterp().interpolate
+                (
+                    pPtr->coordinates(),
+                    pPtr->currentTetIndices(td.mesh)
+                );
             DebugInfo<< " : " << a;
 
             // Track interface position
             label i = 0;
-            while (mag(a - 0.5) > 0.01)
+            while (mag(a - 0.5) > TOL)
             {
                 if (a > 0.5)
                 {
@@ -144,9 +166,15 @@ bool Foam::DTRMParticle::move
                     ar = a;
                 }
 
-                t = (0.5 - ar) / (al - ar);
+                t = (0.5 - ar) / (al - ar + TOL);
                 p = t * lBound + (1-t) * rBound;
-                a = td.alphaInterp().interpolate(p, cellIOld);
+
+                pPtr->locate(searchEngine, p, oldCell);
+                a = td.alphaInterp().interpolate
+                (
+                    pPtr->coordinates(),
+                    pPtr->currentTetIndices(td.mesh)
+                );
 
                 i++;
                 if (i > 20)
@@ -156,35 +184,29 @@ bool Foam::DTRMParticle::move
             }
             DebugInfo<< " -> " << a << " i = " << i << endl;
 
-            // New particle at interface
-            vector nHat = td.nHatInterp().interpolate(p, cellIOld);
-            nHat /= mag(nHat);
-            const scalar qReflected = reflectivity * q_;
-            if (origProcOld == Pstream::myProcNo())
-            {
-                cloud.addParticle(new DTRMParticle
-                    (
-                        td.searchEngine,
-                        p,
-                        cellIOld,
-                        td.nLocateBoundaryHits,
-                        normalised(d_ - 2.0 * (nHat & d_) * nHat),
-                        qReflected,
-                        true
-                    )
+            vector nHat = td.nHatInterp().interpolate
+                (
+                    pPtr->coordinates(),
+                    pPtr->currentTetIndices(td.mesh)
                 );
-            }
+            pPtr->d_ = normalised(d_ - 2.0 * (nHat & d_) * nHat);
+            pPtr->q_ = reflectivity * q_;
 
-            q_ -= qReflected;
+            //if (origProc == Pstream::myProcNo())
+            //{
+                cloud.addParticle(pPtr);
+            //}
+            //DebugInfo<<pPtr<<endl;
 
+            q_ -= pPtr->q_;
             transmissive_ = false;
         }
 
         // Laser power absorption in ray
         if (!transmissive_)
         {
-            const scalar qAbsorped = max(min(ds * absorpOld, 1.0), 0.0) * q_;
-            td.Q(cellIOld) += qAbsorped;
+            const scalar qAbsorped = max(min(ds * oldAbsorp, 1.0), 0.0) * q_;
+            td.Q(oldCell) += qAbsorped;
             q_ -= qAbsorped;
         }
 
@@ -195,11 +217,30 @@ bool Foam::DTRMParticle::move
             trackIndex_,
             q_
         );
+
+        // Patch interactions
+        hitFace(d_, 1.0, cloud, td);
     }
 
     return td.keepParticle;
 }
 
+
+void Foam::DTRMParticle::hitProcessorPatch
+(
+    lagrangian::Cloud<DTRMParticle>& cloud,
+    trackingData& td
+)
+{
+    particle::hitProcessorPatch(cloud, td);
+
+    td.append
+    (
+        this->position(td.mesh),
+        trackIndex_,
+        q_
+    );
+}
 
 void Foam::DTRMParticle::hitWallPatch
 (
@@ -208,6 +249,13 @@ void Foam::DTRMParticle::hitWallPatch
 )
 {
     td.keepParticle = false;
+
+    td.append
+    (
+        this->position(td.mesh),
+        trackIndex_,
+        q_
+    );
 }
 
 

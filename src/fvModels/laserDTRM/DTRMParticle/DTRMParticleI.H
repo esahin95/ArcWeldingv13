@@ -36,9 +36,7 @@ inline Foam::DTRMParticle::trackingData::trackingData
     volScalarField& Q,
     DynamicField<vector>& allPositions,
     DynamicField<label>& allTracks,
-    DynamicField<scalar>& allPowers,
-    const meshSearch& searchEngine,
-    label& nLocateBoundaryHits
+    DynamicField<scalar>& allPowers
 )
 :
     particle::trackingData(cloud),
@@ -48,9 +46,7 @@ inline Foam::DTRMParticle::trackingData::trackingData
     Q_(Q),
     allPositions_(allPositions),
     allTracks_(allTracks),
-    allPowers_(allPowers),
-    searchEngine(searchEngine),
-    nLocateBoundaryHits(nLocateBoundaryHits)
+    allPowers_(allPowers)
 {}
 
 

@@ -279,6 +279,7 @@ void Foam::fv::laserDTRM::correct()
     // Construct tracking data
     interpolationCellPoint<scalar> alphaInterp(alpha_);
     interpolationCellPoint<scalar> absorpInterp(absorp);
+    //interpolationCellPoint<scalar> absorpInterp(a_ * (1 - alpha_));
     interpolationCellPoint<vector> nHatInterp(nHat);
     allPositions_.clear();
     allTracks_.clear();

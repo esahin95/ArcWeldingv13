@@ -66,7 +66,7 @@ DebugSwitches
 {
     MULES           1;
     laserDTRM       1;
-    DTRMParticle    1;
+    DTRMParticle    0;
 }
 
 OptimisationSwitches

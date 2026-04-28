@@ -27,76 +27,35 @@ License
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
-const dataType Foam::reflectionModel::staticData();
-
-
-// * * * * * * * * * * * * * Static Member Functions * * * * * * * * * * * * //
-
-
-// * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
-
-
-// * * * * * * * * * * * * Protected Member Functions  * * * * * * * * * * * //
+namespace Foam
+{
+    defineTypeNameAndDebug(reflectionModel, 0);
+    defineRunTimeSelectionTable(reflectionModel, dictionary);
+}
 
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
-Foam::reflectionModel::reflectionModel()
+Foam::reflectionModel::reflectionModel
+(
+    const dictionary& dict,
+    const fvMesh& mesh
+)
 :
-    baseClassName(),
-    data_()
-{}
-
-
-Foam::reflectionModel::reflectionModel(const dataType& data)
-:
-    baseClassName(),
-    data_(data)
-{}
-
-
-Foam::reflectionModel::reflectionModel(const reflectionModel&)
-:
-    baseClassName(),
-    data_()
-{}
-
-
-// * * * * * * * * * * * * * * * * Selectors * * * * * * * * * * * * * * * * //
-
-Foam::autoPtr<Foam::reflectionModel>
-Foam::reflectionModel::New()
-{
-    return autoPtr<reflectionModel>(new reflectionModel);
-}
-
-
-// * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //
-
-Foam::reflectionModel::~reflectionModel()
+    mesh_(mesh)
 {}
 
 
 // * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
 
-
-// * * * * * * * * * * * * * * Member Operators  * * * * * * * * * * * * * * //
-
-void Foam::reflectionModel::operator=(const reflectionModel& rhs)
+Foam::vector Foam::reflectionModel::R
+(
+    const vector& incident,
+    const vector& n
+) const
 {
-    // Check for assignment to self
-    if (this == &rhs)
-    {
-        FatalErrorInFunction
-            << "Attempted assignment to self"
-            << abort(FatalError);
-    }
+    return normalised(incident - 2.0 * (n & incident) * n);
 }
-
-// * * * * * * * * * * * * * * Friend Functions  * * * * * * * * * * * * * * //
-
-
-// * * * * * * * * * * * * * * Friend Operators * * * * * * * * * * * * * * //
 
 
 // ************************************************************************* //

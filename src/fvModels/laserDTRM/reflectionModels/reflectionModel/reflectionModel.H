@@ -36,61 +36,53 @@ SourceFiles
 #ifndef reflectionModel_H
 #define reflectionModel_H
 
-#include ".H"
+#include "IOdictionary.H"
+#include "runTimeSelectionTables.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam
 {
 
+
 // Forward declaration of classes
-class Istream;
-class Ostream;
-
-// Forward declaration of friend functions and operators
-class reflectionModel;
-Istream& operator>>(Istream&, reflectionModel&);
-Ostream& operator<<(Ostream&, const reflectionModel&);
-
+class fvMesh;
 
 /*---------------------------------------------------------------------------*\
                           Class reflectionModel Declaration
 \*---------------------------------------------------------------------------*/
 
 class reflectionModel
-:
-    public baseClassName
 {
     // Private Data
 
-        //- Description of data_
-        dataType data_;
-
-
-    // Private Member Functions
-
+        //- Constant reference to the mesh
+        const fvMesh& mesh_;
 
 public:
 
-    // Static Data Members
+    //- Runtime type information
+    TypeName("reflectionModel");
 
-        //- Static data staticData
-        static const dataType staticData;
+    // Declare run-time constructor selection table
+
+        declareRunTimeSelectionTable
+        (
+            autoPtr,
+            reflectionModel,
+            dictionary,
+            (
+                const dictionary& dict,
+                const fvMesh& mesh
+            ),
+            (dict, mesh)
+        );
 
 
     // Constructors
 
-        //- Construct null
-        reflectionModel();
-
         //- Construct from components
-        reflectionModel(const dataType& data);
-
-        //- Construct from Istream
-        reflectionModel(Istream&);
-
-        //- Copy constructor
-        reflectionModel(const reflectionModel&);
+        reflectionModel(const dictionary& dict, const fvMesh& mesh);
 
         //- Disallow default bitwise copy construction
         reflectionModel(const reflectionModel&) = delete;
@@ -99,50 +91,41 @@ public:
     // Selectors
 
         //- Select null constructed
-        static autoPtr<reflectionModel> New();
+        static autoPtr<reflectionModel> New
+        (
+            const dictionary& dict,
+            const fvMesh& mesh
+        );
 
 
     //- Destructor
-    ~reflectionModel();
+    virtual ~reflectionModel()
+    {}
 
 
     // Member Functions
 
-        // Access
+        // Reflected direction
+        virtual vector R
+        (
+            const vector& incident,
+            const vector& n
+        ) const;
 
-        // Check
-
-        // Edit
-
-        // Write
+        // Reflectivity
+        virtual scalar rho(const scalar incidentAngle) const = 0;
 
 
     // Member Operators
 
-        void operator=(const reflectionModel&);
-
         //- Disallow default bitwise assignment
         void operator=(const reflectionModel&) = delete;
-
-
-    // Friend Functions
-
-    // Friend Operators
-
-    // IOstream Operators
-
-        friend Istream& operator>>(Istream&, reflectionModel&);
-        friend Ostream& operator<<(Ostream&, const reflectionModel&);
 };
 
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 } // End namespace Foam
-
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
-#include "reflectionModelI.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

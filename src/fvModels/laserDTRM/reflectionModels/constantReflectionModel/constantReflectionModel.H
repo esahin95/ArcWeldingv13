@@ -22,127 +22,83 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::noReflection
+    Foam::reflectionModels::constant
 
 Description
 
 SourceFiles
-    noReflectionI.H
-    noReflection.C
-    noReflectionIO.C
+    constantReflectionModel.C
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef noReflection_H
-#define noReflection_H
+#ifndef constantReflectionModel_H
+#define constantReflectionModel_H
 
-#include ".H"
+#include "reflectionModel.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam
 {
-
-// Forward declaration of classes
-class Istream;
-class Ostream;
-
-// Forward declaration of friend functions and operators
-class noReflection;
-Istream& operator>>(Istream&, noReflection&);
-Ostream& operator<<(Ostream&, const noReflection&);
+namespace reflectionModels
+{
 
 
 /*---------------------------------------------------------------------------*\
-                          Class noReflection Declaration
+                          Class constantReflectionModel Declaration
 \*---------------------------------------------------------------------------*/
 
-class noReflection
+class constant
 :
-    public baseClassName
+    public reflectionModel
 {
     // Private Data
 
-        //- Description of data_
-        dataType data_;
-
-
-    // Private Member Functions
+        //- constant reflectivity
+        const scalar rho_;
 
 
 public:
 
-    // Static Data Members
-
-        //- Static data staticData
-        static const dataType staticData;
+    //- Runtime type information
+    TypeName("constant")
 
 
     // Constructors
 
-        //- Construct null
-        noReflection();
-
         //- Construct from components
-        noReflection(const dataType& data);
-
-        //- Construct from Istream
-        noReflection(Istream&);
-
-        //- Copy constructor
-        noReflection(const noReflection&);
+        constant
+        (
+            const dictionary& dict,
+            const fvMesh& mesh
+        );
 
         //- Disallow default bitwise copy construction
-        noReflection(const noReflection&) = delete;
-
-
-    // Selectors
-
-        //- Select null constructed
-        static autoPtr<noReflection> New();
+        constant(const constant&) = delete;
 
 
     //- Destructor
-    ~noReflection();
+    virtual ~constant()
+    {}
 
 
     // Member Functions
 
-        // Access
-
-        // Check
-
-        // Edit
-
-        // Write
+        // Reflectivity
+        virtual scalar rho(const scalar incidentAngle) const;
 
 
     // Member Operators
 
-        void operator=(const noReflection&);
-
         //- Disallow default bitwise assignment
-        void operator=(const noReflection&) = delete;
-
-
-    // Friend Functions
-
-    // Friend Operators
-
-    // IOstream Operators
-
-        friend Istream& operator>>(Istream&, noReflection&);
-        friend Ostream& operator<<(Ostream&, const noReflection&);
+        void operator=(const constant&) = delete;
 };
 
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
+} // End namespace reflectionModels
 } // End namespace Foam
-
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
-#include "noReflectionI.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

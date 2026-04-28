@@ -32,6 +32,12 @@ laser
 
     absorption 1e+2;
 
+    reflectionModel
+    {
+        type constant;
+        rho 0.5;
+    };
+
     reflectivity 0.5;
 
     powerDist constant 1;

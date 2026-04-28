@@ -23,6 +23,7 @@ startFrom       startTime;
 startTime       0;
 
 stopAt          endTime;
+//stopAt          nextWrite;
 
 endTime         0.02;
 
@@ -52,12 +53,15 @@ maxCo           0.5;
 maxAlphaCo      0.5;
 maxDeltaT       1;
 
+libs ("liblaserDTRM.so");
+
 // ************************************************************************* //
 
 DebugSwitches
 {
     laserDTRM   1;
     DTRMParticle 1;
+    constant 1;
 }
 
 OptimisationSwitches

@@ -58,6 +58,8 @@ SourceFiles
 #include "DynamicField.H"
 #include "randomGenerator.H"
 
+#include "reflectionModel.H"
+
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam
@@ -114,6 +116,9 @@ class laserDTRM
 
         //- Absorption rate
         const scalar a_;
+
+        //- Reflection model
+        const autoPtr<reflectionModel> reflectionModelPtr_;
 
         //- Laser power deposition field
         mutable volScalarField Q_;

@@ -147,6 +147,15 @@ Foam::fv::laserDTRM::laserDTRM
 
     a_(dict.lookupOrDefault<scalar>("absorption", 1e+6)),
 
+    reflectionModelPtr_
+    (
+        reflectionModel::New
+        (
+            dict.subDict("reflectionModel"),
+            mesh
+        )
+    ),
+
     Q_
     (
         IOobject
@@ -274,6 +283,7 @@ void Foam::fv::laserDTRM::correct()
     );
     volVectorField nHat = fvc::grad(alpha_);
     nHat /= (mag(nHat) + deltaN_);
+
     volScalarField absorp = a_ * (1 - alpha_);
 
     // Construct tracking data
@@ -293,7 +303,9 @@ void Foam::fv::laserDTRM::correct()
         Q_,
         allPositions_,
         allTracks_,
-        allPowers_
+        allPowers_,
+        searchEngine,
+        reflectionModelPtr_()
     );
 
     // Ray tracing

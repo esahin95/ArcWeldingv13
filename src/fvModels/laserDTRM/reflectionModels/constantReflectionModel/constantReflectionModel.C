@@ -23,80 +23,51 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-#include "noReflection.H"
+#include "constantReflectionModel.H"
+#include "addToRunTimeSelectionTable.H"
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
-const dataType Foam::noReflection::staticData();
-
-
-// * * * * * * * * * * * * * Static Member Functions * * * * * * * * * * * * //
-
-
-// * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
-
-
-// * * * * * * * * * * * * Protected Member Functions  * * * * * * * * * * * //
+namespace Foam
+{
+    namespace reflectionModels
+    {
+        defineTypeNameAndDebug(constant, 0);
+        addToRunTimeSelectionTable
+        (
+            reflectionModel,
+            constant,
+            dictionary
+        );
+    }
+}
 
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
-Foam::noReflection::noReflection()
+Foam::reflectionModels::constant::constant
+(
+    const dictionary& dict,
+    const fvMesh& mesh
+)
 :
-    baseClassName(),
-    data_()
-{}
-
-
-Foam::noReflection::noReflection(const dataType& data)
-:
-    baseClassName(),
-    data_(data)
-{}
-
-
-Foam::noReflection::noReflection(const noReflection&)
-:
-    baseClassName(),
-    data_()
-{}
-
-
-// * * * * * * * * * * * * * * * * Selectors * * * * * * * * * * * * * * * * //
-
-Foam::autoPtr<Foam::noReflection>
-Foam::noReflection::New()
+    reflectionModel(dict, mesh),
+    rho_(dict.lookup<scalar>("rho"))
 {
-    return autoPtr<noReflection>(new noReflection);
+    DebugInfo<< "Reflectivity set to rho = " << rho_ <<endl;
 }
-
-
-// * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //
-
-Foam::noReflection::~noReflection()
-{}
 
 
 // * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
 
 
-// * * * * * * * * * * * * * * Member Operators  * * * * * * * * * * * * * * //
-
-void Foam::noReflection::operator=(const noReflection& rhs)
+Foam::scalar Foam::reflectionModels::constant::rho
+(
+    const scalar incidentAngle
+) const
 {
-    // Check for assignment to self
-    if (this == &rhs)
-    {
-        FatalErrorInFunction
-            << "Attempted assignment to self"
-            << abort(FatalError);
-    }
+    return rho_;
 }
-
-// * * * * * * * * * * * * * * Friend Functions  * * * * * * * * * * * * * * //
-
-
-// * * * * * * * * * * * * * * Friend Operators * * * * * * * * * * * * * * //
 
 
 // ************************************************************************* //

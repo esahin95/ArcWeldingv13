@@ -126,16 +126,14 @@ bool Foam::DTRMParticle::move
         // Distance traveled by ray
         const scalar ds = mag(pos - oldPos);
 
-        // Handle reflection
-        const scalar reflectivity = 0.5;
+        // Check for reflection
         const scalar TOL = 1e-3;
         if
         (
             oldAlpha >= 0.5 && alpha <= 0.5 && transmissive_
         )
         {
-
-            const meshSearch& searchEngine = meshSearch::New(td.mesh);
+            const meshSearch& searchEngine = td.searchEngine();
             label nLocateBoundaryHits = 0;
 
             DTRMParticle* pPtr
@@ -151,8 +149,6 @@ bool Foam::DTRMParticle::move
                     true
                 )
             );
-
-            //DTRMParticle* pPtr(new DTRMParticle(*this));
 
             // Bounds
             vector lBound = oldPos;
@@ -211,9 +207,8 @@ bool Foam::DTRMParticle::move
                     pPtr->coordinates(),
                     pPtr->currentTetIndices(td.mesh)
                 );
-            pPtr->d_ = normalised(d_ - 2.0 * (nHat & d_) * nHat);
-            pPtr->q_ = reflectivity * q_;
-            //DebugInfo<< "d: " << pPtr->d_ << ", q: " << pPtr->q_ << endl;
+            pPtr->d_ = td.reflection().R(d_, nHat);
+            pPtr->q_ = td.reflection().rho(nHat & d_) * q_;
 
             q_ -= pPtr->q_;
             transmissive_ = false;
@@ -239,9 +234,6 @@ bool Foam::DTRMParticle::move
             trackIndex_,
             q_
         );
-
-        // Patch interactions
-        //hitFace(d_, 1.0, cloud, td);
     }
 
     return td.keepParticle;

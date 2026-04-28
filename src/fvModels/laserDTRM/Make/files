@@ -1,6 +1,10 @@
 DTRMParticle/DTRMParticle.C
 DTRMParticle/DTRMParticleIO.C
 
+reflectionModels/reflectionModel/reflectionModel.C
+reflectionModels/reflectionModel/reflectionModelNew.C
+reflectionModels/constantReflectionModel/constantReflectionModel.C
+
 laserDTRM.C
 
 LIB = $(FOAM_USER_LIBBIN)/liblaserDTRM

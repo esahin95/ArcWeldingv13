@@ -36,7 +36,9 @@ inline Foam::DTRMParticle::trackingData::trackingData
     volScalarField& Q,
     DynamicField<vector>& allPositions,
     DynamicField<label>& allTracks,
-    DynamicField<scalar>& allPowers
+    DynamicField<scalar>& allPowers,
+    const meshSearch& searchEngine,
+    const reflectionModel& reflection
 )
 :
     particle::trackingData(cloud),
@@ -46,7 +48,9 @@ inline Foam::DTRMParticle::trackingData::trackingData
     Q_(Q),
     allPositions_(allPositions),
     allTracks_(allTracks),
-    allPowers_(allPowers)
+    allPowers_(allPowers),
+    searchEngine_(searchEngine),
+    reflection_(reflection)
 {}
 
 
@@ -68,6 +72,18 @@ inline const Foam::interpolationCellPoint<Foam::vector>&
 Foam::DTRMParticle::trackingData::nHatInterp() const
 {
     return nHatInterp_;
+}
+
+inline const Foam::meshSearch&
+Foam::DTRMParticle::trackingData::searchEngine() const
+{
+    return searchEngine_;
+}
+
+inline const Foam::reflectionModel&
+Foam::DTRMParticle::trackingData::reflection() const
+{
+    return reflection_;
 }
 
 inline Foam::scalar& Foam::DTRMParticle::trackingData::Q(label cellI)

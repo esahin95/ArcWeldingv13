@@ -23,80 +23,35 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-#include "reflectionModelNew.H"
-
-// * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
-
-const dataType Foam::reflectionModelNew::staticData();
-
-
-// * * * * * * * * * * * * * Static Member Functions * * * * * * * * * * * * //
-
-
-// * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
-
-
-// * * * * * * * * * * * * Protected Member Functions  * * * * * * * * * * * //
+#include "reflectionModel.H"
 
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
-Foam::reflectionModelNew::reflectionModelNew()
-:
-    baseClassName(),
-    data_()
-{}
-
-
-Foam::reflectionModelNew::reflectionModelNew(const dataType& data)
-:
-    baseClassName(),
-    data_(data)
-{}
-
-
-Foam::reflectionModelNew::reflectionModelNew(const reflectionModelNew&)
-:
-    baseClassName(),
-    data_()
-{}
-
-
-// * * * * * * * * * * * * * * * * Selectors * * * * * * * * * * * * * * * * //
-
-Foam::autoPtr<Foam::reflectionModelNew>
-Foam::reflectionModelNew::New()
+Foam::autoPtr<Foam::reflectionModel> Foam::reflectionModel::New
+(
+    const dictionary& dict,
+    const fvMesh& mesh
+)
 {
-    return autoPtr<reflectionModelNew>(new reflectionModelNew);
-}
+    const word modelType(dict.lookup("type"));
 
+    Info<< "Selecting reflectionModel " << modelType << endl;
 
-// * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //
+    dictionaryConstructorTable::iterator cstrIter =
+        dictionaryConstructorTablePtr_->find(modelType);
 
-Foam::reflectionModelNew::~reflectionModelNew()
-{}
-
-
-// * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
-
-
-// * * * * * * * * * * * * * * Member Operators  * * * * * * * * * * * * * * //
-
-void Foam::reflectionModelNew::operator=(const reflectionModelNew& rhs)
-{
-    // Check for assignment to self
-    if (this == &rhs)
+    if (cstrIter == dictionaryConstructorTablePtr_->end())
     {
-        FatalErrorInFunction
-            << "Attempted assignment to self"
-            << abort(FatalError);
+        FatalIOErrorInFunction(dict)
+            << "Unknown reflection model " << modelType << nl << nl
+            << "Valid reflection models are : " << endl
+            << dictionaryConstructorTablePtr_->sortedToc()
+            << exit(FatalIOError);
     }
+
+    return autoPtr<reflectionModel>(cstrIter()(dict, mesh));
 }
-
-// * * * * * * * * * * * * * * Friend Functions  * * * * * * * * * * * * * * //
-
-
-// * * * * * * * * * * * * * * Friend Operators * * * * * * * * * * * * * * //
 
 
 // ************************************************************************* //

@@ -46,6 +46,7 @@ SourceFiles
 
 #include "meshSearch.H"
 #include "DynamicField.H"
+#include "reflectionModel.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -117,6 +118,14 @@ public:
             DynamicField<label>& allTracks_;
             DynamicField<scalar>& allPowers_;
 
+        // Reference to meshSearch
+
+            const meshSearch& searchEngine_;
+
+        // Reflection model pointer
+
+            const reflectionModel& reflection_;
+
     public:
 
         // Constructors
@@ -124,13 +133,15 @@ public:
             inline trackingData
             (
                 const lagrangian::Cloud<DTRMParticle>& cloud,
-                const interpolationCellPoint<scalar>& alphaInterp_,
-                const interpolationCellPoint<scalar>& absorpInterp_,
-                const interpolationCellPoint<vector>& nHatInterp_,
+                const interpolationCellPoint<scalar>& alphaInterp,
+                const interpolationCellPoint<scalar>& absorpInterp,
+                const interpolationCellPoint<vector>& nHatInterp,
                 volScalarField& Q,
                 DynamicField<vector>& allPositions,
                 DynamicField<label>& allTracks,
-                DynamicField<scalar>& allPowers
+                DynamicField<scalar>& allPowers,
+                const meshSearch& searchEngine,
+                const reflectionModel& reflection
             );
 
 
@@ -141,6 +152,10 @@ public:
             inline const interpolationCellPoint<scalar>& absorpInterp() const;
 
             inline const interpolationCellPoint<vector>& nHatInterp() const;
+
+            inline const meshSearch& searchEngine() const;
+
+            inline const reflectionModel& reflection() const;
 
             inline scalar& Q(label cellI);
 
@@ -177,17 +192,6 @@ public:
         //- Construct as a copy
         DTRMParticle(const DTRMParticle& p);
 
-        //- Disallow default bitwise copy construction
-        //DTRMParticle(const DTRMParticle&) = delete;
-
-        /*
-        //- Construct and return a clone
-        virtual autoPtr<particle> clone() const
-        {
-            return autoPtr<particle>(new DTRMParticle(*this));
-        }
-        */
-
         //- Construct from Istream and return
         static autoPtr<DTRMParticle> New(Istream& is)
         {
@@ -196,14 +200,6 @@ public:
 
 
     // Member Functions
-
-        // Access
-
-            //- Return power
-            //inline scalar q() const;
-
-            //- Return direction
-            //inline const vector& d() const;
 
 
         // Tracking

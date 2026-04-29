@@ -7,10 +7,15 @@ cd ${0%/*} || exit 1    # Run from this directory
 runApplication blockMesh
 runApplication setFields
 
-runApplication decomposePar -cellProc
-runParallel $(getApplication)
-runApplication reconstructPar
-
-#runApplication $(getApplication)
+if [ "$1" = "parallel" ]
+then
+    # run in parallel mode
+    runApplication decomposePar -cellProc
+    runParallel $(getApplication)
+    runApplication reconstructPar
+else
+    # run in serial mode
+    runApplication $(getApplication)
+fi
 
 #------------------------------------------------------------------------------

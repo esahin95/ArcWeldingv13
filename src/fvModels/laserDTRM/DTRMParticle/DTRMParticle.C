@@ -153,7 +153,7 @@ bool Foam::DTRMParticle::move
             vector rBound = pos;
             scalar al = oldAlpha;
             scalar ar = alpha;
-            DebugInfo<< "Reflection detected: " << al << " - " << ar;
+            //DebugInfo<< "Reflection detected: " << al << " - " << ar;
 
             // Initial interface guess
             scalar t = (0.5 - ar) / (al - ar + TOL);
@@ -165,7 +165,7 @@ bool Foam::DTRMParticle::move
                     pPtr->coordinates(),
                     pPtr->currentTetIndices(td.mesh)
                 );
-            DebugInfo<< " : " << a;
+            //DebugInfo<< " : " << a;
 
             // Track interface position
             label i = 0;
@@ -198,7 +198,7 @@ bool Foam::DTRMParticle::move
                     break;
                 }
             }
-            DebugInfo<< " -> " << a << " i = " << i << endl;
+            //DebugInfo<< " -> " << a << " i = " << i << endl;
 
             vector nHat = td.nHatInterp().interpolate
                 (
@@ -210,6 +210,7 @@ bool Foam::DTRMParticle::move
 
             pPtr->d_ = td.reflection().R(d_, nHat);
             pPtr->q_ = td.reflection().rho(cosTheta) * q_;
+            DebugInfo<< cosTheta << " " << (pPtr->q_ / q_)<<endl;
 
             q_ -= pPtr->q_;
             transmissive_ = false;

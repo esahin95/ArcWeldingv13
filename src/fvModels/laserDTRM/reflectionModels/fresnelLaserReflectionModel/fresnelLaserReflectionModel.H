@@ -27,122 +27,78 @@ Class
 Description
 
 SourceFiles
-    fresnelReflectionI.H
-    fresnelReflection.C
-    fresnelReflectionIO.C
+    fresnelLaserReflectionModel.C
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef fresnelReflection_H
-#define fresnelReflection_H
+#ifndef fresnelLaserReflectionModel_H
+#define fresnelLaserReflectionModel_H
 
-#include ".H"
+#include "reflectionModel.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam
 {
-
-// Forward declaration of classes
-class Istream;
-class Ostream;
-
-// Forward declaration of friend functions and operators
-class fresnelReflection;
-Istream& operator>>(Istream&, fresnelReflection&);
-Ostream& operator<<(Ostream&, const fresnelReflection&);
+namespace reflectionModels
+{
 
 
 /*---------------------------------------------------------------------------*\
-                          Class fresnelReflection Declaration
+                          Class fresnelLaserReflection Declaration
 \*---------------------------------------------------------------------------*/
 
-class fresnelReflection
+class fresnelLaser
 :
-    public baseClassName
+    public reflectionModel
 {
     // Private Data
 
-        //- Description of data_
-        dataType data_;
-
-
-    // Private Member Functions
+        //- constant reflectivity
+        const scalar epsilon_;
 
 
 public:
 
-    // Static Data Members
-
-        //- Static data staticData
-        static const dataType staticData;
+    //- Runtime type information
+    TypeName("fresnelLaser")
 
 
     // Constructors
 
-        //- Construct null
-        fresnelReflection();
-
         //- Construct from components
-        fresnelReflection(const dataType& data);
-
-        //- Construct from Istream
-        fresnelReflection(Istream&);
-
-        //- Copy constructor
-        fresnelReflection(const fresnelReflection&);
+        fresnelLaser
+        (
+            const dictionary& dict,
+            const fvMesh& mesh
+        );
 
         //- Disallow default bitwise copy construction
-        fresnelReflection(const fresnelReflection&) = delete;
-
-
-    // Selectors
-
-        //- Select null constructed
-        static autoPtr<fresnelReflection> New();
+        fresnelLaser(const fresnelLaser&) = delete;
 
 
     //- Destructor
-    ~fresnelReflection();
+    virtual ~fresnelLaser()
+    {}
 
 
     // Member Functions
 
-        // Access
-
-        // Check
-
-        // Edit
-
-        // Write
+        // Reflectivity
+        virtual scalar rho(const scalar incidentAngle) const;
 
 
     // Member Operators
 
-        void operator=(const fresnelReflection&);
-
         //- Disallow default bitwise assignment
-        void operator=(const fresnelReflection&) = delete;
-
-
-    // Friend Functions
-
-    // Friend Operators
-
-    // IOstream Operators
-
-        friend Istream& operator>>(Istream&, fresnelReflection&);
-        friend Ostream& operator<<(Ostream&, const fresnelReflection&);
+        void operator=(const fresnelLaser&) = delete;
 };
 
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
+} // End namespace reflectionModels
 } // End namespace Foam
-
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
-#include "fresnelReflectionI.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

@@ -61,7 +61,7 @@ DebugSwitches
 {
     laserDTRM   1;
     DTRMParticle 1;
-    constant 1;
+    fresnelLaser 1;
 }
 
 OptimisationSwitches

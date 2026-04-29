@@ -113,7 +113,7 @@ public:
         ) const;
 
         // Reflectivity
-        virtual scalar rho(const scalar incidentAngle) const = 0;
+        virtual scalar rho(const scalar cosTheta) const = 0;
 
 
     // Member Operators

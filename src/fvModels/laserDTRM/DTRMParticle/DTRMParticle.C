@@ -108,10 +108,8 @@ bool Foam::DTRMParticle::move
             );
         const label oldCell = this->cell();
         const vector oldPos = this->position(td.mesh);
-        //const label oldProc = this->origProc();
 
         // Track to new face and cell
-        //trackToFace(td.mesh, d_, 1.0);
         trackToAndHitFace(d_, 1.0, cloud, td);
 
         // New data
@@ -130,7 +128,7 @@ bool Foam::DTRMParticle::move
         const scalar TOL = 1e-3;
         if
         (
-            oldAlpha >= 0.5 && alpha <= 0.5 && transmissive_
+            oldAlpha >= 0.5 && alpha < 0.5 && transmissive_
         )
         {
             const meshSearch& searchEngine = td.searchEngine();
@@ -207,8 +205,11 @@ bool Foam::DTRMParticle::move
                     pPtr->coordinates(),
                     pPtr->currentTetIndices(td.mesh)
                 );
+            nHat /= mag(nHat);
+            scalar cosTheta = -nHat & d_;
+
             pPtr->d_ = td.reflection().R(d_, nHat);
-            pPtr->q_ = td.reflection().rho(nHat & d_) * q_;
+            pPtr->q_ = td.reflection().rho(cosTheta) * q_;
 
             q_ -= pPtr->q_;
             transmissive_ = false;

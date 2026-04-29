@@ -38,7 +38,11 @@ laser
 
     absorption      1e+6;
 
-    reflectivity    0.5;
+    reflectionModel
+    {
+        type fresnelLaser;
+        epsilon 0.2;
+    };
 
     powerDist       constant 1;
 

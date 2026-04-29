@@ -34,11 +34,9 @@ laser
 
     reflectionModel
     {
-        type constant;
-        rho 0.5;
+        type fresnelLaser;
+        epsilon 0.2;
     };
-
-    reflectivity 0.5;
 
     powerDist constant 1;
 

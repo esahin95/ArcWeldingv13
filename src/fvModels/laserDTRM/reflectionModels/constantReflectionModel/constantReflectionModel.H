@@ -85,7 +85,7 @@ public:
     // Member Functions
 
         // Reflectivity
-        virtual scalar rho(const scalar incidentAngle) const;
+        virtual scalar rho(const scalar cosTheta) const;
 
 
     // Member Operators

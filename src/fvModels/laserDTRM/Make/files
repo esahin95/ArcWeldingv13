@@ -1,9 +1,10 @@
-DTRMParticle/DTRMParticle.C
-DTRMParticle/DTRMParticleIO.C
-
 reflectionModels/reflectionModel/reflectionModel.C
 reflectionModels/reflectionModel/reflectionModelNew.C
 reflectionModels/constantReflectionModel/constantReflectionModel.C
+reflectionModels/fresnelLaserReflectionModel/fresnelLaserReflectionModel.C
+
+DTRMParticle/DTRMParticle.C
+DTRMParticle/DTRMParticleIO.C
 
 laserDTRM.C
 

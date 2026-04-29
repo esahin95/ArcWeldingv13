@@ -23,80 +23,57 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-#include "fresnelReflection.H"
+#include "fresnelLaserReflectionModel.H"
+#include "addToRunTimeSelectionTable.H"
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
-const dataType Foam::fresnelReflection::staticData();
-
-
-// * * * * * * * * * * * * * Static Member Functions * * * * * * * * * * * * //
-
-
-// * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
-
-
-// * * * * * * * * * * * * Protected Member Functions  * * * * * * * * * * * //
+namespace Foam
+{
+    namespace reflectionModels
+    {
+        defineTypeNameAndDebug(fresnelLaser, 0);
+        addToRunTimeSelectionTable
+        (
+            reflectionModel,
+            fresnelLaser,
+            dictionary
+        );
+    }
+}
 
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
-Foam::fresnelReflection::fresnelReflection()
+Foam::reflectionModels::fresnelLaser::fresnelLaser
+(
+    const dictionary& dict,
+    const fvMesh& mesh
+)
 :
-    baseClassName(),
-    data_()
-{}
-
-
-Foam::fresnelReflection::fresnelReflection(const dataType& data)
-:
-    baseClassName(),
-    data_(data)
-{}
-
-
-Foam::fresnelReflection::fresnelReflection(const fresnelReflection&)
-:
-    baseClassName(),
-    data_()
-{}
-
-
-// * * * * * * * * * * * * * * * * Selectors * * * * * * * * * * * * * * * * //
-
-Foam::autoPtr<Foam::fresnelReflection>
-Foam::fresnelReflection::New()
+    reflectionModel(dict, mesh),
+    epsilon_(dict.lookup<scalar>("epsilon"))
 {
-    return autoPtr<fresnelReflection>(new fresnelReflection);
+    DebugInfo<< "Model constant set to epsilon = " << epsilon_ <<endl;
 }
-
-
-// * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //
-
-Foam::fresnelReflection::~fresnelReflection()
-{}
 
 
 // * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
 
 
-// * * * * * * * * * * * * * * Member Operators  * * * * * * * * * * * * * * //
-
-void Foam::fresnelReflection::operator=(const fresnelReflection& rhs)
+Foam::scalar Foam::reflectionModels::fresnelLaser::rho
+(
+    const scalar cosTheta
+) const
 {
-    // Check for assignment to self
-    if (this == &rhs)
-    {
-        FatalErrorInFunction
-            << "Attempted assignment to self"
-            << abort(FatalError);
-    }
+    return 0.5 *
+        (
+            (1 + Foam::sqr(1 - epsilon_ * cosTheta))
+          / (1 + Foam::sqr(1 + epsilon_ * cosTheta))
+          + (Foam::sqr(epsilon_ - cosTheta) + Foam::sqr(cosTheta))
+          / (Foam::sqr(epsilon_ + cosTheta) + Foam::sqr(cosTheta))
+        );
 }
-
-// * * * * * * * * * * * * * * Friend Functions  * * * * * * * * * * * * * * //
-
-
-// * * * * * * * * * * * * * * Friend Operators * * * * * * * * * * * * * * //
 
 
 // ************************************************************************* //

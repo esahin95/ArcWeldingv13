@@ -63,7 +63,7 @@ Foam::reflectionModels::constant::constant
 
 Foam::scalar Foam::reflectionModels::constant::rho
 (
-    const scalar incidentAngle
+    const scalar cosTheta
 ) const
 {
     return rho_;

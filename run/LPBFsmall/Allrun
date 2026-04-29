@@ -9,11 +9,15 @@ runApplication blockMesh
 runApplication checkMesh
 runApplication setFields
 
-# run in parallel
-runApplication decomposePar -cellProc
-runParallel $(getApplication)
-runApplication reconstructPar
-
-#runApplication $(getApplication)
+if [ "$1" = "parallel" ]
+then
+    # run in parallel mode
+    runApplication decomposePar -cellProc
+    runParallel $(getApplication)
+    runApplication reconstructPar
+else
+    # run in serial mode
+    runApplication $(getApplication)
+fi
 
 #------------------------------------------------------------------------------

@@ -34,12 +34,6 @@ namespace Foam
     label DTRMParticle::nParticles = 0;
 
     scalar DTRMParticle::qLost = 0.0;
-
-    const label DTRMParticle::MAX_ = 20;
-
-    const scalar DTRMParticle::TOL_ = 1e-2;
-
-    const scalar DTRMParticle::SMALL_ = 1e-6;
 }
 
 
@@ -96,11 +90,6 @@ bool Foam::DTRMParticle::move
         q_
     );
 
-    if (q_<= 0.0)
-    {
-        DebugInfo<<"q_ = "<<q_<<endl;
-    }
-
     while
     (
         q_ > 0.01 * q0_ &&
@@ -122,9 +111,10 @@ bool Foam::DTRMParticle::move
         const label oldCell = this->cell();
         const vector oldPos = this->position(td.mesh);
 
-        if (transmissive_ && oldAlpha < 0.5 - TOL_)
+        const scalar TOL = 1e-3;
+        if (transmissive_ && oldAlpha < 0.5 - TOL)
         {
-            DebugInfo<< "Transmissive particle inside material detected"<<endl;
+            DebugInfo<< "Transmissive ray inside material detected"<<endl;
             qLost += q_;
             td.keepParticle = false;
             continue;
@@ -143,7 +133,8 @@ bool Foam::DTRMParticle::move
         const vector pos = this->position(td.mesh);
 
         // Distance traveled by ray
-        const scalar ds = mag(pos - oldPos);
+        const vector dx = pos - oldPos;
+        const scalar ds = mag(dx);
 
         // Check for reflection
         if
@@ -154,9 +145,8 @@ bool Foam::DTRMParticle::move
             const meshSearch& searchEngine = td.searchEngine();
             label nLocateBoundaryHits = 0;
 
-            DTRMParticle* pPtr
-            (
-                new DTRMParticle
+            DTRMParticle* pPtr = new
+                DTRMParticle
                 (
                     searchEngine,
                     oldPos,
@@ -165,74 +155,55 @@ bool Foam::DTRMParticle::move
                     d_,
                     q0_,
                     true
-                )
-            );
-
-            // Bounds
-            vector lBound = oldPos;
-            vector rBound = pos;
-            scalar al = oldAlpha;
-            scalar ar = alpha;
-            //DebugInfo<< "Reflection detected: " << al << " - " << ar;
-
-            // Initial interface guess
-            scalar t = (0.5 - ar) / (al - ar + SMALL_);
-            vector p = t * lBound + (1-t) * rBound;
-
-            pPtr->locate(searchEngine, p, oldCell);
-            scalar a = td.alphaInterp().interpolate
-                (
-                    pPtr->coordinates(),
-                    pPtr->currentTetIndices(td.mesh)
                 );
-            //DebugInfo<< " : " << a;
 
-            // Track interface position
-            label i = 0;
-            while (mag(a - 0.5) > TOL_)
+            // Initial Bounds
+            scalar a = 0, fa = oldAlpha - 0.5;
+            scalar b = 1, fb = alpha - 0.5;
+            scalar c = 0, fc = fa;
+
+            // Track to interface
+            label i = 0, MAX = 20;
+            while (mag(fc) > TOL && i < MAX)
             {
-                if (a > 0.5)
+                i++;
+
+                c = (a*fb - b*fa) / (fb - fa);
+                const vector p = oldPos + c * dx;
+
+                pPtr->locate(searchEngine, p, oldCell);
+                fc = td.alphaInterp().interpolate
+                    (
+                        pPtr->coordinates(),
+                        pPtr->currentTetIndices(td.mesh)
+                    ) - 0.5;
+
+                if (fc * fa > 0)
                 {
-                    lBound = p;
-                    al = a;
+                    a = c;
+                    fa = fc;
                 }
                 else
                 {
-                    rBound = p;
-                    ar = a;
-                }
-
-                t = (0.5 - ar) / (al - ar + SMALL_);
-                p = t * lBound + (1-t) * rBound;
-
-                pPtr->locate(searchEngine, p, oldCell);
-                a = td.alphaInterp().interpolate
-                (
-                    pPtr->coordinates(),
-                    pPtr->currentTetIndices(td.mesh)
-                );
-
-                i++;
-                if (i > MAX_)
-                {
-                    DebugInfo<< "Failed interface search" << endl;
-                    DebugInfo<< oldAlpha << " - "
-                             << alpha << " : "
-                             << a << endl;
-                    break;
+                    b = c;
+                    fb = fc;
                 }
             }
-            //DebugInfo<< " -> " << a << " i = " << i << endl;
+            if (i >= MAX)
+            {
+                DebugInfo<<"Failed search: "
+                         << oldAlpha << " -> " << fc+0.5
+                         << endl;
+            }
 
-
-            vector nHat = td.nHatInterp().interpolate
+            const vector gradAlpha = td.gradAlphaInterp().interpolate
                 (
                     pPtr->coordinates(),
                     pPtr->currentTetIndices(td.mesh)
                 );
-            nHat /= mag(nHat);
+            const vector nHat = gradAlpha / mag(gradAlpha);
             scalar cosTheta = -nHat & d_;
-            if (cosTheta <= 0.0)
+            if (cosTheta < 0.0)
             {
                 DebugInfo<< "False reflection direction" << endl;
                 qLost += q_;
@@ -275,23 +246,6 @@ bool Foam::DTRMParticle::move
     return td.keepParticle;
 }
 
-
-void Foam::DTRMParticle::hitProcessorPatch
-(
-    lagrangian::Cloud<DTRMParticle>& cloud,
-    trackingData& td
-)
-{
-    particle::hitProcessorPatch(cloud, td);
-
-    td.append
-    (
-        this->position(td.mesh),
-        trackIndex_,
-        q_
-    );
-}
-
 void Foam::DTRMParticle::hitWallPatch
 (
     lagrangian::Cloud<DTRMParticle>& cloud,
@@ -299,13 +253,6 @@ void Foam::DTRMParticle::hitWallPatch
 )
 {
     td.keepParticle = false;
-
-    td.append
-    (
-        this->position(td.mesh),
-        trackIndex_,
-        q_
-    );
 }
 
 

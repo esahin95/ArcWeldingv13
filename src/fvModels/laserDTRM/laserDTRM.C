@@ -277,13 +277,13 @@ void Foam::fv::laserDTRM::correct()
     }
 
     // Tracking data fields
-    const volVectorField nHat = fvc::grad(alpha_);
+    const volVectorField gradAlpha = fvc::grad(alpha_);
     const volScalarField absorp = a_ * (1 - alpha_);
 
     // Construct tracking data
     interpolationCellPoint<scalar> alphaInterp(alpha_);
     interpolationCellPoint<scalar> absorpInterp(absorp);
-    interpolationCellPoint<vector> nHatInterp(nHat);
+    interpolationCellPoint<vector> gradAlphaInterp(gradAlpha);
     allPositions_.clear();
     allTracks_.clear();
     allPowers_.clear();
@@ -292,7 +292,7 @@ void Foam::fv::laserDTRM::correct()
         cloud,
         alphaInterp,
         absorpInterp,
-        nHatInterp,
+        gradAlphaInterp,
         Q_,
         allPositions_,
         allTracks_,

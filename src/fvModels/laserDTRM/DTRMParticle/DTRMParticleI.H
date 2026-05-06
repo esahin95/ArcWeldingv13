@@ -32,7 +32,7 @@ inline Foam::DTRMParticle::trackingData::trackingData
     const lagrangian::Cloud<DTRMParticle>& cloud,
     const interpolationCellPoint<scalar>& alphaInterp,
     const interpolationCellPoint<scalar>& absorpInterp,
-    const interpolationCellPoint<vector>& nHatInterp,
+    const interpolationCellPoint<vector>& gradAlphaInterp,
     volScalarField& Q,
     DynamicField<vector>& allPositions,
     DynamicField<label>& allTracks,
@@ -44,7 +44,7 @@ inline Foam::DTRMParticle::trackingData::trackingData
     particle::trackingData(cloud),
     alphaInterp_(alphaInterp),
     absorpInterp_(absorpInterp),
-    nHatInterp_(nHatInterp),
+    gradAlphaInterp_(gradAlphaInterp),
     Q_(Q),
     allPositions_(allPositions),
     allTracks_(allTracks),
@@ -69,9 +69,9 @@ Foam::DTRMParticle::trackingData::absorpInterp() const
 }
 
 inline const Foam::interpolationCellPoint<Foam::vector>&
-Foam::DTRMParticle::trackingData::nHatInterp() const
+Foam::DTRMParticle::trackingData::gradAlphaInterp() const
 {
-    return nHatInterp_;
+    return gradAlphaInterp_;
 }
 
 inline const Foam::meshSearch&

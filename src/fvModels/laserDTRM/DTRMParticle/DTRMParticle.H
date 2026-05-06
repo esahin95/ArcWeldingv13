@@ -73,11 +73,6 @@ class DTRMParticle
         //- Size in bytes of the fields
         static const std::size_t sizeofFields_;
 
-        //- Numerical parameters for interface search
-        static const label MAX_;
-        static const scalar TOL_;
-        static const scalar SMALL_;
-
         //- Initial power
         scalar q0_;
 
@@ -114,7 +109,7 @@ public:
 
             const interpolationCellPoint<scalar>& alphaInterp_;
             const interpolationCellPoint<scalar>& absorpInterp_;
-            const interpolationCellPoint<vector>& nHatInterp_;
+            const interpolationCellPoint<vector>& gradAlphaInterp_;
 
         // Reference to heat source
 
@@ -143,7 +138,7 @@ public:
                 const lagrangian::Cloud<DTRMParticle>& cloud,
                 const interpolationCellPoint<scalar>& alphaInterp,
                 const interpolationCellPoint<scalar>& absorpInterp,
-                const interpolationCellPoint<vector>& nHatInterp,
+                const interpolationCellPoint<vector>& gradAlphaInterp,
                 volScalarField& Q,
                 DynamicField<vector>& allPositions,
                 DynamicField<label>& allTracks,
@@ -159,7 +154,7 @@ public:
 
             inline const interpolationCellPoint<scalar>& absorpInterp() const;
 
-            inline const interpolationCellPoint<vector>& nHatInterp() const;
+            inline const interpolationCellPoint<vector>& gradAlphaInterp() const;
 
             inline const meshSearch& searchEngine() const;
 
@@ -217,9 +212,6 @@ public:
 
 
         // Patch interactions
-
-            //- Overridable function to handle the particle hitting a processorPatch
-            void hitProcessorPatch(lagrangian::Cloud<DTRMParticle>& cloud, trackingData& td);
 
             //- Overridable function to handle the particle hitting a wallPatch
             void hitWallPatch(lagrangian::Cloud<DTRMParticle>& cloud, trackingData& td);

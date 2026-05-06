@@ -22,7 +22,7 @@ laser
 
     position table
     (
-        (  0    ( 40e-6 50e-6 150e-6))
+        (  0 ( 40e-6 50e-6 150e-6))
         (100e-6 (110e-6 50e-6 150e-6))
     );
 
@@ -32,7 +32,7 @@ laser
 
     nRays           300;
 
-    relax           0.1;
+    relax           0.7;
 
     radius          10e-6;
 

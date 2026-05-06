@@ -32,6 +32,14 @@ namespace Foam
     defineTypeNameAndDebug(DTRMParticle, 0);
 
     label DTRMParticle::nParticles = 0;
+
+    scalar DTRMParticle::qLost = 0.0;
+
+    const label DTRMParticle::MAX_ = 20;
+
+    const scalar DTRMParticle::TOL_ = 1e-2;
+
+    const scalar DTRMParticle::SMALL_ = 1e-6;
 }
 
 
@@ -88,6 +96,11 @@ bool Foam::DTRMParticle::move
         q_
     );
 
+    if (q_<= 0.0)
+    {
+        DebugInfo<<"q_ = "<<q_<<endl;
+    }
+
     while
     (
         q_ > 0.01 * q0_ &&
@@ -109,6 +122,14 @@ bool Foam::DTRMParticle::move
         const label oldCell = this->cell();
         const vector oldPos = this->position(td.mesh);
 
+        if (transmissive_ && oldAlpha < 0.5 - TOL_)
+        {
+            DebugInfo<< "Transmissive particle inside material detected"<<endl;
+            qLost += q_;
+            td.keepParticle = false;
+            continue;
+        }
+
         // Track to new face and cell
         trackToAndHitFace(d_, 1.0, cloud, td);
 
@@ -125,7 +146,6 @@ bool Foam::DTRMParticle::move
         const scalar ds = mag(pos - oldPos);
 
         // Check for reflection
-        const scalar TOL = 1e-3;
         if
         (
             oldAlpha >= 0.5 && alpha < 0.5 && transmissive_
@@ -156,7 +176,7 @@ bool Foam::DTRMParticle::move
             //DebugInfo<< "Reflection detected: " << al << " - " << ar;
 
             // Initial interface guess
-            scalar t = (0.5 - ar) / (al - ar + TOL);
+            scalar t = (0.5 - ar) / (al - ar + SMALL_);
             vector p = t * lBound + (1-t) * rBound;
 
             pPtr->locate(searchEngine, p, oldCell);
@@ -169,7 +189,7 @@ bool Foam::DTRMParticle::move
 
             // Track interface position
             label i = 0;
-            while (mag(a - 0.5) > TOL)
+            while (mag(a - 0.5) > TOL_)
             {
                 if (a > 0.5)
                 {
@@ -182,7 +202,7 @@ bool Foam::DTRMParticle::move
                     ar = a;
                 }
 
-                t = (0.5 - ar) / (al - ar + TOL);
+                t = (0.5 - ar) / (al - ar + SMALL_);
                 p = t * lBound + (1-t) * rBound;
 
                 pPtr->locate(searchEngine, p, oldCell);
@@ -193,12 +213,17 @@ bool Foam::DTRMParticle::move
                 );
 
                 i++;
-                if (i > 20)
+                if (i > MAX_)
                 {
+                    DebugInfo<< "Failed interface search" << endl;
+                    DebugInfo<< oldAlpha << " - "
+                             << alpha << " : "
+                             << a << endl;
                     break;
                 }
             }
             //DebugInfo<< " -> " << a << " i = " << i << endl;
+
 
             vector nHat = td.nHatInterp().interpolate
                 (
@@ -207,17 +232,26 @@ bool Foam::DTRMParticle::move
                 );
             nHat /= mag(nHat);
             scalar cosTheta = -nHat & d_;
-
-            pPtr->d_ = td.reflection().R(d_, nHat);
-            pPtr->q_ = td.reflection().rho(cosTheta) * q_;
-            DebugInfo<< cosTheta << " " << (pPtr->q_ / q_)<<endl;
-
-            q_ -= pPtr->q_;
-            transmissive_ = false;
-
-            if (pPtr->cell() != -1)
+            if (cosTheta <= 0.0)
             {
-                cloud.addParticle(pPtr);
+                DebugInfo<< "False reflection direction" << endl;
+                qLost += q_;
+                td.keepParticle = false;
+                delete pPtr;
+            }
+            else
+            {
+                pPtr->d_ = td.reflection().R(d_, nHat);
+                pPtr->q_ = td.reflection().rho(cosTheta) * q_;
+                //DebugInfo<< cosTheta << " " << (pPtr->q_ / q_)<<endl;
+
+                q_ -= pPtr->q_;
+                transmissive_ = false;
+
+                if (pPtr->cell() != -1)
+                {
+                    cloud.addParticle(pPtr);
+                }
             }
         }
 

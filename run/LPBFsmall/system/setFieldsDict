@@ -31,6 +31,21 @@ zones
             alpha.metal   1;
         }
     }
+
+    powderBed
+    {
+        type        spheres;
+        //zoneType    cell;
+        data
+        (
+            #include "powderBed"
+        );
+        offset      (0 0 100e-6);
+        values
+        {
+            alpha.metal     1;
+        }
+    }
 };
 
 // ************************************************************************* //

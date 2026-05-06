@@ -20,7 +20,7 @@ thermoType
     mixture         pureMixture;
     transport       const;
     thermo          hConst;
-    equationOfState Boussinesq;
+    equationOfState rhoConst;
     specie          specie;
     energy          sensibleEnthalpy;
 }
@@ -29,14 +29,12 @@ mixture
 {
     specie
     {
-        molWeight   55.8; // Predominantly iron
+        molWeight   208.0; // ?
     }
 
     equationOfState
     {
-        rho0        8000.0;
-        T0          300;
-        beta        5e-6;
+        rho         8000.0; // beta = 5e-6
     }
 
     thermodynamics

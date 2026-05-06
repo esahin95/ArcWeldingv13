@@ -23,9 +23,8 @@ startFrom       startTime;
 startTime       0;
 
 stopAt          endTime;
-stopAt          nextWrite;
 
-endTime         100e-6;
+endTime         0;
 
 deltaT          1e-6;
 
@@ -52,7 +51,12 @@ adjustTimeStep  yes;
 maxCo           0.2;
 maxAlphaCo      0.2;
 
-maxDeltaT       1e-6;
+maxDeltaT       5e-5;
+
+libs
+(
+    "liblaserDTRM.so"
+);
 
 
 // ************************************************************************* //
@@ -96,7 +100,6 @@ functions
         log             true;
 
         writeControl    timeStep;
-        writeControl    writeTime;
 
         writeFields     false;
 
@@ -106,7 +109,7 @@ functions
 
         operation       max;
 
-        fields (p_rgh T divU Q);
+        fields (p_rgh T divU);
     }
 
     minValue
@@ -118,7 +121,6 @@ functions
         log             true;
 
         writeControl    timeStep;
-        writeControl    writeTime;
 
         writeFields     false;
 
@@ -128,7 +130,7 @@ functions
 
         operation       min;
 
-        fields (p_rgh T divU Q);
+        fields (p_rgh T divU);
     }
 
     maxMagValue
@@ -140,7 +142,6 @@ functions
         log             true;
 
         writeControl    timeStep;
-        writeControl    writeTime;
 
         writeFields     false;
 

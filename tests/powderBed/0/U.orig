@@ -8,22 +8,29 @@
 FoamFile
 {
     format      ascii;
-    class       dictionary;
-    location    "constant";
-    object      phaseChangeProperties;
+    class       volVectorField;
+    location    "0";
+    object      U;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-phase   metal;
+dimensions      [0 1 -1 0 0 0 0];
 
-L       2.7e5;
+internalField   uniform (0 0 0);
 
-Tsol    1658.0;
+boundaryField
+{
+    "(xmin|xmax|ymin|ymax|zmin)"
+    {
+        type            noSlip;
+    }
 
-Tliq    1723.0;
+    zmax
+    {
+        type            pressureInletOutletVelocity;
+        value           uniform (0 0 0);
+    }
+}
 
-Cu      1e10;
-
-relax   0.9;
 
 // ************************************************************************* //

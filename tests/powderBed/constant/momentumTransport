@@ -10,20 +10,11 @@ FoamFile
     format      ascii;
     class       dictionary;
     location    "constant";
-    object      phaseChangeProperties;
+    object      momentumTransport;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-phase   metal;
+simulationType  laminar;
 
-L       2.7e5;
-
-Tsol    1658.0;
-
-Tliq    1723.0;
-
-Cu      1e10;
-
-relax   0.9;
 
 // ************************************************************************* //

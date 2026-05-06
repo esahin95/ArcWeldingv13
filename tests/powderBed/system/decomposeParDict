@@ -9,21 +9,16 @@ FoamFile
 {
     format      ascii;
     class       dictionary;
-    location    "constant";
-    object      phaseChangeProperties;
+    location    "system";
+    object      decomposeParDict;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-phase   metal;
+numberOfSubdomains 6;
 
-L       2.7e5;
+method          scotch;
 
-Tsol    1658.0;
+distributed     no;
 
-Tliq    1723.0;
-
-Cu      1e10;
-
-relax   0.9;
 
 // ************************************************************************* //

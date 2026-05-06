@@ -10,43 +10,27 @@ FoamFile
     format      ascii;
     class       dictionary;
     location    "constant";
-    object      fvModels;
+    object      phaseProperties;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-laser
+phases          (metal gas);
+
+
+sigma
 {
-    type            laserDTRM;
-
-    phase           gas;
-
-    position table
+  type  temperatureDependent;
+  sigma // 0.07 - dT * 5e-5
+  {
+    type    table;
+    values
     (
-        (  0    ( 40e-6 50e-6 150e-6))
-        (100e-6 (110e-6 50e-6 150e-6))
+        (1658 0.07)
+        (3058 0.00)
     );
-
-    normal          (0.0 0.0 -1.0);
-
-    Q               1.0;
-
-    nRays           300;
-
-    relax           0.1;
-
-    radius          10e-6;
-
-    absorption      1e+6;
-
-    reflectionModel
-    {
-        type fresnelLaser;
-        epsilon 0.2;
-    };
-
-    powerDist       constant 1;
-
-    setFormat       vtk;
+    outOfBounds         clamp;
+    interpolationScheme linear;
+  }
 }
 
-//************************************************************************ //
+// ************************************************************************* //

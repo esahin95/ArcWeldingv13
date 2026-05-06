@@ -73,6 +73,11 @@ class DTRMParticle
         //- Size in bytes of the fields
         static const std::size_t sizeofFields_;
 
+        //- Numerical parameters for interface search
+        static const label MAX_;
+        static const scalar TOL_;
+        static const scalar SMALL_;
+
         //- Initial power
         scalar q0_;
 
@@ -92,6 +97,9 @@ class DTRMParticle
 public:
 
     static label nParticles;
+
+    //- Power lost during tracing
+    static scalar qLost;
 
 
     friend class lagrangian::Cloud<DTRMParticle>;

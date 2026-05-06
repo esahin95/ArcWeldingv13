@@ -98,7 +98,6 @@ void Foam::solvers::compressibleReactingVoF::thermophysicalPredictor()
     scalar res;
     do
     {
-        T.storePrevIter();
         alphaSolid_.storePrevIter();
 
         solve
@@ -132,17 +131,6 @@ void Foam::solvers::compressibleReactingVoF::thermophysicalPredictor()
         alphaSolid_ = solidFraction_ * alphaVoF_;
 
         res =
-            gMax
-            (
-                mag
-                (
-                      T.primitiveField()
-                    - T.prevIter().primitiveField()
-                )
-            );
-        Info<< "Maximum residual in temperature: " << res << endl;
-
-        res =
         gMax
         (
             mag
@@ -151,12 +139,13 @@ void Foam::solvers::compressibleReactingVoF::thermophysicalPredictor()
                 - alphaSolid_.prevIter().primitiveField()
             )
         );
-        Info<< "Maximum residual in solid fraction: " << res << endl;
     }
     while
     (
         ++iter < 50 && res > 1e-5
     );
+
+    Info<< "Iter = " << iter << " , res = " << res << endl;
 
     //fvConstraints().constrain(T);
 

@@ -220,6 +220,7 @@ void Foam::fv::laserDTRM::correct()
         IDLList<DTRMParticle>()
     );
     DTRMParticle::nParticles = 0; // Maybe rename to nTracks
+    DTRMParticle::qLost = 0;
 
     // Compute particle positions
     List<vector> positions
@@ -302,6 +303,10 @@ void Foam::fv::laserDTRM::correct()
 
     // Ray tracing
     cloud.move(cloud, td);
+    const scalar qLost =
+        returnReduce(DTRMParticle::qLost, sumOp<scalar>());
+    DebugInfo<< "Lost power fraction: "
+             << (qLost / Qtot_) << endl;
 
     // Finalize computation
     Q_.primitiveFieldRef() /= mesh().V().primitiveField();

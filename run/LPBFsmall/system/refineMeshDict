@@ -9,21 +9,34 @@ FoamFile
 {
     format      ascii;
     class       dictionary;
-    location    "constant";
-    object      phaseChangeProperties;
+    location    "system";
+    object      refineMeshDict;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-phase   metal;
+coordinates
+{
+    type        global;
 
-L       2.7e5;
+    e1          (1 0 0);
+    e2          (0 1 0);
+    e3          (0 0 1);
 
-Tsol    1658.0;
+    directions  (e1 e2 e3);
+}
 
-Tliq    1723.0;
-
-Cu      1e10;
-
-relax   0.9;
+zones
+{
+    powderBed
+    {
+        type    spheres;
+        data
+        (
+            #include "powderBed"
+        );
+        offset      (0 0 100e-6);
+        scale       1.2;
+    }
+}
 
 // ************************************************************************* //

@@ -22,7 +22,7 @@ Tsol    1658.0;
 
 Tliq    1723.0;
 
-Cu      1e10;
+Cu      1e5;
 
 relax   0.9;
 

@@ -9,21 +9,43 @@ FoamFile
 {
     format      ascii;
     class       dictionary;
-    location    "constant";
-    object      phaseChangeProperties;
+    location    "system";
+    object      setFieldsDict;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-phase   metal;
+defaultValues
+{
+    alpha.metal 0;
+};
 
-L       2.7e5;
+zones
+{
+    metalPlate
+    {
+        type        box;
+        zoneType    cell;
+        box (-1 -1 -1) (1 1 100e-6);
+        values
+        {
+            alpha.metal   1;
+        }
+    }
 
-Tsol    1658.0;
-
-Tliq    1723.0;
-
-Cu      1e10;
-
-relax   0.9;
+    powderBed
+    {
+        type        spheres;
+        zoneType    cell;
+        data
+        (
+            #include "powderBed"
+        );
+        offset      (0 0 100e-6);
+        values
+        {
+            alpha.metal     1;
+        }
+    }
+};
 
 // ************************************************************************* //

@@ -60,16 +60,6 @@ Foam::DTRMParticle::DTRMParticle
     this->reset(0.0);
 }
 
-Foam::DTRMParticle::DTRMParticle(const DTRMParticle& p)
-:
-    particle(p),
-    q0_(p.q0_),
-    trackIndex_(p.trackIndex_),
-    q_(p.q_),
-    d_(p.d_),
-    transmissive_(p.transmissive_)
-{}
-
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
@@ -111,10 +101,10 @@ bool Foam::DTRMParticle::move
         const label oldCell = this->cell();
         const vector oldPos = this->position(td.mesh);
 
-        const scalar TOL = 1e-3;
+        const scalar TOL = 1e-2;
         if (transmissive_ && oldAlpha < 0.5 - TOL)
         {
-            DebugInfo<< "Transmissive ray inside material detected"<<endl;
+            DebugInfo<< "Give up transmissive ray inside material"<<endl;
             qLost += q_;
             td.keepParticle = false;
             continue;
@@ -135,6 +125,10 @@ bool Foam::DTRMParticle::move
         // Distance traveled by ray
         const vector dx = pos - oldPos;
         const scalar ds = mag(dx);
+        if (ds < 1e-10)
+        {
+            continue; // Temporary fix
+        }
 
         // Check for reflection
         if
@@ -142,9 +136,11 @@ bool Foam::DTRMParticle::move
             oldAlpha >= 0.5 && alpha < 0.5 && transmissive_
         )
         {
+            transmissive_ = false;
+
+            // Create new reflected particle
             const meshSearch& searchEngine = td.searchEngine();
             label nLocateBoundaryHits = 0;
-
             DTRMParticle* pPtr = new
                 DTRMParticle
                 (
@@ -157,12 +153,10 @@ bool Foam::DTRMParticle::move
                     true
                 );
 
-            // Initial Bounds
+            // Track reflected particle to interface
             scalar a = 0, fa = oldAlpha - 0.5;
             scalar b = 1, fb = alpha - 0.5;
             scalar c = 0, fc = fa;
-
-            // Track to interface
             label i = 0, MAX = 20;
             while (mag(fc) > TOL && i < MAX)
             {
@@ -196,34 +190,31 @@ bool Foam::DTRMParticle::move
                          << endl;
             }
 
+            // Interface unit normal vector
             const vector gradAlpha = td.gradAlphaInterp().interpolate
                 (
                     pPtr->coordinates(),
                     pPtr->currentTetIndices(td.mesh)
                 );
             const vector nHat = gradAlpha / mag(gradAlpha);
-            scalar cosTheta = -nHat & d_;
+
+            // Distribute power according to reflectivity
+            const scalar cosTheta = -nHat & d_;
+            pPtr->d_ = td.reflection().R(d_, nHat);
+            pPtr->q_ = td.reflection().rho(cosTheta) * q_;
+            q_ -= pPtr->q_;
             if (cosTheta < 0.0)
             {
-                DebugInfo<< "False reflection direction" << endl;
-                qLost += q_;
+                DebugInfo<< "Give up particle with negative angle" << endl;
+                DebugInfo<< ds << " " << oldAlpha << " " << alpha << " " << (gradAlpha & d_) << " " << c << endl;
+                qLost += q_ + pPtr->q_;
                 td.keepParticle = false;
                 delete pPtr;
+                continue;
             }
-            else
-            {
-                pPtr->d_ = td.reflection().R(d_, nHat);
-                pPtr->q_ = td.reflection().rho(cosTheta) * q_;
-                //DebugInfo<< cosTheta << " " << (pPtr->q_ / q_)<<endl;
 
-                q_ -= pPtr->q_;
-                transmissive_ = false;
-
-                if (pPtr->cell() != -1)
-                {
-                    cloud.addParticle(pPtr);
-                }
-            }
+            // Add new particle to cloud
+            cloud.addParticle(pPtr);
         }
 
         // Laser power absorption in ray

@@ -16,7 +16,7 @@ FoamFile
 
 application     foamRun;
 
-solver          compressibleReactingVoF;
+solver          incompressibleReactingVoF;
 
 startFrom       startTime;
 
@@ -27,7 +27,7 @@ stopAt          nextWrite;
 
 endTime         100e-6;
 
-deltaT          1e-6;
+deltaT          1e-8;
 
 writeControl    adjustableRunTime;
 
@@ -62,6 +62,7 @@ DebugSwitches
     MULES           1;
     laserDTRM       1;
     DTRMParticle    0;
+    incompressibleReactingVoF 1;
 }
 
 OptimisationSwitches
@@ -96,7 +97,7 @@ functions
         log             true;
 
         writeControl    timeStep;
-        writeControl    writeTime;
+        //writeControl    writeTime;
 
         writeFields     false;
 
@@ -118,7 +119,7 @@ functions
         log             true;
 
         writeControl    timeStep;
-        writeControl    writeTime;
+        //writeControl    writeTime;
 
         writeFields     false;
 
@@ -140,7 +141,7 @@ functions
         log             true;
 
         writeControl    timeStep;
-        writeControl    writeTime;
+        //writeControl    writeTime;
 
         writeFields     false;
 

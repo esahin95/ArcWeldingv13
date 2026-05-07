@@ -25,7 +25,7 @@ solvers
 
         solver          smoothSolver;
         smoother        symGaussSeidel;
-        tolerance       1e-8;
+        tolerance       1e-10;
         relTol          0;
     }
 
@@ -33,7 +33,7 @@ solvers
     {
         solver          PCG;
         preconditioner  DIC;
-        tolerance       1e-8;
+        tolerance       1e-10;
         relTol          0.05;
     }
 
@@ -52,11 +52,12 @@ solvers
     {
         solver          PBiCGStab;
         preconditioner  DILU;
-        tolerance       1e-8;
+        tolerance       1e-10;
         //solver          smoothSolver;
         //smoother        symGaussSeidel;
         //tolerance       1e-9;
         relTol          0.05;
+        //minIter         2;
     }
 
     TFinal
@@ -70,13 +71,14 @@ PIMPLE
 {
     momentumPredictor no;
     nCorrectors     3;
-    nNonOrthogonalCorrectors 2;
+    nNonOrthogonalCorrectors 0;
     nOuterCorrectors 1;
 
     flow    false;
+    flow    true;
 
-    pRefCell    0;
-    pRefValue   0;
+    //pRefCell    0;
+    //pRefValue   0;
 }
 
 

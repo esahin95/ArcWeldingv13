@@ -7,38 +7,29 @@
 \*---------------------------------------------------------------------------*/
 FoamFile
 {
-    format      ascii;
-    class       dictionary;
-    location    "constant";
-    object      phaseProperties;
+    format      binary;
+    class       volScalarField;
+    location    "0";
+    object      T.water;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-phases          (metal gas);
+dimensions      [0 0 0 1 0 0 0];
 
+internalField   uniform 300;
 
-sigma
+boundaryField
 {
-  type  temperatureDependent;
-  sigma // 0.07 - dT * 5e-5
-  {
-    type    table;
-    values
-    (
-        (1658 0.07)
-        (3058 0.00)
-    );
-    outOfBounds         clamp;
-    interpolationScheme linear;
-  }
+    walls
+    {
+        type            calculated;
+        value           uniform 300;
+    }
+    frontAndBack
+    {
+        type            empty;
+    }
 }
 
-/*
-sigma
-{
-    type constant;
-    sigma 0.07;
-}
-*/
 
 // ************************************************************************* //

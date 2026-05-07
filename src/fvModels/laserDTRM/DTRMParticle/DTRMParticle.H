@@ -192,9 +192,6 @@ public:
         //- Construct from Istream
         DTRMParticle(Istream& is, bool readFields = true);
 
-        //- Construct as a copy
-        DTRMParticle(const DTRMParticle& p);
-
         //- Construct from Istream and return
         static autoPtr<DTRMParticle> New(Istream& is)
         {

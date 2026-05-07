@@ -23,19 +23,22 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-#include "compressibleReactingVoF.H"
+#include "incompressibleReactingVoF.H"
 #include "fvcMeshPhi.H"
 #include "fvcDdt.H"
 #include "fvmDiv.H"
 #include "fvmSup.H"
 #include "fvmLaplacian.H"
+#include "fvcVolumeIntegrate.H"
 
 // * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
 
-void Foam::solvers::compressibleReactingVoF::thermophysicalPredictor()
+void Foam::solvers::incompressibleReactingVoF::thermophysicalPredictor()
 {
     const volScalarField& rho1(mixture.rho1());
     const volScalarField& rho2(mixture.rho2());
+
+    volScalarField& T = mixture_.T();
 
     const volScalarField& e1(mixture.thermo1().he());
     const volScalarField& e2(mixture.thermo2().he());
@@ -43,56 +46,19 @@ void Foam::solvers::compressibleReactingVoF::thermophysicalPredictor()
     const fvScalarMatrix e1Source(fvModels().source(alpha1, rho1, e1));
     const fvScalarMatrix e2Source(fvModels().source(alpha2, rho2, e2));
 
-    volScalarField& T = mixture_.T();
-
     fvScalarMatrix TEqn
     (
-        correction
-        (
-            mixture.thermo1().Cv()()
-           *(
-                fvm::ddt(alpha1, rho1, T) + fvm::div(alphaRhoPhi1, T)
-              - (
-                    e1Source.hasDiag()
-                  ? fvm::Sp(contErr1(), T) + fvm::Sp(e1Source.A(), T)
-                  : fvm::Sp(contErr1(), T)
-                )
-            )
-          + mixture.thermo2().Cv()()
-           *(
-                fvm::ddt(alpha2, rho2, T) + fvm::div(alphaRhoPhi2, T)
-              - (
-                    e2Source.hasDiag()
-                  ? fvm::Sp(contErr2(), T) + fvm::Sp(e2Source.A(), T)
-                  : fvm::Sp(contErr2(), T)
-                )
-            )
-        )
-
-      + fvc::ddt(alpha1, rho1, e1) + fvc::div(alphaRhoPhi1, e1)
-      - contErr1()*e1
-      + fvc::ddt(alpha2, rho2, e2) + fvc::div(alphaRhoPhi2, e2)
-      - contErr2()*e2
-
-      - fvm::laplacian(thermophysicalTransport.kappaEff(), T)
-
-      + (
-            mixture.totalInternalEnergy()
-          ?
-            fvc::div(fvc::absolute(phi, U), p)()()
-          + (fvc::ddt(rho, K) + fvc::div(rhoPhi, K))()()
-          - (U()&(fvModels().source(rho, U)&U)()) - (contErr1() + contErr2())*K
-          :
-            p*fvc::div(fvc::absolute(phi, U))()()
-        )
-     ==
-        (e1Source&e1)
-      + (e2Source&e2)
+        fvm::ddt(rhoCp_,T)
+        + fvm::div(rhoPhiCp_, T)
+        - fvm::Sp(fvc::ddt(rhoCp_) + fvc::div(rhoPhiCp_), T)
+        - fvm::laplacian(thermophysicalTransport.kappaEff(), T)
+        ==
+          (e1Source&e1) + (e2Source&e2)
     );
 
-    //TEqn.relax();
+    TEqn.relax();
 
-    //fvConstraints().constrain(TEqn);
+    fvConstraints().constrain(TEqn);
 
     label iter = 0;
     scalar res;
@@ -100,42 +66,31 @@ void Foam::solvers::compressibleReactingVoF::thermophysicalPredictor()
     {
         solidFraction_.storePrevIter();
 
-        volScalarField latentHeat
-        (
-            "LatentHeat",
-            L_ * solidFraction_
-        );
-
         solve
         (
             TEqn
           ==
-            fvc::ddt(alpha1, rho1, latentHeat)
-          + fvc::div(alphaRhoPhi1, latentHeat)
+            L_ *
+            (
+                fvc::ddt(alpha1, rho1, solidFraction_)
+              + fvc::div(alphaRhoPhi1, solidFraction_)
+            )
         );
 
-        volScalarField Cp
-        (
-              alpha1 * mixture.thermo1().Cp()
-            + alpha2 * mixture.thermo2().Cp()
-        );
-
-        volScalarField Tcorr
-        (
-            Tliq_ - solidFraction_ * (Tliq_ - Tsol_)
-        );
+        fvConstraints().constrain(T);
 
         solidFraction_ =
             max
             (
                 min
                 (
-                    solidFraction_ + relax_ * Cp / L_ * (Tcorr - T),
+                    solidFraction_
+                    + (relax_ / L_) * mixture_.thermo1().Cp()
+                    * (Tliq_ - T - solidFraction_ * (Tliq_ - Tsol_)),
                     1.0
                 ),
                 0.0
             );
-        alphaSolid_ = solidFraction_ * alphaVoF_;
 
         res =
         gMax
@@ -147,7 +102,9 @@ void Foam::solvers::compressibleReactingVoF::thermophysicalPredictor()
             )
         );
 
-        Info<<gMin(T.primitiveField()) << " , " << gMax(T.primitiveField()) << " " << res << endl;
+        Info<< gMin(T.primitiveField()) << " , "
+            << gMax(T.primitiveField()) << " , "
+            << res << endl;
     }
     while
     (
@@ -156,7 +113,7 @@ void Foam::solvers::compressibleReactingVoF::thermophysicalPredictor()
 
     Info<< "Iter = " << iter << " , res = " << res << endl;
 
-    //fvConstraints().constrain(T);
+    alphaSolid_ = solidFraction_ * alphaVoF_;
 
     mixture_.correctThermo();
     mixture_.correct();

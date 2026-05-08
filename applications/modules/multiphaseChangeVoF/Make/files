@@ -1,0 +1,10 @@
+multiphaseChangeVoFMixture/phaseChangeVoFphase/phaseChangeVoFphase.C
+multiphaseChangeVoFMixture/multiphaseChangeVoFMixture.C
+
+alphaPredictor.C
+momentumPredictor.C
+thermophysicalPredictor.C
+pressureCorrector.C
+multiphaseChangeVoF.C
+
+LIB = $(FOAM_USER_LIBBIN)/libmultiphaseChangeVoF

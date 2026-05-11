@@ -1,5 +1,0 @@
-momentumPredictor.C
-thermophysicalPredictor.C
-compressibleReactingVoF.C
-
-LIB = $(FOAM_USER_LIBBIN)/libcompressibleReactingVoF

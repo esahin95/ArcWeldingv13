@@ -7,3 +7,5 @@ cd ${0%/*} || exit 1    # Run from this directory
 wmake $targetType phaseChangeVoF
 
 wmake $targetType multiphaseChangeVoF
+
+wmake $targetType icoPhaseChangeVoF

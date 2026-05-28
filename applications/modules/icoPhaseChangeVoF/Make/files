@@ -1,0 +1,6 @@
+incompressibleTwoPhaseVoFMixture/incompressibleTwoPhaseVoFMixture.C
+incompressibleInterPhaseTransportModel/incompressibleInterPhaseTransportModel.C
+alphaSuSp.C
+icoPhaseChangeVoF.C
+
+LIB = $(FOAM_USER_LIBBIN)/libicoPhaseChangeVoF

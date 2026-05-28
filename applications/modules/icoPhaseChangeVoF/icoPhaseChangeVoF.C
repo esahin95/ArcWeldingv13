@@ -26,7 +26,12 @@ License
 #include "icoPhaseChangeVoF.H"
 #include "localEulerDdtScheme.H"
 #include "fvCorrectPhi.H"
-#include "geometricZeroField.H"
+//#include "geometricZeroField.H"
+#include "fvcMeshPhi.H"
+#include "fvcDdt.H"
+#include "fvmDiv.H"
+#include "fvmSup.H"
+#include "fvmLaplacian.H"
 #include "addToRunTimeSelectionTable.H"
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
@@ -48,42 +53,78 @@ Foam::solvers::icoPhaseChangeVoF::icoPhaseChangeVoF(fvMesh& mesh)
     twoPhaseVoFSolver
     (
         mesh,
-        autoPtr<twoPhaseVoFMixture>(new incompressibleTwoPhaseVoFMixture(mesh))
+        autoPtr<twoPhaseVoFMixture>(new compressibleTwoPhaseVoFMixture(mesh))
     ),
 
-    mixture
+    mixture_
     (
-        refCast<incompressibleTwoPhaseVoFMixture>(twoPhaseVoFSolver::mixture)
+        refCast<compressibleTwoPhaseVoFMixture>(twoPhaseVoFSolver::mixture)
     ),
 
-    p
-    (
-        IOobject
-        (
-            "p",
-            runTime.name(),
-            mesh,
-            IOobject::NO_READ,
-            IOobject::AUTO_WRITE
-        ),
-        p_rgh + rho*buoyancy.gh
-    ),
+    p(mixture_.p()),
 
     pressureReference_
     (
         p,
         p_rgh,
-        pimple.dict()
+        pimple.dict(),
+        false
+    ),
+
+    alphaRhoPhi1
+    (
+        IOobject::groupName("alphaRhoPhi", alpha1.group()),
+        fvc::interpolate(mixture_.thermo1().rho())*alphaPhi1
+    ),
+
+    alphaRhoPhi2
+    (
+        IOobject::groupName("alphaRhoPhi", alpha2.group()),
+        fvc::interpolate(mixture_.thermo2().rho())*alphaPhi2
+    ),
+
+    rhoCp_
+    (
+        "rhoCp",
+        (
+            mixture_.thermo1().rho() * alpha1 * mixture_.thermo1().Cp()
+          + mixture_.thermo2().rho() * alpha2 * mixture_.thermo2().Cp()
+        )
+    ),
+
+    Cp_
+    (
+        IOobject
+        (
+            "Cp",
+            runTime.name(),
+            mesh,
+            IOobject::NO_READ,
+            IOobject::AUTO_WRITE
+        ),
+        rhoCp_ / rho
+    ),
+
+    rhoPhiCp_
+    (
+        "rhoPhiCp",
+        rhoPhi * fvc::interpolate(Cp_)
     ),
 
     momentumTransport
     (
+        rho,
         U,
         phi,
+        rhoPhi,
         alphaPhi1,
         alphaPhi2,
-        mixture
-    )
+        alphaRhoPhi1,
+        alphaRhoPhi2,
+        mixture_
+    ),
+
+    thermophysicalTransport(momentumTransport)
 {
     if (correctPhi || mesh.topoChanging())
     {
@@ -132,11 +173,25 @@ void Foam::solvers::icoPhaseChangeVoF::prePredictor()
 {
     twoPhaseVoFSolver::prePredictor();
 
-    const dimensionedScalar& rho1 = mixture.rho1();
-    const dimensionedScalar& rho2 = mixture.rho2();
+    const volScalarField& rho1 = mixture_.thermo1().rho();
+    const volScalarField& rho2 = mixture_.thermo2().rho();
 
-    // Calculate the mass-flux
-    rhoPhi = alphaPhi1*rho1 + alphaPhi2*rho2;
+    const volScalarField& Cp1 = mixture_.thermo1().Cp();
+    const volScalarField& Cp2 = mixture_.thermo2().Cp();
+
+    // Mass fluxes
+    alphaRhoPhi1 = fvc::interpolate(rho1)*alphaPhi1;
+    alphaRhoPhi2 = fvc::interpolate(rho2)*alphaPhi2;
+
+    rhoPhi = alphaRhoPhi1 + alphaRhoPhi2;
+
+    // Heat capacity
+    rhoCp_ = alpha1*rho1*Cp1 + alpha2*rho2*Cp2;
+
+    Cp_ = rhoCp_ / rho;
+
+    rhoPhiCp_ = alphaRhoPhi1*fvc::interpolate(Cp1)
+              + alphaRhoPhi2*fvc::interpolate(Cp2);
 }
 
 
@@ -147,7 +202,9 @@ void Foam::solvers::icoPhaseChangeVoF::momentumTransportPredictor()
 
 
 void Foam::solvers::icoPhaseChangeVoF::thermophysicalTransportPredictor()
-{}
+{
+    thermophysicalTransport.predict();
+}
 
 
 void Foam::solvers::icoPhaseChangeVoF::pressureCorrector()
@@ -156,8 +213,38 @@ void Foam::solvers::icoPhaseChangeVoF::pressureCorrector()
 }
 
 
+void Foam::solvers::icoPhaseChangeVoF::momentumPredictor()
+{
+    twoPhaseVoFSolver::momentumPredictor();
+}
+
+
 void Foam::solvers::icoPhaseChangeVoF::thermophysicalPredictor()
-{}
+{
+    //const volScalarField& rho1(mixture_.rho1());
+    //const volScalarField& rho2(mixture_.rho2());
+
+    volScalarField& T = mixture_.T();
+
+    fvScalarMatrix TEqn
+    (
+        fvm::ddt(rhoCp_,T)
+        + fvm::div(rhoPhiCp_, T)
+        - fvm::Sp(fvc::ddt(rhoCp_) + fvc::div(rhoPhiCp_), T)
+        - fvm::laplacian(thermophysicalTransport.kappaEff(), T)
+    );
+
+    TEqn.relax();
+
+    fvConstraints().constrain(TEqn);
+
+    solve(TEqn);
+
+    fvConstraints().constrain(T);
+
+    mixture_.correctThermo();
+    mixture_.correct();
+}
 
 
 void Foam::solvers::icoPhaseChangeVoF::momentumTransportCorrector()
@@ -167,7 +254,9 @@ void Foam::solvers::icoPhaseChangeVoF::momentumTransportCorrector()
 
 
 void Foam::solvers::icoPhaseChangeVoF::thermophysicalTransportCorrector()
-{}
+{
+    thermophysicalTransport.correct();
+}
 
 
 // ************************************************************************* //

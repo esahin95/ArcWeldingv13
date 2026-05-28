@@ -1,5 +1,3 @@
-incompressibleTwoPhaseVoFMixture/incompressibleTwoPhaseVoFMixture.C
-incompressibleInterPhaseTransportModel/incompressibleInterPhaseTransportModel.C
 alphaSuSp.C
 icoPhaseChangeVoF.C
 

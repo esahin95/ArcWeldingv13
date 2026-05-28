@@ -30,11 +30,11 @@ Description
     with optional mesh motion and mesh topology changes including adaptive
     re-meshing.
 
-    The momentum and other fluid properties are of the "mixture" and a single
+    The momentum and other fluid properties are of the "mixture_" and a single
     momentum equation is solved.
 
-    Either mixture or two-phase transport modelling may be selected.  In the
-    mixture approach a single laminar, RAS or LES model is selected to model the
+    Either mixture_ or two-phase transport modelling may be selected.  In the
+    mixture_ approach a single laminar, RAS or LES model is selected to model the
     momentum stress.  In the Euler-Euler two-phase approach separate laminar,
     RAS or LES selected models are selected for each of the phases.
 
@@ -59,8 +59,9 @@ See also
 #define icoPhaseChangeVoF_H
 
 #include "twoPhaseVoFSolver.H"
-#include "incompressibleTwoPhaseVoFMixture.H"
-#include "incompressibleInterPhaseTransportModel.H"
+#include "compressibleTwoPhaseVoFMixture.H"
+#include "compressibleInterPhaseTransportModel.H"
+#include "compressibleInterPhaseThermophysicalTransportModel.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -82,14 +83,14 @@ protected:
 
     // Phase properties
 
-        //- The compressible two-phase mixture
-        incompressibleTwoPhaseVoFMixture& mixture;
+        //- The compressible two-phase mixture_
+        compressibleTwoPhaseVoFMixture& mixture_;
 
 
     // Thermophysical properties
 
-        //- Static pressure field
-        volScalarField p;
+        //- Reference to mixture_ pressure field
+        volScalarField& p;
 
 
     // Pressure reference
@@ -98,10 +99,36 @@ protected:
         Foam::pressureReference pressureReference_;
 
 
+    // Kinematic properties
+
+        // Phase-1 mass-flux
+        surfaceScalarField alphaRhoPhi1;
+
+        // Phase-2 mass-flux
+        surfaceScalarField alphaRhoPhi2;
+
+    //- Thermophysical properties
+
+        //- Volumetric heat capacity
+        volScalarField rhoCp_;
+
+        //- Specific heat capacity
+        volScalarField Cp_;
+
+        //- Heat capacity density flux
+        surfaceScalarField rhoPhiCp_;
+
     // Momentum transport
 
         //- Momentum transport model
-        incompressibleInterPhaseTransportModel momentumTransport;
+        compressibleInterPhaseTransportModel momentumTransport;
+
+
+    // Thermophysical transport
+
+        //- Thermophysical transport model
+        compressibleInterPhaseThermophysicalTransportModel
+            thermophysicalTransport;
 
 
     // Protected Member Functions
@@ -115,7 +142,7 @@ protected:
         //- The flow is incompressible
         virtual bool incompressible() const
         {
-            return true;
+            return mixture_.incompressible();;
         }
 
         //- Is the flow divergent?
@@ -123,15 +150,17 @@ protected:
         virtual bool divergent() const
         {
             return
-                fvModels().addsSupToField(alpha1.name())
+               !incompressible()
+             || fvModels().addsSupToField(alpha1.name())
              || fvModels().addsSupToField(alpha2.name());
         }
 
-        //- Return the mixture compressibility/density
+        //- Return the mixture_ compressibility/density
         //  Not required for incompressible fluids
         virtual tmp<volScalarField> psiByRho() const
         {
-            return tmp<volScalarField>(nullptr);
+            NotImplemented;
+            return mixture_.psiByRho();
         }
 
         //- Calculate the alpha equation sources
@@ -144,7 +173,7 @@ protected:
         //- Return the momentum equation stress term
         virtual tmp<fvVectorMatrix> divDevTau(volVectorField& U)
         {
-            return momentumTransport.divDevTau(rho, U);
+            return momentumTransport.divDevTau(U);
         }
 
 
@@ -177,6 +206,9 @@ public:
 
         //- Predict thermophysical transport
         virtual void thermophysicalTransportPredictor();
+
+        //- Construct and optionally solve the momentum equation
+        virtual void momentumPredictor();
 
         //- Construct and solve the energy equation,
         //  convert to temperature

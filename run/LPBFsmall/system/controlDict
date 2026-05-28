@@ -16,7 +16,7 @@ FoamFile
 
 application     foamRun;
 
-solver          incompressibleReactingVoF;
+solver          phaseChangeVoF;
 
 startFrom       startTime;
 
@@ -31,7 +31,7 @@ deltaT          1e-8;
 
 writeControl    adjustableRunTime;
 
-writeInterval   5e-6;
+writeInterval   1e-6;
 
 purgeWrite      0;
 

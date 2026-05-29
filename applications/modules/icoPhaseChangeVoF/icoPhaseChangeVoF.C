@@ -26,12 +26,6 @@ License
 #include "icoPhaseChangeVoF.H"
 #include "localEulerDdtScheme.H"
 #include "fvCorrectPhi.H"
-//#include "geometricZeroField.H"
-#include "fvcMeshPhi.H"
-#include "fvcDdt.H"
-#include "fvmDiv.H"
-#include "fvmSup.H"
-#include "fvmLaplacian.H"
 #include "addToRunTimeSelectionTable.H"
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
@@ -83,16 +77,16 @@ Foam::solvers::icoPhaseChangeVoF::icoPhaseChangeVoF(fvMesh& mesh)
         fvc::interpolate(mixture_.thermo2().rho())*alphaPhi2
     ),
 
-    rhoCp_
+    rhoCp
     (
         "rhoCp",
         (
-            mixture_.thermo1().rho() * alpha1 * mixture_.thermo1().Cp()
-          + mixture_.thermo2().rho() * alpha2 * mixture_.thermo2().Cp()
+            mixture_.thermo1().rho()*alpha1*mixture_.thermo1().Cp()
+          + mixture_.thermo2().rho()*alpha2*mixture_.thermo2().Cp()
         )
     ),
 
-    Cp_
+    Cp
     (
         IOobject
         (
@@ -102,13 +96,13 @@ Foam::solvers::icoPhaseChangeVoF::icoPhaseChangeVoF(fvMesh& mesh)
             IOobject::NO_READ,
             IOobject::AUTO_WRITE
         ),
-        rhoCp_ / rho
+        rhoCp/rho
     ),
 
-    rhoPhiCp_
+    rhoPhiCp
     (
         "rhoPhiCp",
-        rhoPhi * fvc::interpolate(Cp_)
+        rhoPhi * fvc::interpolate(Cp)
     ),
 
     momentumTransport
@@ -169,6 +163,50 @@ Foam::solvers::icoPhaseChangeVoF::~icoPhaseChangeVoF()
 
 // * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
 
+Foam::scalar Foam::solvers::icoPhaseChangeVoF::maxDeltaT() const
+{
+
+    // Diffusion Courant number
+    const scalarField sumDif
+    (
+        fvc::surfaceSum
+        (
+            mesh.magSf()
+            * fvc::interpolate(thermophysicalTransport.kappaEff())
+            * mesh.surfaceInterpolation::deltaCoeffs()
+        )().primitiveField()
+    );
+
+    const scalarField sumDiv
+    (
+        (
+            mesh.V() * rho() * Cp()
+        )().primitiveField()
+    );
+
+    const scalar diCoNum =
+        gMax(sumDif / sumDiv) * runTime.deltaTValue();
+
+    const scalar meanDiCoNum =
+        gSum(sumDif) / gSum(sumDiv) * runTime.deltaTValue();
+
+    Info<< "Diffusion Courant Number mean: " << meanDiCoNum
+        << " max: " << diCoNum << endl;
+
+    // Recompute maximum time step
+    const scalar maxDiCo =
+        runTime.controlDict().lookup<scalar>("maxDiCo");
+
+    scalar deltaT = twoPhaseVoFSolver::maxDeltaT();
+
+    if (diCoNum > small)
+    {
+        deltaT = min(deltaT, maxDiCo/diCoNum*runTime.deltaTValue());
+    }
+
+    return deltaT;
+}
+
 void Foam::solvers::icoPhaseChangeVoF::prePredictor()
 {
     twoPhaseVoFSolver::prePredictor();
@@ -179,19 +217,20 @@ void Foam::solvers::icoPhaseChangeVoF::prePredictor()
     const volScalarField& Cp1 = mixture_.thermo1().Cp();
     const volScalarField& Cp2 = mixture_.thermo2().Cp();
 
-    // Mass fluxes
+    // Phase mass fluxes
     alphaRhoPhi1 = fvc::interpolate(rho1)*alphaPhi1;
     alphaRhoPhi2 = fvc::interpolate(rho2)*alphaPhi2;
 
+    // Mass flux
     rhoPhi = alphaRhoPhi1 + alphaRhoPhi2;
 
     // Heat capacity
-    rhoCp_ = alpha1*rho1*Cp1 + alpha2*rho2*Cp2;
+    rhoCp = alpha1*rho1*Cp1 + alpha2*rho2*Cp2;
+    Cp = rhoCp/rho;
 
-    Cp_ = rhoCp_ / rho;
-
-    rhoPhiCp_ = alphaRhoPhi1*fvc::interpolate(Cp1)
-              + alphaRhoPhi2*fvc::interpolate(Cp2);
+    // Heat capacity flux
+    rhoPhiCp = alphaRhoPhi1*fvc::interpolate(Cp1)
+             + alphaRhoPhi2*fvc::interpolate(Cp2);
 }
 
 
@@ -216,34 +255,6 @@ void Foam::solvers::icoPhaseChangeVoF::pressureCorrector()
 void Foam::solvers::icoPhaseChangeVoF::momentumPredictor()
 {
     twoPhaseVoFSolver::momentumPredictor();
-}
-
-
-void Foam::solvers::icoPhaseChangeVoF::thermophysicalPredictor()
-{
-    //const volScalarField& rho1(mixture_.rho1());
-    //const volScalarField& rho2(mixture_.rho2());
-
-    volScalarField& T = mixture_.T();
-
-    fvScalarMatrix TEqn
-    (
-        fvm::ddt(rhoCp_,T)
-        + fvm::div(rhoPhiCp_, T)
-        - fvm::Sp(fvc::ddt(rhoCp_) + fvc::div(rhoPhiCp_), T)
-        - fvm::laplacian(thermophysicalTransport.kappaEff(), T)
-    );
-
-    TEqn.relax();
-
-    fvConstraints().constrain(TEqn);
-
-    solve(TEqn);
-
-    fvConstraints().constrain(T);
-
-    mixture_.correctThermo();
-    mixture_.correct();
 }
 
 

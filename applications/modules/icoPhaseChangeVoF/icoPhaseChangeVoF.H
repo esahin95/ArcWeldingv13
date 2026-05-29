@@ -89,7 +89,7 @@ protected:
 
     // Thermophysical properties
 
-        //- Reference to mixture_ pressure field
+        //- Reference to mixture pressure field
         volScalarField& p;
 
 
@@ -110,13 +110,14 @@ protected:
     //- Thermophysical properties
 
         //- Volumetric heat capacity
-        volScalarField rhoCp_;
+        volScalarField rhoCp;
 
         //- Specific heat capacity
-        volScalarField Cp_;
+        volScalarField Cp;
 
         //- Heat capacity density flux
-        surfaceScalarField rhoPhiCp_;
+        surfaceScalarField rhoPhiCp;
+
 
     // Momentum transport
 
@@ -197,6 +198,9 @@ public:
 
 
     // Member Functions
+
+        //- Return the current maximum time-step for stable solution
+        virtual scalar maxDeltaT() const;
 
         //- Called at the start of the PIMPLE loop
         virtual void prePredictor();

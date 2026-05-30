@@ -105,6 +105,78 @@ Foam::solvers::icoPhaseChangeVoF::icoPhaseChangeVoF(fvMesh& mesh)
         rhoPhi * fvc::interpolate(Cp)
     ),
 
+    phaseChangeDict_
+    (
+        IOobject
+        (
+            "phaseChangeProperties",
+            runTime.constant(),
+            mesh,
+            IOobject::MUST_READ,
+            IOobject::NO_WRITE
+        )
+    ),
+
+    solidFraction_
+    (
+        IOobject
+        (
+            IOobject::groupName(alpha1.name(), "solidFraction"),
+            runTime.name(),
+            mesh,
+            IOobject::NO_READ,
+            IOobject::NO_WRITE
+        ),
+        mesh,
+        dimensionedScalar(dimless, 0.0)
+    ),
+
+    alphaSolid_
+    (
+        IOobject
+        (
+            IOobject::groupName(alpha1.name(), "solid"),
+            runTime.name(),
+            mesh,
+            IOobject::NO_READ,
+            IOobject::AUTO_WRITE
+        ),
+        mesh,
+        dimensionedScalar(dimless, 0.0)
+    ),
+
+    Lm_
+    (
+        "Lm",
+        dimEnergy/dimMass,
+        phaseChangeDict_.lookup<scalar>("Lm")
+    ),
+
+    Tsol_
+    (
+        "Tsol",
+        dimTemperature,
+        phaseChangeDict_.lookup<scalar>("Tsol")
+    ),
+
+    Tliq_
+    (
+        "Tliq",
+        dimTemperature,
+        phaseChangeDict_.lookup<scalar>("Tliq")
+    ),
+
+    relax_(phaseChangeDict_.lookupOrDefault<scalar>("relax", 1.0)),
+
+    Cu_
+    (
+        "Cu",
+        dimDensity/dimTime,
+        phaseChangeDict_.lookupOrDefault<scalar>("Cu", 1e5)
+    ),
+
+    q_(phaseChangeDict_.lookupOrDefault<scalar>("q", 0.001)),
+
     momentumTransport
     (
         rho,
@@ -120,6 +192,13 @@ Foam::solvers::icoPhaseChangeVoF::icoPhaseChangeVoF(fvMesh& mesh)
 
     thermophysicalTransport(momentumTransport)
 {
+    if (!mixture_.incompressible())
+    {
+        FatalErrorInFunction
+                << "At least one phase is compressible!"
+                << exit(FatalError);
+    }
+
     if (correctPhi || mesh.topoChanging())
     {
         rAU = new volScalarField
@@ -152,6 +231,24 @@ Foam::solvers::icoPhaseChangeVoF::icoPhaseChangeVoF(fvMesh& mesh)
             pimple
         );
     }
+
+    const volScalarField& T = mixture_.T();
+
+    // Initialize solid phase fraction field
+    solidFraction_ =
+        max
+        (
+            min
+            (
+                (Tliq_ - T) / (Tliq_ - Tsol_),
+                1.0
+            ),
+            0.0
+        );
+    alphaSolid_ = alpha1 * solidFraction_;
+    alphaSolid_.write();
+
+    Info<<Tsol_ << " " <<Tliq_ << " " <<Lm_ << " " <<q_ << " " <<Cu_ << endl;
 }
 
 
@@ -249,12 +346,6 @@ void Foam::solvers::icoPhaseChangeVoF::thermophysicalTransportPredictor()
 void Foam::solvers::icoPhaseChangeVoF::pressureCorrector()
 {
     incompressiblePressureCorrector(p);
-}
-
-
-void Foam::solvers::icoPhaseChangeVoF::momentumPredictor()
-{
-    twoPhaseVoFSolver::momentumPredictor();
 }
 
 

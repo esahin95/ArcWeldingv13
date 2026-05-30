@@ -118,6 +118,35 @@ protected:
         //- Heat capacity density flux
         surfaceScalarField rhoPhiCp;
 
+    //- Solidification melting properties
+
+        //- Dictionary
+        const IOdictionary phaseChangeDict_;
+
+        //- Solid fraction for phase 1
+        volScalarField solidFraction_;
+
+        //- Solid phase fraction for phase 1
+        volScalarField alphaSolid_;
+
+        //- Latent heat of fusion
+        const dimensionedScalar Lm_;
+
+        //- Solidus temperature
+        const dimensionedScalar Tsol_;
+
+        //- Liquidus temperature
+        const dimensionedScalar Tliq_;
+
+        //- Solid fraction under-relaxation coefficient
+        const scalar relax_;
+
+        //- Mushy region momentum sink coefficient [1/s]
+        const dimensionedScalar Cu_;
+
+        //- Coefficient used in porosity calculation
+        const scalar q_;
+
 
     // Momentum transport
 

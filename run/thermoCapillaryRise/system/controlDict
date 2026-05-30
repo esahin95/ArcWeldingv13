@@ -21,9 +21,9 @@ startFrom       startTime;
 startTime       0;
 
 stopAt          endTime;
-//stopAt          nextWrite;
+stopAt          nextWrite;
 
-endTime         0.02;
+endTime         0.5;
 
 deltaT          1e-5;
 
@@ -49,7 +49,7 @@ adjustTimeStep  yes;
 
 maxCo           0.2;
 maxAlphaCo      0.2;
-maxDiCo         1;
+maxDiCo         100;
 
 maxDeltaT       1;
 

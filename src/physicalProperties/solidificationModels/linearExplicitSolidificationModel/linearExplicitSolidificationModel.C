@@ -23,29 +23,76 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-#include "solidificationModel.H"
-#include "fvMesh.H"
+#include "linearExplicitSolidificationModel.H"
+#include "addToRunTimeSelectionTable.H"
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
 namespace Foam
 {
-    defineTypeNameAndDebug(solidificationModel, 0);
-    defineRunTimeSelectionTable(solidificationModel, dictionary);
+namespace solidificationModels
+{
+    defineTypeNameAndDebug(linearExplicit, 0);
+
+    addToRunTimeSelectionTable
+    (
+        solidificationModel,
+        linearExplicit,
+        dictionary
+    );
+}
 }
 
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
-Foam::solidificationModel::solidificationModel
+Foam::solidificationModels::linearExplicit::linearExplicit
 (
     const fvMesh& mesh,
     const word& group
 )
 :
-    physicalProperties(mesh, group),
-    dict(subDict(solidificationModel::typeName))
-{}
+    solidificationModel(mesh, group),
+
+    Lm_
+    (
+        "Lm",
+        dimEnergy/dimMass,
+        dict.lookup<scalar>("Lm")
+    ),
+
+    Tliq_
+    (
+        "Tliq",
+        dimTemperature,
+        dict.lookup<scalar>("Tliq")
+    ),
+
+    Tsol_
+    (
+        "Tsol",
+        dimTemperature,
+        dict.lookup<scalar>("Tsol")
+    ),
+
+    Cu_
+    (
+        "Cu",
+        dimDensity/dimTime,
+        dict.lookupOrDefault<scalar>("Cu", 1e5)
+    ),
+
+    q_(dict.lookupOrDefault<scalar>("q", 0.001)),
+
+    relax_(dict.lookupOrDefault<scalar>("relax", 1.0))
+{
+    Info<<"   Lm   = " << Lm_ << endl;
+    Info<<"   Tliq = " << Tliq_ << endl;
+    Info<<"   Tsol = " << Tsol_ << endl;
+    Info<<"   Cu   = " << Cu_ << endl;
+    Info<<"   q    = " << q_ << endl;
+    Info<<"   relax= " << relax_ << endl;
+}
 
 
 // ************************************************************************* //

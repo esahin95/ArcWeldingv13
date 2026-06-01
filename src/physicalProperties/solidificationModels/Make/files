@@ -2,5 +2,6 @@ solidificationModel/solidificationModel.C
 solidificationModel/solidificationModelNew.C
 
 noSolidificationModel/noSolidificationModel.C
+linearExplicitSolidificationModel/linearExplicitSolidificationModel.C
 
 LIB = $(FOAM_USER_LIBBIN)/libsolidificationModels

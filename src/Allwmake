@@ -10,4 +10,6 @@ wmake $targetType meshTools/zoneGenerators/volume/spheres
 
 wmake $targetType twoPhaseModels/interfaceProperties
 
+wmake $targetType physicalProperties/solidificationModels
+
 fvModels/Allwmake $targetType $*

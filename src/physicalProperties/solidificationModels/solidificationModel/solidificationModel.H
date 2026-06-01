@@ -36,7 +36,8 @@ SourceFiles
 #ifndef solidificationModel_H
 #define solidificationModel_H
 
-#include ".H"
+#include "physicalProperties.H"
+#include "dimensionedScalar.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -44,13 +45,7 @@ namespace Foam
 {
 
 // Forward declaration of classes
-class Istream;
-class Ostream;
-
-// Forward declaration of friend functions and operators
-class solidificationModel;
-Istream& operator>>(Istream&, solidificationModel&);
-Ostream& operator<<(Ostream&, const solidificationModel&);
+class fvMesh;
 
 
 /*---------------------------------------------------------------------------*\
@@ -59,38 +54,39 @@ Ostream& operator<<(Ostream&, const solidificationModel&);
 
 class solidificationModel
 :
-    public baseClassName
+    public physicalProperties
 {
-    // Private Data
+protected:
 
-        //- Description of data_
-        dataType data_;
-
-
-    // Private Member Functions
+    // Protected Data
+    const dictionary& dict;
 
 
 public:
 
-    // Static Data Members
+    //- Runtime type information
+    TypeName("solidificationModel");
 
-        //- Static data staticData
-        static const dataType staticData;
+
+    // Declare run-time constructor selection table
+
+        declareRunTimeSelectionTable
+        (
+            autoPtr,
+            solidificationModel,
+            dictionary,
+            (
+                const fvMesh& mesh,
+                const word& group
+            ),
+            (mesh, group)
+        );
 
 
     // Constructors
 
-        //- Construct null
-        solidificationModel();
-
         //- Construct from components
-        solidificationModel(const dataType& data);
-
-        //- Construct from Istream
-        solidificationModel(Istream&);
-
-        //- Copy constructor
-        solidificationModel(const solidificationModel&);
+        solidificationModel(const fvMesh& mesh, const word& group);
 
         //- Disallow default bitwise copy construction
         solidificationModel(const solidificationModel&) = delete;
@@ -98,51 +94,29 @@ public:
 
     // Selectors
 
-        //- Select null constructed
-        static autoPtr<solidificationModel> New();
+        //- Return a reference to the selected viscosity model
+        static autoPtr<solidificationModel> New
+        (
+            const fvMesh& mesh,
+            const word& group = word::null
+        );
 
 
     //- Destructor
-    ~solidificationModel();
-
-
-    // Member Functions
-
-        // Access
-
-        // Check
-
-        // Edit
-
-        // Write
+    virtual ~solidificationModel()
+    {}
 
 
     // Member Operators
 
-        void operator=(const solidificationModel&);
-
         //- Disallow default bitwise assignment
         void operator=(const solidificationModel&) = delete;
-
-
-    // Friend Functions
-
-    // Friend Operators
-
-    // IOstream Operators
-
-        friend Istream& operator>>(Istream&, solidificationModel&);
-        friend Ostream& operator<<(Ostream&, const solidificationModel&);
 };
 
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 } // End namespace Foam
-
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
-#include "solidificationModelI.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

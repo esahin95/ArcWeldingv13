@@ -23,80 +23,42 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-#include "solidificationModelNew.H"
+#include "solidificationModel.H"
+#include "fvMesh.H"
 
-// * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-const dataType Foam::solidificationModelNew::staticData();
-
-
-// * * * * * * * * * * * * * Static Member Functions * * * * * * * * * * * * //
-
-
-// * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
-
-
-// * * * * * * * * * * * * Protected Member Functions  * * * * * * * * * * * //
-
-
-// * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
-
-Foam::solidificationModelNew::solidificationModelNew()
-:
-    baseClassName(),
-    data_()
-{}
-
-
-Foam::solidificationModelNew::solidificationModelNew(const dataType& data)
-:
-    baseClassName(),
-    data_(data)
-{}
-
-
-Foam::solidificationModelNew::solidificationModelNew(const solidificationModelNew&)
-:
-    baseClassName(),
-    data_()
-{}
-
-
-// * * * * * * * * * * * * * * * * Selectors * * * * * * * * * * * * * * * * //
-
-Foam::autoPtr<Foam::solidificationModelNew>
-Foam::solidificationModelNew::New()
+Foam::autoPtr<Foam::solidificationModel> Foam::solidificationModel::New
+(
+    const fvMesh& mesh,
+    const word& group
+)
 {
-    return autoPtr<solidificationModelNew>(new solidificationModelNew);
-}
+    const IOdictionary dict
+    (
+        solidificationModel::findModelDict(mesh, group)
+    );
 
+    const dictionary& modelDict = dict.subDict("solidificationModel");
 
-// * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //
+    const word modelType(modelDict.lookup("type"));
 
-Foam::solidificationModelNew::~solidificationModelNew()
-{}
+    Info<< "Selecting solidification model " << modelType << endl;
 
+    dictionaryConstructorTable::iterator cstrIter =
+        dictionaryConstructorTablePtr_->find(modelType);
 
-// * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
-
-
-// * * * * * * * * * * * * * * Member Operators  * * * * * * * * * * * * * * //
-
-void Foam::solidificationModelNew::operator=(const solidificationModelNew& rhs)
-{
-    // Check for assignment to self
-    if (this == &rhs)
+    if (cstrIter == dictionaryConstructorTablePtr_->end())
     {
-        FatalErrorInFunction
-            << "Attempted assignment to self"
-            << abort(FatalError);
+        FatalIOErrorInFunction(dict)
+            << "Unknown solidification model " << modelType << nl << nl
+            << "Valid solidification models are : " << endl
+            << dictionaryConstructorTablePtr_->sortedToc()
+            << exit(FatalIOError);
     }
+
+    return autoPtr<solidificationModel>(cstrIter()(mesh, group));
 }
-
-// * * * * * * * * * * * * * * Friend Functions  * * * * * * * * * * * * * * //
-
-
-// * * * * * * * * * * * * * * Friend Operators * * * * * * * * * * * * * * //
 
 
 // ************************************************************************* //

@@ -27,122 +27,63 @@ Class
 Description
 
 SourceFiles
-    noSolidificationModelI.H
     noSolidificationModel.C
-    noSolidificationModelIO.C
 
 \*---------------------------------------------------------------------------*/
 
 #ifndef noSolidificationModel_H
 #define noSolidificationModel_H
 
-#include ".H"
+#include "solidificationModel.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam
 {
 
-// Forward declaration of classes
-class Istream;
-class Ostream;
-
-// Forward declaration of friend functions and operators
-class noSolidificationModel;
-Istream& operator>>(Istream&, noSolidificationModel&);
-Ostream& operator<<(Ostream&, const noSolidificationModel&);
+namespace solidificationModels
+{
 
 
 /*---------------------------------------------------------------------------*\
                           Class noSolidificationModel Declaration
 \*---------------------------------------------------------------------------*/
 
-class noSolidificationModel
+class none
 :
-    public baseClassName
+    public solidificationModel
 {
-    // Private Data
-
-        //- Description of data_
-        dataType data_;
-
-
-    // Private Member Functions
-
 
 public:
 
-    // Static Data Members
-
-        //- Static data staticData
-        static const dataType staticData;
-
+    //- Runtime type information
+    TypeName("none");
 
     // Constructors
 
-        //- Construct null
-        noSolidificationModel();
-
         //- Construct from components
-        noSolidificationModel(const dataType& data);
-
-        //- Construct from Istream
-        noSolidificationModel(Istream&);
-
-        //- Copy constructor
-        noSolidificationModel(const noSolidificationModel&);
+        none(const fvMesh& mesh, const word& group);
 
         //- Disallow default bitwise copy construction
-        noSolidificationModel(const noSolidificationModel&) = delete;
-
-
-    // Selectors
-
-        //- Select null constructed
-        static autoPtr<noSolidificationModel> New();
+        none(const none&) = delete;
 
 
     //- Destructor
-    ~noSolidificationModel();
-
-
-    // Member Functions
-
-        // Access
-
-        // Check
-
-        // Edit
-
-        // Write
+    virtual ~none()
+    {}
 
 
     // Member Operators
 
-        void operator=(const noSolidificationModel&);
-
         //- Disallow default bitwise assignment
-        void operator=(const noSolidificationModel&) = delete;
-
-
-    // Friend Functions
-
-    // Friend Operators
-
-    // IOstream Operators
-
-        friend Istream& operator>>(Istream&, noSolidificationModel&);
-        friend Ostream& operator<<(Ostream&, const noSolidificationModel&);
+        void operator=(const none&) = delete;
 };
 
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
+} // End namespace solidificationModels
 } // End namespace Foam
-
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
-#include "noSolidificationModelI.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

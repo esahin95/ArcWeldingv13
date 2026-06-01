@@ -24,79 +24,36 @@ License
 \*---------------------------------------------------------------------------*/
 
 #include "noSolidificationModel.H"
+#include "addToRunTimeSelectionTable.H"
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
-const dataType Foam::noSolidificationModel::staticData();
+namespace Foam
+{
+namespace solidificationModels
+{
+    defineTypeNameAndDebug(none, 0);
 
-
-// * * * * * * * * * * * * * Static Member Functions * * * * * * * * * * * * //
-
-
-// * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
-
-
-// * * * * * * * * * * * * Protected Member Functions  * * * * * * * * * * * //
+    addToRunTimeSelectionTable
+    (
+        solidificationModel,
+        none,
+        dictionary
+    );
+}
+}
 
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
-Foam::noSolidificationModel::noSolidificationModel()
+Foam::solidificationModels::none::none
+(
+    const fvMesh& mesh,
+    const word& group
+)
 :
-    baseClassName(),
-    data_()
+    solidificationModel(mesh, group)
 {}
-
-
-Foam::noSolidificationModel::noSolidificationModel(const dataType& data)
-:
-    baseClassName(),
-    data_(data)
-{}
-
-
-Foam::noSolidificationModel::noSolidificationModel(const noSolidificationModel&)
-:
-    baseClassName(),
-    data_()
-{}
-
-
-// * * * * * * * * * * * * * * * * Selectors * * * * * * * * * * * * * * * * //
-
-Foam::autoPtr<Foam::noSolidificationModel>
-Foam::noSolidificationModel::New()
-{
-    return autoPtr<noSolidificationModel>(new noSolidificationModel);
-}
-
-
-// * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //
-
-Foam::noSolidificationModel::~noSolidificationModel()
-{}
-
-
-// * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
-
-
-// * * * * * * * * * * * * * * Member Operators  * * * * * * * * * * * * * * //
-
-void Foam::noSolidificationModel::operator=(const noSolidificationModel& rhs)
-{
-    // Check for assignment to self
-    if (this == &rhs)
-    {
-        FatalErrorInFunction
-            << "Attempted assignment to self"
-            << abort(FatalError);
-    }
-}
-
-// * * * * * * * * * * * * * * Friend Functions  * * * * * * * * * * * * * * //
-
-
-// * * * * * * * * * * * * * * Friend Operators * * * * * * * * * * * * * * //
 
 
 // ************************************************************************* //

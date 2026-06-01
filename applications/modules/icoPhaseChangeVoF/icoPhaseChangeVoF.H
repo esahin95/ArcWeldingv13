@@ -58,10 +58,7 @@ See also
 #ifndef icoPhaseChangeVoF_H
 #define icoPhaseChangeVoF_H
 
-#include "twoPhaseVoFSolver.H"
-#include "compressibleTwoPhaseVoFMixture.H"
-#include "compressibleInterPhaseTransportModel.H"
-#include "compressibleInterPhaseThermophysicalTransportModel.H"
+#include "icoThermoVoF.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -76,47 +73,10 @@ namespace solvers
 
 class icoPhaseChangeVoF
 :
-    public twoPhaseVoFSolver
+    public icoThermoVoF
 {
 
 protected:
-
-    // Phase properties
-
-        //- The compressible two-phase mixture_
-        compressibleTwoPhaseVoFMixture& mixture_;
-
-
-    // Thermophysical properties
-
-        //- Reference to mixture pressure field
-        volScalarField& p;
-
-
-    // Pressure reference
-
-        //- Pressure reference
-        Foam::pressureReference pressureReference_;
-
-
-    // Kinematic properties
-
-        // Phase-1 mass-flux
-        surfaceScalarField alphaRhoPhi1;
-
-        // Phase-2 mass-flux
-        surfaceScalarField alphaRhoPhi2;
-
-    //- Thermophysical properties
-
-        //- Volumetric heat capacity
-        volScalarField rhoCp;
-
-        //- Specific heat capacity
-        volScalarField Cp;
-
-        //- Heat capacity density flux
-        surfaceScalarField rhoPhiCp;
 
     //- Solidification melting properties
 
@@ -148,63 +108,8 @@ protected:
         const scalar q_;
 
 
-    // Momentum transport
-
-        //- Momentum transport model
-        compressibleInterPhaseTransportModel momentumTransport;
-
-
-    // Thermophysical transport
-
-        //- Thermophysical transport model
-        compressibleInterPhaseThermophysicalTransportModel
-            thermophysicalTransport;
-
-
     // Protected Member Functions
 
-        //- Return the pressure reference
-        virtual const Foam::pressureReference& pressureReference() const
-        {
-            return pressureReference_;
-        }
-
-        //- The flow is incompressible
-        virtual bool incompressible() const
-        {
-            return mixture_.incompressible();;
-        }
-
-        //- Is the flow divergent?
-        //  i.e. includes phase-fraction sources
-        virtual bool divergent() const
-        {
-            return
-               !incompressible()
-             || fvModels().addsSupToField(alpha1.name())
-             || fvModels().addsSupToField(alpha2.name());
-        }
-
-        //- Return the mixture_ compressibility/density
-        //  Not required for incompressible fluids
-        virtual tmp<volScalarField> psiByRho() const
-        {
-            NotImplemented;
-            return mixture_.psiByRho();
-        }
-
-        //- Calculate the alpha equation sources
-        virtual void alphaSuSp
-        (
-            tmp<volScalarField::Internal>& Su,
-            tmp<volScalarField::Internal>& Sp
-        );
-
-        //- Return the momentum equation stress term
-        virtual tmp<fvVectorMatrix> divDevTau(volVectorField& U)
-        {
-            return momentumTransport.divDevTau(U);
-        }
 
 
 public:
@@ -227,35 +132,6 @@ public:
 
 
     // Member Functions
-
-        //- Return the current maximum time-step for stable solution
-        virtual scalar maxDeltaT() const;
-
-        //- Called at the start of the PIMPLE loop
-        virtual void prePredictor();
-
-        //- Predict the momentum transport
-        virtual void momentumTransportPredictor();
-
-        //- Predict thermophysical transport
-        virtual void thermophysicalTransportPredictor();
-
-        //- Construct and optionally solve the momentum equation
-        virtual void momentumPredictor();
-
-        //- Construct and solve the energy equation,
-        //  convert to temperature
-        //  and update thermophysical and transport properties
-        virtual void thermophysicalPredictor();
-
-        //- Construct and solve the pressure equation in the PISO loop
-        virtual void pressureCorrector();
-
-        //- Correct the momentum transport
-        virtual void momentumTransportCorrector();
-
-        //- Correct the thermophysical transport
-        virtual void thermophysicalTransportCorrector();
 
 
     // Member Operators

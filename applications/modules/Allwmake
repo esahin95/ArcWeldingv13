@@ -8,4 +8,6 @@ wmake $targetType phaseChangeVoF
 
 wmake $targetType multiphaseChangeVoF
 
+wmake $targetType icoThermoVoF
+
 wmake $targetType icoPhaseChangeVoF

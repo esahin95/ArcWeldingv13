@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2026 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2022-2025 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -23,19 +23,42 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-#include "icoPhaseChangeVoF.H"
-#include "fvmSup.H"
-#include "fvmDiv.H"
-#include "fvcSnGrad.H"
-#include "fvcReconstruct.H"
+#include "icoThermoVoF.H"
+#include "fvcDiv.H"
 
+// * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
 
-// * * * * * * * * * * * * Protected Member Functions  * * * * * * * * * * * //
-
-
-void Foam::solvers::icoPhaseChangeVoF::momentumPredictor()
+void Foam::solvers::icoThermoVoF::alphaSuSp
+(
+    tmp<volScalarField::Internal>& tSu,
+    tmp<volScalarField::Internal>& tSp
+)
 {
-    twoPhaseVoFSolver::momentumPredictor();
+    if (!divergent()) return;
+
+    const dimensionedScalar Szero(dimless/dimTime, 0);
+
+    tSp = volScalarField::Internal::New("Sp", mesh, Szero);
+    tSu = volScalarField::Internal::New("Su", mesh, Szero);
+
+    volScalarField::Internal& Sp = tSp.ref();
+    volScalarField::Internal& Su = tSu.ref();
+
+    if (fvModels().addsSupToField(alpha1.name()))
+    {
+        const fvScalarMatrix alpha1Sup(fvModels().source(alpha1));
+
+        Su += alpha2()*alpha1Sup.Su();
+        Sp += alpha2()*alpha1Sup.Sp();
+    }
+
+    if (fvModels().addsSupToField(alpha2.name()))
+    {
+        const fvScalarMatrix alpha2Sup(fvModels().source(alpha2));
+
+        Su -= alpha1()*(alpha2Sup.Su() + alpha2Sup.Sp());
+        Sp += alpha1()*alpha2Sup.Sp();
+    }
 }
 
 

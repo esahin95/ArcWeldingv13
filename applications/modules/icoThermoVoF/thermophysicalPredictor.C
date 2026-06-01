@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2022-2025 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2026 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -23,42 +23,47 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-#include "icoPhaseChangeVoF.H"
-#include "fvcDiv.H"
+#include "icoThermoVoF.H"
+#include "fvcMeshPhi.H"
+#include "fvcDdt.H"
+#include "fvmDiv.H"
+#include "fvmSup.H"
+#include "fvmLaplacian.H"
 
-// * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
 
-void Foam::solvers::icoPhaseChangeVoF::alphaSuSp
-(
-    tmp<volScalarField::Internal>& tSu,
-    tmp<volScalarField::Internal>& tSp
-)
+// * * * * * * * * * * * * Protected Member Functions  * * * * * * * * * * * //
+
+
+void Foam::solvers::icoThermoVoF::thermophysicalPredictor()
 {
-    if (!divergent()) return;
+    volScalarField& T = mixture_.T();
 
-    const dimensionedScalar Szero(dimless/dimTime, 0);
-
-    tSp = volScalarField::Internal::New("Sp", mesh, Szero);
-    tSu = volScalarField::Internal::New("Su", mesh, Szero);
-
-    volScalarField::Internal& Sp = tSp.ref();
-    volScalarField::Internal& Su = tSu.ref();
-
-    if (fvModels().addsSupToField(alpha1.name()))
+    scalar maxRes = 0.0;
+    for (label nThermoCorr=0; nThermoCorr<1; nThermoCorr++)
     {
-        const fvScalarMatrix alpha1Sup(fvModels().source(alpha1));
+        T.storePrevIter();
 
-        Su += alpha2()*alpha1Sup.Su();
-        Sp += alpha2()*alpha1Sup.Sp();
+        fvScalarMatrix TEqn
+        (
+            fvm::ddt(rhoCp,T) + fvm::div(rhoPhiCp, T)
+            - fvm::Sp(fvc::ddt(rhoCp) + fvc::div(rhoPhiCp), T)
+            - fvm::laplacian(thermophysicalTransport.kappaEff(), T)
+        );
+
+        TEqn.relax();
+
+        fvConstraints().constrain(TEqn);
+
+        solve(TEqn);
+
+        fvConstraints().constrain(T);
+
+        maxRes = gMax(mag(T.prevIter() - T)().primitiveField());
+        Info<< maxRes << endl;
     }
 
-    if (fvModels().addsSupToField(alpha2.name()))
-    {
-        const fvScalarMatrix alpha2Sup(fvModels().source(alpha2));
-
-        Su -= alpha1()*(alpha2Sup.Su() + alpha2Sup.Sp());
-        Sp += alpha1()*alpha2Sup.Sp();
-    }
+    mixture_.correctThermo();
+    mixture_.correct();
 }
 
 

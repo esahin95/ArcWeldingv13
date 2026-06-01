@@ -56,4 +56,32 @@ Foam::solidificationModels::none::none
 {}
 
 
+// * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
+
+void Foam::solidificationModels::none::correct(const volScalarField& T)
+{}
+
+
+Foam::tmp<Foam::fvScalarMatrix> Foam::solidificationModels::none::hSource
+(
+    const volScalarField& alpha,
+    const volScalarField& rho,
+    const surfaceScalarField& alphaRhoPhi,
+    const volScalarField& T
+) const
+{
+    return tmp<fvScalarMatrix>(nullptr);
+}
+
+
+Foam::tmp<Foam::fvVectorMatrix> Foam::solidificationModels::none::USource
+(
+    const volScalarField& alpha,
+    const volScalarField& rho,
+    const volVectorField& U
+) const
+{
+    return tmp<fvVectorMatrix>(nullptr);
+}
+
 // ************************************************************************* //

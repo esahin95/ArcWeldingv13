@@ -24,7 +24,7 @@ License
 \*---------------------------------------------------------------------------*/
 
 #include "solidificationModel.H"
-#include "fvMesh.H"
+
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
@@ -44,8 +44,35 @@ Foam::solidificationModel::solidificationModel
 )
 :
     physicalProperties(mesh, group),
-    dict(subDict(solidificationModel::typeName))
-{}
+
+    dict(subDict(solidificationModel::typeName)),
+
+    mesh_(mesh),
+
+    alpha_
+    (
+        mesh.lookupObject<volScalarField>
+        (
+            IOobject::groupName("alpha", group)
+        )
+    ),
+
+    sf_
+    (
+        IOobject
+        (
+            IOobject::groupName(group, "solid"),
+            mesh.time().name(),
+            mesh,
+            IOobject::NO_READ,
+            IOobject::AUTO_WRITE
+        ),
+        mesh,
+        dimensionedScalar(dimless, 0.0)
+    )
+{
+    sf_.write();
+}
 
 
 // ************************************************************************* //

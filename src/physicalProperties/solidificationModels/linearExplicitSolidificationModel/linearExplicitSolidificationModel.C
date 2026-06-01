@@ -95,4 +95,37 @@ Foam::solidificationModels::linearExplicit::linearExplicit
 }
 
 
+// * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
+
+void Foam::solidificationModels::linearExplicit::correct
+(
+    const volScalarField& T
+)
+{}
+
+
+Foam::tmp<Foam::fvScalarMatrix>
+Foam::solidificationModels::linearExplicit::hSource
+(
+    const volScalarField& alpha,
+    const volScalarField& rho,
+    const surfaceScalarField& alphaRhoPhi,
+    const volScalarField& T
+) const
+{
+    return tmp<fvScalarMatrix>(nullptr);
+}
+
+
+Foam::tmp<Foam::fvVectorMatrix>
+Foam::solidificationModels::linearExplicit::USource
+(
+    const volScalarField& alpha,
+    const volScalarField& rho,
+    const volVectorField& U
+) const
+{
+    return tmp<fvVectorMatrix>(nullptr);
+}
+
 // ************************************************************************* //

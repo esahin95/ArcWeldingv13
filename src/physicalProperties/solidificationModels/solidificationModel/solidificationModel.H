@@ -37,16 +37,14 @@ SourceFiles
 #define solidificationModel_H
 
 #include "physicalProperties.H"
-#include "dimensionedScalar.H"
+#include "dimensionedTypes.H"
+#include "volFields.H"
+#include "fvMatrix.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam
 {
-
-// Forward declaration of classes
-class fvMesh;
-
 
 /*---------------------------------------------------------------------------*\
                           Class solidificationModel Declaration
@@ -58,8 +56,17 @@ class solidificationModel
 {
 protected:
 
-    // Protected Data
+    // Solidification properties dictionary
     const dictionary& dict;
+
+    // Reference to the mesh
+    const fvMesh& mesh_;
+
+    // Reference to fluid fraction
+    const volScalarField& alpha_;
+
+    // Solid fraction
+    volScalarField sf_;
 
 
 public:
@@ -106,6 +113,27 @@ public:
     virtual ~solidificationModel()
     {}
 
+    // Member Functions
+
+        //- Correct solid fraction
+        virtual void correct(const volScalarField& T) = 0;
+
+        //- Source term for energy equation
+        virtual tmp<fvScalarMatrix> hSource
+        (
+            const volScalarField& alpha,
+            const volScalarField& rho,
+            const surfaceScalarField& alphaRhoPhi,
+            const volScalarField& T
+        ) const = 0;
+
+        //- Source term for momentum equation
+        virtual tmp<fvVectorMatrix> USource
+        (
+            const volScalarField& alpha,
+            const volScalarField& rho,
+            const volVectorField& U
+        ) const = 0;
 
     // Member Operators
 

@@ -22,7 +22,7 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::fv::laserDTRM
+    Foam::fv::greyBodyRadiation
 
 Description
     Discrete Tray Radiation Method for collimated radiation flux, derived
@@ -34,31 +34,25 @@ Description
 Usage
     Example usage:
     \verbatim
-    laserDTRM
+    greyBodyRadiation
     {
-        type    laserDTRM;
+        type    greyBodyRadiation;
         phase   water;
         ***Add more stuff here***
     }
     \endverbatim
 
 SourceFiles
-    laserDTRM.C
+    greyBodyRadiation.C
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef laserDTRM_H
-#define laserDTRM_H
+#ifndef greyBodyRadiation_H
+#define greyBodyRadiation_H
 
 #include "fvModel.H"
-#include "fluidThermo.H"
 
-#include "Function1.H"
-#include "setWriter.H"
-#include "DynamicField.H"
-#include "randomGenerator.H"
-
-#include "reflectionModel.H"
+#include "volFields.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -68,87 +62,34 @@ namespace fv
 {
 
 /*---------------------------------------------------------------------------*\
-                        Class laserDTRM Declaration
+                        Class greyBodyRadiation Declaration
 \*---------------------------------------------------------------------------*/
 
-class laserDTRM
+class greyBodyRadiation
 :
     public fvModel
 {
     // Private Data
 
-        //- Random number generator
-        static randomGenerator rndGen_;
-
-        //- The name of the Lagrangian phase
-        const word phaseName_;
-
-        //- Reference to the carrier phase thermo
-        const fluidThermo& thermo_;
-
-        //- Reference to the carrier phase field
+        // Reference to the liquid phase
         const volScalarField& alpha_;
 
-        //- Total laser power
-        const scalar Qtot_;
+        // Emissivity times Stefan-Boltzmann constant
+        const dimensionedScalar eps_;
 
-        //- Number of rays
-        const label nRays_;
-
-        //- Laser position
-        const autoPtr<Function1<vector>> pos_;
-
-        //- Laser radius
-        const scalar rad_;
-
-        //- Laser normal direction
-        const vector normal_;
-
-        //- Derived radial directions
-        const vector radial1_;
-        const vector radial2_;
-
-        //- Radial power distribution
-        const autoPtr<Function1<scalar>> powerDist_;
-
-        //- Relaxation factor
-        const scalar relax_;
-
-        //- Absorption rate
-        const scalar a_;
-
-        //- Reflection model
-        const autoPtr<reflectionModel> reflectionModelPtr_;
-
-        //- Laser power deposition field
-        mutable volScalarField Q_;
-
-        //- Current time index (used for updating)
-        mutable label curTimeIndex_;
-
-        //- File writer
-        autoPtr<setWriter> formatterPtr_;
-
-        //- Output path
-        const fileName outputPath_;
-
-        //- Stored rays
-        mutable DynamicField<vector> allPositions_;
-        mutable DynamicField<label> allTracks_;
-        mutable DynamicField<scalar> allPowers_;
-        mutable label writeIndex_;
-
+        // Reference temperature
+        const dimensionedScalar T0_;
 
 public:
 
     //- Runtime type information
-    TypeName("laserDTRM");
+    TypeName("greyBodyRadiation");
 
 
     // Constructors
 
         //- Construct from explicit source name and mesh
-        laserDTRM
+        greyBodyRadiation
         (
             const word& sourceName,
             const word& modelType,
@@ -157,9 +98,9 @@ public:
         );
 
         //- Disallow default bitwise copy construction
-        laserDTRM
+        greyBodyRadiation
         (
-            const laserDTRM&
+            const greyBodyRadiation&
         ) = delete;
 
 
@@ -174,13 +115,13 @@ public:
 
         // Correct
 
-            //- Ray tracing and updating power deposition fields
+            //- This does nothing
             virtual void correct();
 
 
         // Add explicit and implicit contributions to compressible equation
 
-            //- Add explicit contribution to phase energy equation
+            //- Add explicit and implicit contribution to phase energy equation
             virtual void addSup
             (
                 const volScalarField& rho,
@@ -203,15 +144,11 @@ public:
             //- Update for mesh motion
             virtual bool movePoints();
 
-        // Ray tracing
-
-            bool write(const bool write) const;
-
 
     // Member Operators
 
         //- Disallow default bitwise assignment
-        void operator=(const laserDTRM&) = delete;
+        void operator=(const greyBodyRadiation&) = delete;
 };
 
 

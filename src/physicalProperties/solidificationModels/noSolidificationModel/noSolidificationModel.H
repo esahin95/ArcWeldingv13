@@ -75,7 +75,7 @@ public:
     // Member functions
 
         //- Correct solid fraction
-        virtual void correct(const bool relax=true);
+        virtual scalar correct(const bool relax=true);
 
         //- Source term for energy equation
         virtual void hSource(fvScalarMatrix& TEqn) const;

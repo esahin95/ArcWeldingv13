@@ -58,8 +58,10 @@ Foam::solidificationModels::none::none
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
-void Foam::solidificationModels::none::correct(const bool relax)
-{}
+Foam::scalar Foam::solidificationModels::none::correct(const bool relax)
+{
+    return 0.0;
+}
 
 
 void Foam::solidificationModels::none::hSource

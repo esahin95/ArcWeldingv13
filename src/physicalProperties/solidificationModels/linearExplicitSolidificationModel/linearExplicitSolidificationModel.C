@@ -83,35 +83,7 @@ Foam::solidificationModels::linearExplicit::linearExplicit
 
     q_(dict_.lookupOrDefault<scalar>("q", 0.001)),
 
-    relax_(dict_.lookupOrDefault<scalar>("relax", 1.0)),
-
-    latentHeat_
-    (
-        IOobject
-        (
-            IOobject::groupName("latentHeat", group),
-            mesh.time().name(),
-            mesh,
-            IOobject::NO_READ,
-            IOobject::AUTO_WRITE
-        ),
-        mesh,
-        dimensionedScalar(dimEnergy/dimMass, 0.0)
-    ),
-
-    heatSource_
-    (
-        IOobject
-        (
-            IOobject::groupName("heatSource", group),
-            mesh.time().name(),
-            mesh,
-            IOobject::NO_READ,
-            IOobject::AUTO_WRITE
-        ),
-        mesh,
-        dimensionedScalar(dimEnergy/dimVolume/dimTime, 0.0)
-    )
+    relax_(dict_.lookupOrDefault<scalar>("relax", 1.0))
 {
     correct(false);
 }
@@ -119,8 +91,11 @@ Foam::solidificationModels::linearExplicit::linearExplicit
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
-void Foam::solidificationModels::linearExplicit::correct(const bool relax)
+Foam::scalar
+Foam::solidificationModels::linearExplicit::correct(const bool relax)
 {
+    sf_.storePrevIter();
+
     if (relax)
     {
         const volScalarField& Cp = thermo_.Cp();
@@ -133,13 +108,8 @@ void Foam::solidificationModels::linearExplicit::correct(const bool relax)
         sf_ = max(min((Tliq_ - T_)/(Tliq_ - Tsol_), 1.0), 0.0);
     }
 
-    latentHeat_ = alpha_*thermo_.rho()*Lm_*(1-sf_)/rho_;
-
-    heatSource_ = Lm_*
-        (
-            fvc::ddt(alpha_, thermo_.rho(), sf_)
-          + fvc::div(alphaRhoPhi_, sf_)
-        );
+    //latentHeat_ = alpha_*thermo_.rho()*Lm_*(1-sf_)/rho_;
+    return gMax(mag(sf_.prevIter() - sf_)().primitiveField());
 }
 
 
@@ -148,7 +118,11 @@ void Foam::solidificationModels::linearExplicit::hSource
     fvScalarMatrix& TEqn
 ) const
 {
-    TEqn -= Lm_*(fvc::ddt(alpha_, thermo_.rho(), sf_) + fvc::div(alphaRhoPhi_, sf_));
+    TEqn -= Lm_*
+        (
+            fvc::ddt(alpha_, thermo_.rho(), sf_)
+          + fvc::div(alphaRhoPhi_, sf_)
+        );
 }
 
 

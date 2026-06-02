@@ -197,7 +197,7 @@ Foam::fv::laserDTRM::laserDTRM
 
 Foam::wordList Foam::fv::laserDTRM::addSupFields() const
 {
-    return wordList({thermo_.he().name()});
+    return wordList(1, "T");
 }
 
 
@@ -319,34 +319,20 @@ void Foam::fv::laserDTRM::correct()
 
 void Foam::fv::laserDTRM::addSup
 (
-    const volScalarField& alpha,
     const volScalarField& rho,
-    const volScalarField& he,
+    const volScalarField& T,
     fvMatrix<scalar>& eqn
 ) const
 {
     if (debug)
     {
         Info<< type() << ": applying source to " << eqn.psi().name() << endl;
+
+        const dimensionedScalar Qtot = fvc::domainIntegrate(Q_);
+        Info<< "Adding laser deposition to source: " << Qtot << endl;
     }
 
-    if (&he == &thermo_.he())
-    {
-
-        if (debug)
-        {
-            const dimensionedScalar Qtot = fvc::domainIntegrate(Q_);
-            Info<< "Adding laser deposition to source: " << Qtot << endl;
-        }
-
-        eqn += Q_;
-    }
-    else
-    {
-        FatalErrorInFunction
-            << "Support for field " << he.name() << " is not implemented"
-            << exit(FatalError);
-    }
+    eqn += Q_;
 }
 
 

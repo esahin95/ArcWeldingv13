@@ -53,5 +53,16 @@ mixture
     }
 }
 
+solidificationModel
+{
+    type    linearExplicit;
+    Lm      2.7e5;
+    Tsol    1658.0;
+    Tliq    1723.0;
+    Cu      1e10;
+    q       1e-3;
+    relax   0.8;
+}
+
 
 // ************************************************************************* //

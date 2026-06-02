@@ -38,6 +38,9 @@ divSchemes
 
     div(((rho*nuEff)*dev2(T(grad(U))))) Gauss linear;
 
+    // Only for icoPhaseChangeVoF
+    div(alphaRhoPhi,solid) Gauss limitedLinear 1;
+
     // Only for compressibleVoF or compressibleReactingVoF
     div(alphaRhoPhi,e)  Gauss limitedLinear 1;
     div(alphaRhoPhi,h)  Gauss limitedLinear 1;
@@ -48,7 +51,7 @@ divSchemes
 
 laplacianSchemes
 {
-    default         Gauss linear uncorrected;
+    default         Gauss linear corrected;
 }
 
 interpolationSchemes
@@ -58,7 +61,7 @@ interpolationSchemes
 
 snGradSchemes
 {
-    default         uncorrected;
+    default         corrected;
 }
 
 

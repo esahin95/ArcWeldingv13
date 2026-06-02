@@ -38,8 +38,9 @@ void Foam::solvers::icoPhaseChangeVoF::thermophysicalPredictor()
 {
     volScalarField& T = mixture_.T();
 
-    scalar maxRes = 0.0;
-    for (label nThermoCorr=0; nThermoCorr<1; nThermoCorr++)
+    scalar resT, resSf;
+    label iter = 0;
+    do
     {
         T.storePrevIter();
 
@@ -48,6 +49,8 @@ void Foam::solvers::icoPhaseChangeVoF::thermophysicalPredictor()
             fvm::ddt(rhoCp,T) + fvm::div(rhoPhiCp, T)
             - fvm::Sp(fvc::ddt(rhoCp) + fvc::div(rhoPhiCp), T)
             - fvm::laplacian(thermophysicalTransport.kappaEff(), T)
+            ==
+            fvModels().source(rhoCp, T)
         );
         solidificationModel_->hSource(TEqn);
 
@@ -59,11 +62,15 @@ void Foam::solvers::icoPhaseChangeVoF::thermophysicalPredictor()
 
         fvConstraints().constrain(T);
 
-        solidificationModel_->correct();
+        resSf = solidificationModel_->correct();
 
-        maxRes = gMax(mag(T.prevIter() - T)().primitiveField());
-        Info<< maxRes << endl;
+        resT = gMax(mag(T.prevIter() - T)().primitiveField());
+        Info<< resT << " , " << resSf << endl;
     }
+    while
+    (
+           ++iter<50 && resSf > 0.001
+    );
 
     mixture_.correctThermo();
     mixture_.correct();

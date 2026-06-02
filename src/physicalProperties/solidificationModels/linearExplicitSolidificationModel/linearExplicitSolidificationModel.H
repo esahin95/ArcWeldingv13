@@ -67,10 +67,6 @@ protected:
         const scalar q_;
         const scalar relax_;
 
-        //- Latent heat of fusion
-        volScalarField latentHeat_;
-        volScalarField heatSource_;
-
 
 public:
 
@@ -94,7 +90,7 @@ public:
     // Member functions
 
         //- Correct solid fraction
-        virtual void correct(const bool relax=true);
+        virtual scalar correct(const bool relax=true);
 
         //- Source term for energy equation
         virtual void hSource(fvScalarMatrix& TEqn) const;

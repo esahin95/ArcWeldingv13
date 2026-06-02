@@ -38,29 +38,22 @@ void Foam::solvers::icoThermoVoF::thermophysicalPredictor()
 {
     volScalarField& T = mixture_.T();
 
-    scalar maxRes = 0.0;
-    for (label nThermoCorr=0; nThermoCorr<1; nThermoCorr++)
-    {
-        T.storePrevIter();
+    T.storePrevIter();
 
-        fvScalarMatrix TEqn
-        (
-            fvm::ddt(rhoCp,T) + fvm::div(rhoPhiCp, T)
-            - fvm::Sp(fvc::ddt(rhoCp) + fvc::div(rhoPhiCp), T)
-            - fvm::laplacian(thermophysicalTransport.kappaEff(), T)
-        );
+    fvScalarMatrix TEqn
+    (
+        fvm::ddt(rhoCp,T) + fvm::div(rhoPhiCp, T)
+        - fvm::Sp(fvc::ddt(rhoCp) + fvc::div(rhoPhiCp), T)
+        - fvm::laplacian(thermophysicalTransport.kappaEff(), T)
+    );
 
-        TEqn.relax();
+    TEqn.relax();
 
-        fvConstraints().constrain(TEqn);
+    fvConstraints().constrain(TEqn);
 
-        solve(TEqn);
+    solve(TEqn);
 
-        fvConstraints().constrain(T);
-
-        maxRes = gMax(mag(T.prevIter() - T)().primitiveField());
-        Info<< maxRes << endl;
-    }
+    fvConstraints().constrain(T);
 
     mixture_.correctThermo();
     mixture_.correct();

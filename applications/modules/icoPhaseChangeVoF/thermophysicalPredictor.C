@@ -23,56 +23,51 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-#include "noSolidificationModel.H"
-#include "addToRunTimeSelectionTable.H"
+#include "icoPhaseChangeVoF.H"
+#include "fvcMeshPhi.H"
+#include "fvcDdt.H"
+#include "fvmDiv.H"
+#include "fvmSup.H"
+#include "fvmLaplacian.H"
 
-// * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
-namespace Foam
+// * * * * * * * * * * * * Protected Member Functions  * * * * * * * * * * * //
+
+
+void Foam::solvers::icoPhaseChangeVoF::thermophysicalPredictor()
 {
-namespace solidificationModels
-{
-    defineTypeNameAndDebug(none, 0);
+    volScalarField& T = mixture_.T();
 
-    addToRunTimeSelectionTable
-    (
-        solidificationModel,
-        none,
-        dictionary
-    );
+    scalar maxRes = 0.0;
+    for (label nThermoCorr=0; nThermoCorr<1; nThermoCorr++)
+    {
+        T.storePrevIter();
+
+        fvScalarMatrix TEqn
+        (
+            fvm::ddt(rhoCp,T) + fvm::div(rhoPhiCp, T)
+            - fvm::Sp(fvc::ddt(rhoCp) + fvc::div(rhoPhiCp), T)
+            - fvm::laplacian(thermophysicalTransport.kappaEff(), T)
+        );
+        solidificationModel_->hSource(TEqn);
+
+        TEqn.relax();
+
+        fvConstraints().constrain(TEqn);
+
+        solve(TEqn);
+
+        fvConstraints().constrain(T);
+
+        solidificationModel_->correct();
+
+        maxRes = gMax(mag(T.prevIter() - T)().primitiveField());
+        Info<< maxRes << endl;
+    }
+
+    mixture_.correctThermo();
+    mixture_.correct();
 }
-}
 
-
-// * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
-
-Foam::solidificationModels::none::none
-(
-    const fvMesh& mesh,
-    const word& group
-)
-:
-    solidificationModel(mesh, group)
-{}
-
-
-// * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
-
-void Foam::solidificationModels::none::correct(const bool relax)
-{}
-
-
-void Foam::solidificationModels::none::hSource
-(
-    fvScalarMatrix& TEqn
-) const
-{}
-
-
-void Foam::solidificationModels::none::USource
-(
-    fvVectorMatrix& UEqn
-) const
-{}
 
 // ************************************************************************* //

@@ -26,6 +26,10 @@ License
 #include "linearExplicitSolidificationModel.H"
 #include "addToRunTimeSelectionTable.H"
 
+#include "fvcDdt.H"
+#include "fvmDiv.H"
+#include "fvmSup.H"
+
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
 namespace Foam
@@ -58,33 +62,56 @@ Foam::solidificationModels::linearExplicit::linearExplicit
     (
         "Lm",
         dimEnergy/dimMass,
-        dict.lookup<scalar>("Lm")
+        dict_.lookup<scalar>("Lm")
     ),
 
     Tliq_
     (
         "Tliq",
         dimTemperature,
-        dict.lookup<scalar>("Tliq")
+        dict_.lookup<scalar>("Tliq")
     ),
 
     Tsol_
     (
         "Tsol",
         dimTemperature,
-        dict.lookup<scalar>("Tsol")
+        dict_.lookup<scalar>("Tsol")
     ),
 
-    Cu_
+    Cu_(dict_.lookupOrDefault<scalar>("Cu", 1e5)),
+
+    q_(dict_.lookupOrDefault<scalar>("q", 0.001)),
+
+    relax_(dict_.lookupOrDefault<scalar>("relax", 1.0)),
+
+    latentHeat_
     (
-        "Cu",
-        dimDensity/dimTime,
-        dict.lookupOrDefault<scalar>("Cu", 1e5)
+        IOobject
+        (
+            IOobject::groupName("latentHeat", group),
+            mesh.time().name(),
+            mesh,
+            IOobject::NO_READ,
+            IOobject::AUTO_WRITE
+        ),
+        mesh,
+        dimensionedScalar(dimEnergy/dimMass, 0.0)
     ),
 
-    q_(dict.lookupOrDefault<scalar>("q", 0.001)),
-
-    relax_(dict.lookupOrDefault<scalar>("relax", 1.0))
+    heatSource_
+    (
+        IOobject
+        (
+            IOobject::groupName("heatSource", group),
+            mesh.time().name(),
+            mesh,
+            IOobject::NO_READ,
+            IOobject::AUTO_WRITE
+        ),
+        mesh,
+        dimensionedScalar(dimEnergy/dimVolume/dimTime, 0.0)
+    )
 {
     Info<<"   Lm   = " << Lm_ << endl;
     Info<<"   Tliq = " << Tliq_ << endl;
@@ -92,40 +119,58 @@ Foam::solidificationModels::linearExplicit::linearExplicit
     Info<<"   Cu   = " << Cu_ << endl;
     Info<<"   q    = " << q_ << endl;
     Info<<"   relax= " << relax_ << endl;
+
+    // Initialize solidification fields
+    correct(false);
+    latentHeat_.write();
 }
 
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
-void Foam::solidificationModels::linearExplicit::correct
-(
-    const volScalarField& T
-)
-{}
-
-
-Foam::tmp<Foam::fvScalarMatrix>
-Foam::solidificationModels::linearExplicit::hSource
-(
-    const volScalarField& alpha,
-    const volScalarField& rho,
-    const surfaceScalarField& alphaRhoPhi,
-    const volScalarField& T
-) const
+void Foam::solidificationModels::linearExplicit::correct(const bool relax)
 {
-    return tmp<fvScalarMatrix>(nullptr);
+    if (relax)
+    {
+        const volScalarField& Cp = thermo_.Cp();
+
+        sf_ += (relax_/Lm_)*Cp*(Tliq_ - T_ - sf_*(Tliq_ - Tsol_));
+        sf_ = max(min(sf_, 1.0), 0.0);
+    }
+    else
+    {
+        sf_ = max(min((Tliq_ - T_)/(Tliq_ - Tsol_), 1.0), 0.0);
+    }
+
+    latentHeat_ = alpha_*thermo_.rho()*Lm_*(1-sf_)/rho_;
+
+    heatSource_ = Lm_*(fvc::ddt(alpha_, thermo_.rho(), sf_) + fvc::div(alphaRhoPhi_, sf_));
 }
 
 
-Foam::tmp<Foam::fvVectorMatrix>
-Foam::solidificationModels::linearExplicit::USource
+void Foam::solidificationModels::linearExplicit::hSource
 (
-    const volScalarField& alpha,
-    const volScalarField& rho,
-    const volVectorField& U
+    fvScalarMatrix& TEqn
 ) const
 {
-    return tmp<fvVectorMatrix>(nullptr);
+    TEqn -= Lm_*(fvc::ddt(alpha_, thermo_.rho(), sf_) + fvc::div(alphaRhoPhi_, sf_));
+}
+
+
+void Foam::solidificationModels::linearExplicit::USource
+(
+    fvVectorMatrix& UEqn
+) const
+{
+    const scalarField& V = mesh_.V();
+
+    scalarField& Sp = UEqn.diag();
+    forAll(Sp, cellI)
+    {
+        const scalar Vc = V[cellI];
+        const scalar sf = alpha_[cellI]*sf_[cellI];
+        Sp[cellI] += Vc*Cu_*sqr(sf)/(pow3(1.0 - sf) + q_);
+    }
 }
 
 // ************************************************************************* //

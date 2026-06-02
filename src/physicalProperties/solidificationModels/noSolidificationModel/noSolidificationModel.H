@@ -75,24 +75,13 @@ public:
     // Member functions
 
         //- Correct solid fraction
-        virtual void correct(const volScalarField& T);
+        virtual void correct(const bool relax=true);
 
         //- Source term for energy equation
-        virtual tmp<fvScalarMatrix> hSource
-        (
-            const volScalarField& alpha,
-            const volScalarField& rho,
-            const surfaceScalarField& alphaRhoPhi,
-            const volScalarField& T
-        ) const;
+        virtual void hSource(fvScalarMatrix& TEqn) const;
 
         //- Source term for momentum equation
-        virtual tmp<fvVectorMatrix> USource
-        (
-            const volScalarField& alpha,
-            const volScalarField& rho,
-            const volVectorField& U
-        ) const;
+        virtual void USource(fvVectorMatrix& UEqn) const;
 
     // Member Operators
 

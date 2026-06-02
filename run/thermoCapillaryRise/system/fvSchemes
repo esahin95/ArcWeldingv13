@@ -31,6 +31,10 @@ divSchemes
     div(phi,alpha)  Gauss interfaceCompression vanLeer 1;
     div(((rho*nuEff)*dev2(T(grad(U))))) Gauss linear;
 
+    // Only for icoPhaseChangeVoF
+    div(rhoPhi,latentHeat) Gauss upwind;
+    div(alphaRhoPhi,solid) Gauss upwind;
+
     // Only for compressibleVoF
     div(alphaRhoPhi,e)  Gauss upwind;
     div(alphaRhoPhi,h)  Gauss upwind;

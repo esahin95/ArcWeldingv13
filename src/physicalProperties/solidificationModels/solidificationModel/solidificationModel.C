@@ -45,9 +45,17 @@ Foam::solidificationModel::solidificationModel
 :
     physicalProperties(mesh, group),
 
-    dict(subDict(solidificationModel::typeName)),
+    dict_(subDict(solidificationModel::typeName)),
 
     mesh_(mesh),
+
+    thermo_
+    (
+        mesh.lookupObject<fluidThermo>
+        (
+            IOobject::groupName(physicalProperties::typeName, group)
+        )
+    ),
 
     alpha_
     (
@@ -57,22 +65,32 @@ Foam::solidificationModel::solidificationModel
         )
     ),
 
+    rho_(mesh.lookupObject<volScalarField>("rho")),
+
+    T_(mesh.lookupObject<volScalarField>("T")),
+
+    alphaRhoPhi_
+    (
+        mesh.lookupObject<surfaceScalarField>
+        (
+            IOobject::groupName("alphaRhoPhi", group)
+        )
+    ),
+
     sf_
     (
         IOobject
         (
-            IOobject::groupName(group, "solid"),
+            IOobject::groupName("solid", group),
             mesh.time().name(),
             mesh,
             IOobject::NO_READ,
-            IOobject::AUTO_WRITE
+            IOobject::NO_WRITE
         ),
         mesh,
         dimensionedScalar(dimless, 0.0)
     )
-{
-    sf_.write();
-}
+{}
 
 
 // ************************************************************************* //

@@ -57,12 +57,19 @@ protected:
 
     // Solidification properties
 
-        dimensionedScalar Lm_;
-        dimensionedScalar Tliq_;
-        dimensionedScalar Tsol_;
-        dimensionedScalar Cu_;
-        scalar q_;
-        scalar relax_;
+        //- Physical parameters
+        const dimensionedScalar Lm_;
+        const dimensionedScalar Tliq_;
+        const dimensionedScalar Tsol_;
+
+        //- Numerical parameters
+        const scalar Cu_;
+        const scalar q_;
+        const scalar relax_;
+
+        //- Latent heat of fusion
+        volScalarField latentHeat_;
+        volScalarField heatSource_;
 
 
 public:
@@ -87,24 +94,13 @@ public:
     // Member functions
 
         //- Correct solid fraction
-        virtual void correct(const volScalarField& T);
+        virtual void correct(const bool relax=true);
 
         //- Source term for energy equation
-        virtual tmp<fvScalarMatrix> hSource
-        (
-            const volScalarField& alpha,
-            const volScalarField& rho,
-            const surfaceScalarField& alphaRhoPhi,
-            const volScalarField& T
-        ) const;
+        virtual void hSource(fvScalarMatrix& TEqn) const;
 
         //- Source term for momentum equation
-        virtual tmp<fvVectorMatrix> USource
-        (
-            const volScalarField& alpha,
-            const volScalarField& rho,
-            const volVectorField& U
-        ) const;
+        virtual void USource(fvVectorMatrix& UEqn) const;
 
 
     // Member Operators

@@ -14,7 +14,7 @@ FoamFile
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-application     dryRun;
+application     foamRun;
 
 solver          icoPhaseChangeVoF;
 
@@ -23,15 +23,14 @@ startFrom       startTime;
 startTime       0;
 
 stopAt          endTime;
-stopAt          nextWrite;
 
-endTime         0.5;
+endTime         0.02;
 
 deltaT          1e-5;
 
 writeControl    adjustableRunTime;
 
-writeInterval   0.02;
+writeInterval   0.002;
 
 purgeWrite      0;
 
@@ -64,7 +63,7 @@ OptimisationSwitches
 */
 
 writeFO     timeStep;
-writeFO     writeTime;
+//writeFO     writeTime;
 
 functions
 {

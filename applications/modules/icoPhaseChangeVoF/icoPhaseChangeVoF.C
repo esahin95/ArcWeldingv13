@@ -50,27 +50,7 @@ Foam::solvers::icoPhaseChangeVoF::icoPhaseChangeVoF(fvMesh& mesh)
     (
         solidificationModel::New(mesh, mixture_.phase1Name())
     )
-{
-    const volScalarField& T = mixture_.T();
-
-    /*
-    // Initialize solid phase fraction field
-    solidFraction_ =
-        max
-        (
-            min
-            (
-                (Tliq_ - T) / (Tliq_ - Tsol_),
-                1.0
-            ),
-            0.0
-        );
-    alphaSolid_ = alpha1 * solidFraction_;
-    alphaSolid_.write();
-
-    Info<<Tsol_ << " " <<Tliq_ << " " <<Lm_ << " " <<q_ << " " <<Cu_ << endl;
-    */
-}
+{}
 
 
 // * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //

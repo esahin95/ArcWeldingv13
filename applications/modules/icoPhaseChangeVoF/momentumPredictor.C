@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2026 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2023 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -23,56 +23,53 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-#include "noSolidificationModel.H"
-#include "addToRunTimeSelectionTable.H"
+#include "icoPhaseChangeVoF.H"
+#include "fvmSup.H"
+#include "fvmDiv.H"
+#include "fvcSnGrad.H"
+#include "fvcReconstruct.H"
 
-// * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
+// * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
 
-namespace Foam
+
+void Foam::solvers::icoPhaseChangeVoF::momentumPredictor()
 {
-namespace solidificationModels
-{
-    defineTypeNameAndDebug(none, 0);
+    volVectorField& U = U_;
 
-    addToRunTimeSelectionTable
+    tUEqn =
     (
-        solidificationModel,
-        none,
-        dictionary
+        fvm::ddt(rho, U) + fvm::div(rhoPhi, U)
+      + MRF.DDt(rho, U)
+      + divDevTau(U)
+     ==
+        fvModels().source(rho, U)
     );
+    fvVectorMatrix& UEqn = tUEqn.ref();
+    solidificationModel_->USource(UEqn);
+
+    UEqn.relax();
+
+    fvConstraints().constrain(UEqn);
+
+    if (pimple.momentumPredictor())
+    {
+        solve
+        (
+            UEqn
+         ==
+            fvc::reconstruct
+            (
+                (
+                    surfaceTensionForce()
+                  - buoyancy.ghf*fvc::snGrad(rho)
+                  - fvc::snGrad(p_rgh)
+                ) * mesh.magSf()
+            )
+        );
+
+        fvConstraints().constrain(U);
+    }
 }
-}
 
-
-// * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
-
-Foam::solidificationModels::none::none
-(
-    const fvMesh& mesh,
-    const word& group
-)
-:
-    solidificationModel(mesh, group)
-{}
-
-
-// * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
-
-void Foam::solidificationModels::none::correct(const bool relax)
-{}
-
-
-void Foam::solidificationModels::none::hSource
-(
-    fvScalarMatrix& TEqn
-) const
-{}
-
-
-void Foam::solidificationModels::none::USource
-(
-    fvVectorMatrix& UEqn
-) const
-{}
 
 // ************************************************************************* //

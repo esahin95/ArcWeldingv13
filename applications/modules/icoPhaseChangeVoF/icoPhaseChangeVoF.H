@@ -110,6 +110,12 @@ public:
 
     // Member Functions
 
+        //- Construct and optionally solve the momentum equation
+        virtual void momentumPredictor();
+
+        //- Construct and solve the energy equation
+        virtual void thermophysicalPredictor();
+
 
     // Member Operators
 

@@ -10,7 +10,7 @@ FoamFile
     format      ascii;
     class       volScalarField;
     location    "0";
-    object      alpha.water.solid;
+    object      alpha.water;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -8026,17 +8026,19 @@ boundaryField
 {
     inlet
     {
-        type            calculated;
+        type            inletOutlet;
+        inletValue      uniform 1;
         value           uniform 1;
     }
     atmosphere
     {
-        type            calculated;
-        value           uniform 0;
+        type            zeroGradient;
     }
     walls
     {
-        type            calculated;
+        type            contactAngle;
+        theta0          45;
+        limit           gradient;
         value           nonuniform List<scalar> 
 800
 (
@@ -8200,7 +8202,6 @@ boundaryField
 1
 1
 1
-0.176764
 0
 0
 0
@@ -8440,6 +8441,7 @@ boundaryField
 0
 0
 0
+0
 1
 1
 1
@@ -8600,7 +8602,7 @@ boundaryField
 1
 1
 1
-0.176764
+0
 0
 0
 0

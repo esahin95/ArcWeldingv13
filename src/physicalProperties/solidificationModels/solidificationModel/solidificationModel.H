@@ -40,6 +40,7 @@ SourceFiles
 #include "dimensionedTypes.H"
 #include "volFields.H"
 #include "fvMatrix.H"
+#include "fluidThermo.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -56,16 +57,34 @@ class solidificationModel
 {
 protected:
 
-    // Solidification properties dictionary
-    const dictionary& dict;
+    // References to database
 
-    // Reference to the mesh
-    const fvMesh& mesh_;
+        //- Solidification properties dictionary
+        const dictionary& dict_;
 
-    // Reference to fluid fraction
-    const volScalarField& alpha_;
+        //- Reference to the mesh
+        const fvMesh& mesh_;
 
-    // Solid fraction
+        //- Reference to the phase thermo
+        const fluidThermo& thermo_;
+
+
+    // References to fields
+
+        //- Fluid fraction
+        const volScalarField& alpha_;
+
+        //- Density
+        const volScalarField& rho_;
+
+        //- Temperature
+        const volScalarField& T_;
+
+        //- Mass flux
+        const surfaceScalarField& alphaRhoPhi_;
+
+
+    //- Solid fraction
     volScalarField sf_;
 
 
@@ -116,24 +135,13 @@ public:
     // Member Functions
 
         //- Correct solid fraction
-        virtual void correct(const volScalarField& T) = 0;
+        virtual void correct(const bool relax=true) = 0;
 
         //- Source term for energy equation
-        virtual tmp<fvScalarMatrix> hSource
-        (
-            const volScalarField& alpha,
-            const volScalarField& rho,
-            const surfaceScalarField& alphaRhoPhi,
-            const volScalarField& T
-        ) const = 0;
+        virtual void hSource(fvScalarMatrix& TEqn) const = 0;
 
         //- Source term for momentum equation
-        virtual tmp<fvVectorMatrix> USource
-        (
-            const volScalarField& alpha,
-            const volScalarField& rho,
-            const volVectorField& U
-        ) const = 0;
+        virtual void USource(fvVectorMatrix& UEqn) const = 0;
 
     // Member Operators
 

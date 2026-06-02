@@ -113,16 +113,7 @@ Foam::solidificationModels::linearExplicit::linearExplicit
         dimensionedScalar(dimEnergy/dimVolume/dimTime, 0.0)
     )
 {
-    Info<<"   Lm   = " << Lm_ << endl;
-    Info<<"   Tliq = " << Tliq_ << endl;
-    Info<<"   Tsol = " << Tsol_ << endl;
-    Info<<"   Cu   = " << Cu_ << endl;
-    Info<<"   q    = " << q_ << endl;
-    Info<<"   relax= " << relax_ << endl;
-
-    // Initialize solidification fields
     correct(false);
-    latentHeat_.write();
 }
 
 
@@ -144,7 +135,11 @@ void Foam::solidificationModels::linearExplicit::correct(const bool relax)
 
     latentHeat_ = alpha_*thermo_.rho()*Lm_*(1-sf_)/rho_;
 
-    heatSource_ = Lm_*(fvc::ddt(alpha_, thermo_.rho(), sf_) + fvc::div(alphaRhoPhi_, sf_));
+    heatSource_ = Lm_*
+        (
+            fvc::ddt(alpha_, thermo_.rho(), sf_)
+          + fvc::div(alphaRhoPhi_, sf_)
+        );
 }
 
 

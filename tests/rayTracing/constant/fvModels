@@ -34,8 +34,10 @@ laser
 
     reflectionModel
     {
-        type fresnelLaser;
-        epsilon 0.2;
+        type fresnelLorentzDrude;
+        N       5.83e29;
+        sigma   1e6;
+        lambda  1.064e-6;
     };
 
     powerDist constant 1;

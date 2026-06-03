@@ -55,6 +55,7 @@ Foam::reflectionModels::fresnelLaser::fresnelLaser
     epsilon_(dict.lookup<scalar>("epsilon"))
 {
     DebugInfo<< "Model constant set to epsilon = " << epsilon_ <<endl;
+    DebugInfo<< "Normal incidence reflectivity R = " << rho(1.0) << endl;
 }
 
 

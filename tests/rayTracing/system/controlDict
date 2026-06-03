@@ -16,7 +16,7 @@ FoamFile
 
 application     foamRun;
 
-solver          compressibleVoF;
+solver          icoPhaseChangeVoF;
 
 startFrom       startTime;
 
@@ -51,6 +51,7 @@ adjustTimeStep  no;
 
 maxCo           0.5;
 maxAlphaCo      0.5;
+maxDiCo         1000.0;
 maxDeltaT       1;
 
 libs ("liblaserDTRM.so");
@@ -62,6 +63,7 @@ DebugSwitches
     laserDTRM   1;
     DTRMParticle 1;
     fresnelLaser 1;
+    fresnelLorentzDrude 1;
 }
 
 OptimisationSwitches

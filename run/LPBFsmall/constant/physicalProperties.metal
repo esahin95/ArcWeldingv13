@@ -55,7 +55,7 @@ mixture
 
 solidificationModel
 {
-    type    linearExplicit;
+    type    none;
     Lm      2.7e5;
     Tsol    1658.0;
     Tliq    1723.0;

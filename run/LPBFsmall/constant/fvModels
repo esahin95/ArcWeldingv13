@@ -30,9 +30,9 @@ laser
 
     Q               10.0;
 
-    nRays           300;
+    nRays           900;
 
-    relax           0.1;
+    relax           1.0;
 
     radius          10e-6;
 

@@ -60,6 +60,7 @@ See also
 
 #include "icoThermoVoF.H"
 #include "solidificationModel.H"
+#include "evaporationModel.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -84,6 +85,10 @@ protected:
         // Solidification model
         autoPtr<solidificationModel> solidificationModel_;
 
+    //- Evaporation condensation properties
+
+        // Evaporation model
+        autoPtr<evaporationModel> evaporationModel_;
 
     // Protected Member Functions
 

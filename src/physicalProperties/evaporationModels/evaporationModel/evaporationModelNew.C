@@ -23,52 +23,42 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-#include "noSolidificationModel.H"
-#include "addToRunTimeSelectionTable.H"
+#include "evaporationModel.H"
+#include "fvMesh.H"
 
-// * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-namespace Foam
-{
-namespace solidificationModels
-{
-    defineTypeNameAndDebug(none, 0);
-
-    addToRunTimeSelectionTable
-    (
-        solidificationModel,
-        none,
-        dictionary
-    );
-}
-}
-
-
-// * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
-
-Foam::solidificationModels::none::none
+Foam::autoPtr<Foam::evaporationModel> Foam::evaporationModel::New
 (
     const fvMesh& mesh,
     const word& group
 )
-:
-    solidificationModel(mesh, group)
-{}
-
-
-// * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
-
-Foam::scalar Foam::solidificationModels::none::correct(const bool relax)
 {
-    return 0.0;
+    const IOdictionary dict
+    (
+        evaporationModel::findModelDict(mesh, group)
+    );
+
+    const dictionary& modelDict = dict.subDict("evaporationModel");
+
+    const word modelType(modelDict.lookup("type"));
+
+    Info<< "Selecting evaporation model " << modelType << endl;
+
+    dictionaryConstructorTable::iterator cstrIter =
+        dictionaryConstructorTablePtr_->find(modelType);
+
+    if (cstrIter == dictionaryConstructorTablePtr_->end())
+    {
+        FatalIOErrorInFunction(dict)
+            << "Unknown evaporation model " << modelType << nl << nl
+            << "Valid evaporation models are : " << endl
+            << dictionaryConstructorTablePtr_->sortedToc()
+            << exit(FatalIOError);
+    }
+
+    return autoPtr<evaporationModel>(cstrIter()(mesh, group));
 }
 
-
-void Foam::solidificationModels::none::hSource(fvScalarMatrix& TEqn) const
-{}
-
-
-void Foam::solidificationModels::none::USource(fvVectorMatrix& UEqn) const
-{}
 
 // ************************************************************************* //

@@ -1,6 +1,7 @@
 EXE_INC = \
     -I$(WM_PROJECT_USER_DIR)/applications/modules/icoThermoVoF/lnInclude \
     -I$(WM_PROJECT_USER_DIR)/src/physicalProperties/solidificationModels/lnInclude \
+    -I$(WM_PROJECT_USER_DIR)/src/physicalProperties/evaporationModels/lnInclude \
     -I$(FOAM_MODULES)/compressibleVoF/lnInclude \
     -I$(FOAM_MODULES)/twoPhaseVoFSolver/lnInclude \
     -I$(FOAM_MODULES)/twoPhaseSolver/lnInclude \
@@ -24,6 +25,7 @@ LIB_LIBS = \
     -L$(FOAM_USER_LIBBIN) \
     -licoThermoVoF \
     -lsolidificationModels \
+    -levaporationModels \
     -lcompressibleVoF \
     -ltwoPhaseVoFSolver \
     -lphysicalProperties \

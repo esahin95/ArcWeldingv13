@@ -12,4 +12,6 @@ wmake $targetType twoPhaseModels/interfaceProperties
 
 wmake $targetType physicalProperties/solidificationModels
 
+wmake $targetType physicalProperties/evaporationModels
+
 fvModels/Allwmake $targetType $*

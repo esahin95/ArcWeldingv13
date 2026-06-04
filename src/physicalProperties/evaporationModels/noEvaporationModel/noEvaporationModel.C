@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2022-2025 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2026 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -23,50 +23,52 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-#include "icoPhaseChangeVoF.H"
-#include "localEulerDdtScheme.H"
-#include "fvCorrectPhi.H"
+#include "noEvaporationModel.H"
 #include "addToRunTimeSelectionTable.H"
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
 namespace Foam
 {
-namespace solvers
+namespace evaporationModels
 {
-    defineTypeNameAndDebug(icoPhaseChangeVoF, 0);
-    addToRunTimeSelectionTable(solver, icoPhaseChangeVoF, fvMesh);
+    defineTypeNameAndDebug(none, 0);
+
+    addToRunTimeSelectionTable
+    (
+        evaporationModel,
+        none,
+        dictionary
+    );
 }
 }
 
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
-Foam::solvers::icoPhaseChangeVoF::icoPhaseChangeVoF(fvMesh& mesh)
+Foam::evaporationModels::none::none
+(
+    const fvMesh& mesh,
+    const word& group
+)
 :
-    icoThermoVoF(mesh),
-
-    solidificationModel_
-    (
-        solidificationModel::New(mesh, mixture_.phase1Name())
-    ),
-
-    evaporationModel_
-    (
-        evaporationModel::New(mesh, mixture_.phase1Name())
-    )
+    evaporationModel(mesh, group)
 {}
 
 
-// * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //
+// * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
-Foam::solvers::icoPhaseChangeVoF::~icoPhaseChangeVoF()
+Foam::scalar Foam::evaporationModels::none::correct(const bool relax)
+{
+    return 0.0;
+}
+
+
+void Foam::evaporationModels::none::hSource(fvScalarMatrix& TEqn) const
 {}
 
 
-// * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
-
-
-
+void Foam::evaporationModels::none::USource(fvVectorMatrix& UEqn) const
+{}
 
 // ************************************************************************* //

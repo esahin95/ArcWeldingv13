@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2022-2025 OpenFOAM Foundation
+    \\  /    A nd           | Copyright (C) 2026 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -23,50 +23,74 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-#include "icoPhaseChangeVoF.H"
-#include "localEulerDdtScheme.H"
-#include "fvCorrectPhi.H"
-#include "addToRunTimeSelectionTable.H"
+#include "evaporationModel.H"
+
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
 namespace Foam
 {
-namespace solvers
-{
-    defineTypeNameAndDebug(icoPhaseChangeVoF, 0);
-    addToRunTimeSelectionTable(solver, icoPhaseChangeVoF, fvMesh);
-}
+    defineTypeNameAndDebug(evaporationModel, 0);
+    defineRunTimeSelectionTable(evaporationModel, dictionary);
 }
 
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
-Foam::solvers::icoPhaseChangeVoF::icoPhaseChangeVoF(fvMesh& mesh)
+Foam::evaporationModel::evaporationModel
+(
+    const fvMesh& mesh,
+    const word& group
+)
 :
-    icoThermoVoF(mesh),
+    physicalProperties(mesh, group),
 
-    solidificationModel_
+    dict_(subDict(evaporationModel::typeName)),
+
+    mesh_(mesh),
+
+    thermo_
     (
-        solidificationModel::New(mesh, mixture_.phase1Name())
+        mesh.lookupObject<fluidThermo>
+        (
+            IOobject::groupName(physicalProperties::typeName, group)
+        )
     ),
 
-    evaporationModel_
+    alpha_
     (
-        evaporationModel::New(mesh, mixture_.phase1Name())
+        mesh.lookupObject<volScalarField>
+        (
+            IOobject::groupName("alpha", group)
+        )
+    ),
+
+    rho_(mesh.lookupObject<volScalarField>("rho")),
+
+    T_(mesh.lookupObject<volScalarField>("T")),
+
+    alphaRhoPhi_
+    (
+        mesh.lookupObject<surfaceScalarField>
+        (
+            IOobject::groupName("alphaRhoPhi", group)
+        )
+    ),
+
+    mDot_
+    (
+        IOobject
+        (
+            IOobject::groupName("mDot", group),
+            mesh.time().name(),
+            mesh,
+            IOobject::NO_READ,
+            IOobject::NO_WRITE
+        ),
+        mesh,
+        dimensionedScalar(dimless, 0.0)
     )
 {}
-
-
-// * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //
-
-Foam::solvers::icoPhaseChangeVoF::~icoPhaseChangeVoF()
-{}
-
-
-// * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
-
-
 
 
 // ************************************************************************* //

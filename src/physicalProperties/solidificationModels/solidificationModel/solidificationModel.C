@@ -45,8 +45,6 @@ Foam::solidificationModel::solidificationModel
 :
     physicalProperties(mesh, group),
 
-    dict_(subDict(solidificationModel::typeName)),
-
     mesh_(mesh),
 
     thermo_

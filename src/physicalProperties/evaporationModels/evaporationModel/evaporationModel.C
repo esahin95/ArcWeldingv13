@@ -45,8 +45,6 @@ Foam::evaporationModel::evaporationModel
 :
     physicalProperties(mesh, group),
 
-    dict_(subDict(evaporationModel::typeName)),
-
     mesh_(mesh),
 
     thermo_
@@ -85,10 +83,10 @@ Foam::evaporationModel::evaporationModel
             mesh.time().name(),
             mesh,
             IOobject::NO_READ,
-            IOobject::NO_WRITE
+            IOobject::AUTO_WRITE
         ),
         mesh,
-        dimensionedScalar(dimless, 0.0)
+        dimensionedScalar(dimDensity/dimTime, 0.0)
     )
 {}
 

@@ -24,6 +24,7 @@ License
 \*---------------------------------------------------------------------------*/
 
 #include "solidificationModel.H"
+#include "noSolidificationModel.H"
 #include "fvMesh.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
@@ -39,25 +40,37 @@ Foam::autoPtr<Foam::solidificationModel> Foam::solidificationModel::New
         solidificationModel::findModelDict(mesh, group)
     );
 
-    const dictionary& modelDict = dict.subDict("solidificationModel");
-
-    const word modelType(modelDict.lookup("type"));
-
-    Info<< "Selecting solidification model " << modelType << endl;
-
-    dictionaryConstructorTable::iterator cstrIter =
-        dictionaryConstructorTablePtr_->find(modelType);
-
-    if (cstrIter == dictionaryConstructorTablePtr_->end())
+    if (dict.isDict("solidificationModel"))
     {
-        FatalIOErrorInFunction(dict)
-            << "Unknown solidification model " << modelType << nl << nl
-            << "Valid solidification models are : " << endl
-            << dictionaryConstructorTablePtr_->sortedToc()
-            << exit(FatalIOError);
-    }
+        const dictionary& modelDict = dict.subDict("solidificationModel");
 
-    return autoPtr<solidificationModel>(cstrIter()(mesh, group));
+        const word modelType(modelDict.lookup("type"));
+
+        Info<< "Selecting solidification model " << modelType << endl;
+
+        dictionaryConstructorTable::iterator cstrIter =
+            dictionaryConstructorTablePtr_->find(modelType);
+
+        if (cstrIter == dictionaryConstructorTablePtr_->end())
+        {
+            FatalIOErrorInFunction(dict)
+                << "Unknown solidification model " << modelType << nl << nl
+                << "Valid solidification models are : " << endl
+                << dictionaryConstructorTablePtr_->sortedToc()
+                << exit(FatalIOError);
+        }
+
+        return autoPtr<solidificationModel>(cstrIter()(mesh, group));
+    }
+    else
+    {
+        Info<<"There is no solidificationModel dictionary"<<endl;
+        Info<<"Selecting default solidification model none"<<endl;
+        return autoPtr<solidificationModel>
+        (
+            new solidificationModels::none(mesh, group)
+        );
+    }
 }
 
 

@@ -57,6 +57,9 @@ protected:
 
     // Solidification properties
 
+        //- Solidification properties dictionary
+        const dictionary& dict_;
+
         //- Physical parameters
         const dimensionedScalar Lm_;
         const dimensionedScalar Tliq_;

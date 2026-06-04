@@ -38,7 +38,7 @@ void Foam::solvers::icoPhaseChangeVoF::thermophysicalPredictor()
 {
     volScalarField& T = mixture_.T();
 
-    scalar resT, resSf;
+    scalar resT, resSf, resMDot;
     label iter = 0;
     do
     {
@@ -53,6 +53,7 @@ void Foam::solvers::icoPhaseChangeVoF::thermophysicalPredictor()
             fvModels().source(rhoCp, T)
         );
         solidificationModel_->hSource(TEqn);
+        evaporationModel_->hSource(TEqn);
 
         TEqn.relax();
 
@@ -63,14 +64,16 @@ void Foam::solvers::icoPhaseChangeVoF::thermophysicalPredictor()
         fvConstraints().constrain(T);
 
         resSf = solidificationModel_->correct();
+        resMDot = evaporationModel_->correct();
 
         resT = gMax(mag(T.prevIter() - T)().primitiveField());
-        Info<< resT << " , " << resSf << endl;
+        Info<< resT << " , " << resSf << " , " << resMDot << endl;
     }
     while
     (
            ++iter<50 && resSf > 0.001
     );
+    Info<< "Converged at it = " << iter << endl;
 
     mixture_.correctThermo();
     mixture_.correct();

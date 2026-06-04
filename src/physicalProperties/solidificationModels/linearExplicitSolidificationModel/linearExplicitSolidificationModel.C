@@ -58,6 +58,8 @@ Foam::solidificationModels::linearExplicit::linearExplicit
 :
     solidificationModel(mesh, group),
 
+    dict_(subDict(solidificationModel::typeName)),
+
     Lm_
     (
         "Lm",

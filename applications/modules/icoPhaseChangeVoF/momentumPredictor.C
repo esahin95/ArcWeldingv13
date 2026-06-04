@@ -46,6 +46,7 @@ void Foam::solvers::icoPhaseChangeVoF::momentumPredictor()
     );
     fvVectorMatrix& UEqn = tUEqn.ref();
     solidificationModel_->USource(UEqn);
+    evaporationModel_->USource(UEqn);
 
     UEqn.relax();
 

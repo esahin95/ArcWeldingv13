@@ -22,133 +22,101 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::evaporationModel
+    Foam::gasDynamicEvaporationModel
 
 Description
 
 SourceFiles
-    evaporationModelI.H
-    evaporationModel.C
-    evaporationModelIO.C
+    gasDynamicEvaporationModel.C
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef evaporationModel_H
-#define evaporationModel_H
+#ifndef gasDynamicEvaporationModel_H
+#define gasDynamicEvaporationModel_H
 
-#include "physicalProperties.H"
-#include "dimensionedTypes.H"
-#include "volFields.H"
-#include "fvMatrix.H"
-#include "fluidThermo.H"
+#include "evaporationModel.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam
 {
 
+namespace evaporationModels
+{
+
+
 /*---------------------------------------------------------------------------*\
-                          Class evaporationModel Declaration
+                          Class gasDynamicEvaporationModel Declaration
 \*---------------------------------------------------------------------------*/
 
-class evaporationModel
+class gasDynamic
 :
-    public physicalProperties
+    public evaporationModel
 {
 protected:
 
-    // References to database
+    // Evaporation properties
 
-        //- Reference to the mesh
-        const fvMesh& mesh_;
+        //- Evaporation properties dictionary
+        const dictionary& dict_;
 
-        //- Reference to the phase thermo
-        const fluidThermo& thermo_;
+        //- Latent heat of evaporation
+        const dimensionedScalar Lv_;
 
+        //- Far field pressure
+        const dimensionedScalar p0_;
 
-    // References to fields
+        //- Far field temperature
+        const dimensionedScalar T0_;
 
-        //- Fluid fraction
-        const volScalarField& alpha_;
+        //- Specific gas constant
+        const dimensionedScalar R_;
 
-        //- Density
-        const volScalarField& rho_;
-
-        //- Temperature
-        const volScalarField& T_;
-
-        //- Mass flux
-        const surfaceScalarField& alphaRhoPhi_;
-
-
-    //- Mass transfer rate
-    volScalarField mDot_;
+    //- Saturated vapor pressure
+    volScalarField pSat_;
 
 
 public:
 
     //- Runtime type information
-    TypeName("evaporationModel");
-
-
-    // Declare run-time constructor selection table
-
-        declareRunTimeSelectionTable
-        (
-            autoPtr,
-            evaporationModel,
-            dictionary,
-            (
-                const fvMesh& mesh,
-                const word& group
-            ),
-            (mesh, group)
-        );
-
+    TypeName("gasDynamic");
 
     // Constructors
 
         //- Construct from components
-        evaporationModel(const fvMesh& mesh, const word& group);
+        gasDynamic(const fvMesh& mesh, const word& group);
 
         //- Disallow default bitwise copy construction
-        evaporationModel(const evaporationModel&) = delete;
-
-
-    // Selectors
-
-        //- Return a reference to the selected viscosity model
-        static autoPtr<evaporationModel> New
-        (
-            const fvMesh& mesh,
-            const word& group = word::null
-        );
+        gasDynamic(const gasDynamic&) = delete;
 
 
     //- Destructor
-    virtual ~evaporationModel()
+    virtual ~gasDynamic()
     {}
 
-    // Member Functions
+
+    // Member functions
 
         //- Correct solid fraction
-        virtual scalar correct(const bool relax=true) = 0;
+        virtual scalar correct(const bool relax=true);
 
         //- Source term for energy equation
-        virtual void hSource(fvScalarMatrix& TEqn) const = 0;
+        virtual void hSource(fvScalarMatrix& TEqn) const;
 
         //- Source term for momentum equation
-        virtual void USource(fvVectorMatrix& UEqn) const = 0;
+        virtual void USource(fvVectorMatrix& UEqn) const;
+
 
     // Member Operators
 
         //- Disallow default bitwise assignment
-        void operator=(const evaporationModel&) = delete;
+        void operator=(const gasDynamic&) = delete;
 };
 
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
+} // End namespace evaporationModels
 } // End namespace Foam
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

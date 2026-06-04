@@ -24,6 +24,7 @@ License
 \*---------------------------------------------------------------------------*/
 
 #include "evaporationModel.H"
+#include "noEvaporationModel.H"
 #include "fvMesh.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
@@ -39,25 +40,37 @@ Foam::autoPtr<Foam::evaporationModel> Foam::evaporationModel::New
         evaporationModel::findModelDict(mesh, group)
     );
 
-    const dictionary& modelDict = dict.subDict("evaporationModel");
-
-    const word modelType(modelDict.lookup("type"));
-
-    Info<< "Selecting evaporation model " << modelType << endl;
-
-    dictionaryConstructorTable::iterator cstrIter =
-        dictionaryConstructorTablePtr_->find(modelType);
-
-    if (cstrIter == dictionaryConstructorTablePtr_->end())
+    if (dict.isDict("evaporationModel"))
     {
-        FatalIOErrorInFunction(dict)
-            << "Unknown evaporation model " << modelType << nl << nl
-            << "Valid evaporation models are : " << endl
-            << dictionaryConstructorTablePtr_->sortedToc()
-            << exit(FatalIOError);
-    }
+        const dictionary& modelDict = dict.subDict("evaporationModel");
 
-    return autoPtr<evaporationModel>(cstrIter()(mesh, group));
+        const word modelType(modelDict.lookup("type"));
+
+        Info<< "Selecting evaporation model " << modelType << endl;
+
+        dictionaryConstructorTable::iterator cstrIter =
+            dictionaryConstructorTablePtr_->find(modelType);
+
+        if (cstrIter == dictionaryConstructorTablePtr_->end())
+        {
+            FatalIOErrorInFunction(dict)
+                << "Unknown evaporation model " << modelType << nl << nl
+                << "Valid evaporation models are : " << endl
+                << dictionaryConstructorTablePtr_->sortedToc()
+                << exit(FatalIOError);
+        }
+
+        return autoPtr<evaporationModel>(cstrIter()(mesh, group));
+    }
+    else
+    {
+        Info<<"There is no evaporationModel dictionary"<<endl;
+        Info<<"Selecting default evaporation model none"<<endl;
+        return autoPtr<evaporationModel>
+        (
+            new evaporationModels::none(mesh, group)
+        );
+    }
 }
 
 

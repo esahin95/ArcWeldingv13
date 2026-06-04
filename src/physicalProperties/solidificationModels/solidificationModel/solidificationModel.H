@@ -59,9 +59,6 @@ protected:
 
     // References to database
 
-        //- Solidification properties dictionary
-        const dictionary& dict_;
-
         //- Reference to the mesh
         const fvMesh& mesh_;
 

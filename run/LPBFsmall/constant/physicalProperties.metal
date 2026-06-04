@@ -59,9 +59,18 @@ solidificationModel
     Lm      2.7e5;
     Tsol    1658.0;
     Tliq    1723.0;
-    Cu      1e10;
+    Cu      1e12;
     q       1e-3;
     relax   0.8;
+}
+
+evaporationModel
+{
+    type    none;
+    Lv      1;
+    M       55.8;
+    p0      1e5;
+    T0      3000;
 }
 
 

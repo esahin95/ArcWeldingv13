@@ -21,4 +21,4 @@ LIB_LIBS = \
     -lfiniteVolume \
     -lfileFormats \
     -lphysicalProperties \
-    -lfluidThermoThermophysicalTransportModels
+    -lfluidThermophysicalModels

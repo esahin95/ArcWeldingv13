@@ -39,14 +39,13 @@ SourceFiles
 #include "IOdictionary.H"
 #include "runTimeSelectionTables.H"
 
+#include "Function1.H"
+#include "fvMesh.H"
+
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam
 {
-
-
-// Forward declaration of classes
-class fvMesh;
 
 /*---------------------------------------------------------------------------*\
                           Class powerModel Declaration
@@ -54,10 +53,35 @@ class fvMesh;
 
 class powerModel
 {
-    // Private Data
+
+protected:
+
+    // References
 
         //- Constant reference to the mesh
         const fvMesh& mesh_;
+
+    // Laser data
+
+        //- Laser position
+        const autoPtr<Function1<vector>> pos_;
+
+        //- Laser radius
+        const scalar rad_;
+
+        //- Laser normal direction
+        const vector normal_;
+
+        //- Laser power
+        const scalar Q_;
+
+    // Containers
+
+        //- Positions
+        List<vector> positions_;
+
+        //- Powers
+        List<scalar> powers_;
 
 public:
 
@@ -105,7 +129,26 @@ public:
 
     // Member Functions
 
+        // Initialise positions and powers
+        virtual void initialise() = 0;
 
+        // Access positions
+        const List<vector>& positions() const
+        {
+            return positions_;
+        }
+
+        // Access powers
+        const List<scalar>& powers() const
+        {
+            return powers_;
+        }
+
+        // Access normal
+        const vector& normal() const
+        {
+            return normal_;
+        }
 
 
     // Member Operators

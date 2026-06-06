@@ -36,6 +36,8 @@ SourceFiles
 
 #include "powerModel.H"
 
+#include "randomGenerator.H"
+
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam
@@ -54,7 +56,14 @@ class random
 {
     // Private Data
 
+        //- Random number generator
+        static randomGenerator rndGen_;
 
+        //- Number of rays
+        const label nRays_;
+
+        //- Radial power distribution
+        const autoPtr<Function1<scalar>> powerDist_;
 
 
 public:
@@ -83,7 +92,7 @@ public:
 
     // Member Functions
 
-
+        virtual void initialise();
 
 
     // Member Operators

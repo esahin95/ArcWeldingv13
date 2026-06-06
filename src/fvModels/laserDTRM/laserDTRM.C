@@ -35,6 +35,7 @@ License
 #include "fvcVolumeIntegrate.H"
 #include "writeFile.H"
 #include "fvcGrad.H"
+#include "List.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -73,8 +74,6 @@ namespace Foam
             laserDTRM,
             dictionary
         );
-
-        randomGenerator laserDTRM::rndGen_(261782, true);
     }
 }
 
@@ -106,40 +105,6 @@ Foam::fv::laserDTRM::laserDTRM
         mesh.lookupObject<volScalarField>
         (
             IOobject::groupName("alpha", phaseName_)
-        )
-    ),
-
-    pos_
-    (
-        Function1<vector>::New
-        (
-            "position",
-            dimless,
-            dimless,
-            dict
-        )
-    ),
-
-    rad_(dict.lookup<scalar>("radius")),
-
-    normal_(normalised(dict.lookup<vector>("normal"))),
-
-    radial1_(normalised(perpendicular(normal_))),
-
-    radial2_(normalised(normal_ ^ radial1_)),
-
-    nRays_(dict.lookup<scalar>("nRays")),
-
-    Qtot_(dict.lookup<scalar>("Q")),
-
-    powerDist_
-    (
-        Function1<scalar>::New
-        (
-            "powerDist",
-            dimless,
-            dimless,
-            dict
         )
     ),
 
@@ -227,40 +192,20 @@ void Foam::fv::laserDTRM::correct()
     DTRMParticle::nParticles = 0; // Maybe rename to nTracks
     DTRMParticle::qLost = 0;
 
-    // Compute particle positions
-    List<vector> positions
-    (
-        nRays_, pos_->value(mesh().time().value())
-    );
-
-    forAll(positions, trackIndex)
-    {
-        // Rejection sampling from arbitrary distribution
-        vector delta;
-        scalar deltaMag;
-        do
-        {
-            delta =
-                  radial1_ * rndGen_.scalarAB(-rad_, rad_)
-                + radial2_ * rndGen_.scalarAB(-rad_, rad_);
-
-            deltaMag = mag(delta);
-        }
-        while
-        (
-            deltaMag > rad_ ||
-            rndGen_.scalar01() > powerDist_->value(deltaMag)
-        );
-
-        positions[trackIndex] += delta;
-    }
+    powerModelPtr_->initialise();
+    const List<vector>& positions = powerModelPtr_->positions();
+    const List<scalar>& powers = powerModelPtr_->powers();
+    const vector& normal = powerModelPtr_->normal();
+    const scalar Qtot = sum(powers);//returnReduce(powers, sumOp<scalar>());
+    DebugInfo<<"Total power initialised: Q = " << Qtot <<endl;
 
     // Populate cloud
     label nLocateBoundaryHits = 0;
     forAll(positions, trackIndex)
     {
+        // Particle data
         const vector& position = positions[trackIndex];
-
+        const scalar& power = powers[trackIndex];
         const label cellI = searchEngine.findCell(position);
 
         // Generate particle for a single processor only
@@ -274,8 +219,8 @@ void Foam::fv::laserDTRM::correct()
                     position,
                     cellI,
                     nLocateBoundaryHits,
-                    normal_,
-                    Qtot_ / nRays_
+                    normal,
+                    power
                 )
             );
         }
@@ -311,7 +256,7 @@ void Foam::fv::laserDTRM::correct()
     const scalar qLost =
         returnReduce(DTRMParticle::qLost, sumOp<scalar>());
     DebugInfo<< "Lost power fraction: "
-             << (qLost / Qtot_) << endl;
+             << (qLost / Qtot) << endl;
 
     // Finalize computation
     Q_.primitiveFieldRef() /= mesh().V().primitiveField();

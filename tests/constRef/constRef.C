@@ -30,6 +30,7 @@ Description
 
 #include "argList.H"
 #include "volFields.H"
+#include "List.H"
 
 using namespace Foam;
 
@@ -49,6 +50,15 @@ int main(int argc, char *argv[])
         << nl << endl;
 
     Info<< "End\n" << endl;
+
+    List<vector> positions(0, Zero);
+
+    positions.resize(10, Zero);
+
+    forAll(positions, i)
+    {
+        Info<<positions[i]<<endl;
+    }
 
     return 0;
 }

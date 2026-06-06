@@ -53,10 +53,8 @@ SourceFiles
 #include "fvModel.H"
 #include "fluidThermo.H"
 
-#include "Function1.H"
 #include "setWriter.H"
 #include "DynamicField.H"
-#include "randomGenerator.H"
 
 #include "reflectionModel.H"
 #include "powerModel.H"
@@ -90,33 +88,8 @@ class laserDTRM
 
     // Initial power distribution
 
-        //- Random number generator
-        static randomGenerator rndGen_;
-
-        //- Laser position
-        const autoPtr<Function1<vector>> pos_;
-
-        //- Laser radius
-        const scalar rad_;
-
-        //- Laser normal direction
-        const vector normal_;
-
-        //- Derived radial directions
-        const vector radial1_;
-        const vector radial2_;
-
-        //- Number of rays
-        const label nRays_;
-
-        //- Total laser power
-        const scalar Qtot_;
-
-        //- Radial power distribution
-        const autoPtr<Function1<scalar>> powerDist_;
-
         //- Power model
-        const autoPtr<powerModel> powerModelPtr_;
+        mutable autoPtr<powerModel> powerModelPtr_;
 
     // Power deposition
 

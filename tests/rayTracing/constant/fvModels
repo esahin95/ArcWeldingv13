@@ -32,6 +32,11 @@ laser
 
     absorption 1e+2;
 
+    powerModel
+    {
+        type    random;
+    };
+
     reflectionModel
     {
         type fresnelLorentzDrude;

@@ -109,10 +109,6 @@ Foam::fv::laserDTRM::laserDTRM
         )
     ),
 
-    Qtot_(dict.lookup<scalar>("Q")),
-
-    nRays_(dict.lookup<scalar>("nRays")),
-
     pos_
     (
         Function1<vector>::New
@@ -132,6 +128,10 @@ Foam::fv::laserDTRM::laserDTRM
 
     radial2_(normalised(normal_ ^ radial1_)),
 
+    nRays_(dict.lookup<scalar>("nRays")),
+
+    Qtot_(dict.lookup<scalar>("Q")),
+
     powerDist_
     (
         Function1<scalar>::New
@@ -142,6 +142,13 @@ Foam::fv::laserDTRM::laserDTRM
             dict
         )
     ),
+
+    powerModelPtr_
+    (
+        powerModel::New(dict.subDict("powerModel"), mesh)
+    ),
+
+    curTimeIndex_(-1),
 
     relax_(dict.lookupOrDefault<scalar>("relax", 1.0)),
 
@@ -170,8 +177,6 @@ Foam::fv::laserDTRM::laserDTRM
         dimensionedScalar(dimPower/dimVolume, 0.0),
         zeroGradientFvPatchScalarField::typeName
     ),
-
-    curTimeIndex_(-1),
 
     formatterPtr_(setWriter::New(dict.lookup("setFormat"), dict)),
 

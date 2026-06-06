@@ -59,6 +59,7 @@ SourceFiles
 #include "randomGenerator.H"
 
 #include "reflectionModel.H"
+#include "powerModel.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -75,10 +76,7 @@ class laserDTRM
 :
     public fvModel
 {
-    // Private Data
-
-        //- Random number generator
-        static randomGenerator rndGen_;
+    // Phase properties
 
         //- The name of the Lagrangian phase
         const word phaseName_;
@@ -89,11 +87,11 @@ class laserDTRM
         //- Reference to the carrier phase field
         const volScalarField& alpha_;
 
-        //- Total laser power
-        const scalar Qtot_;
 
-        //- Number of rays
-        const label nRays_;
+    // Initial power distribution
+
+        //- Random number generator
+        static randomGenerator rndGen_;
 
         //- Laser position
         const autoPtr<Function1<vector>> pos_;
@@ -108,8 +106,22 @@ class laserDTRM
         const vector radial1_;
         const vector radial2_;
 
+        //- Number of rays
+        const label nRays_;
+
+        //- Total laser power
+        const scalar Qtot_;
+
         //- Radial power distribution
         const autoPtr<Function1<scalar>> powerDist_;
+
+        //- Power model
+        const autoPtr<powerModel> powerModelPtr_;
+
+    // Power deposition
+
+        //- Current time index (used for updating)
+        mutable label curTimeIndex_;
 
         //- Relaxation factor
         const scalar relax_;
@@ -123,11 +135,10 @@ class laserDTRM
         //- Laser power deposition field
         mutable volScalarField Q_;
 
-        //- Current time index (used for updating)
-        mutable label curTimeIndex_;
+    // Post processing
 
         //- File writer
-        autoPtr<setWriter> formatterPtr_;
+        const autoPtr<setWriter> formatterPtr_;
 
         //- Output path
         const fileName outputPath_;

@@ -63,17 +63,39 @@ protected:
         //- Latent heat of evaporation
         const dimensionedScalar Lv_;
 
-        //- Far field pressure
+        //- Atmospheric pressure
         const dimensionedScalar p0_;
 
-        //- Far field temperature
+        //- Atmospheric temperature
         const dimensionedScalar T0_;
 
-        //- Specific gas constant
-        const dimensionedScalar R_;
+        // Specific gas constant atmosphere
+        const dimensionedScalar R0_;
 
-    //- Saturated vapor pressure
-    volScalarField pSat_;
+        // Adiabatic exponent atmosphere
+        const scalar g0_;
+
+        //- Specific gas constant vapor
+        const dimensionedScalar Rv_;
+
+        // Adiabatic exponent vapor
+        const scalar gv_;
+
+        // Evaporation temeprature
+        const dimensionedScalar Tv_;
+
+
+    // Precomputed factors
+
+        // mass flux coefficient
+        scalar coeffA_;
+
+        // recoil pressure coefficient
+        scalar coeffB_;
+
+
+    //- Recoil pressure
+    volScalarField pRec_;
 
 
 public:

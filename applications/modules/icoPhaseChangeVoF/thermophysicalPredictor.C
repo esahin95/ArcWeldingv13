@@ -38,20 +38,23 @@ void Foam::solvers::icoPhaseChangeVoF::thermophysicalPredictor()
 {
     volScalarField& T = mixture_.T();
 
+    fvScalarMatrix TEqnBase
+    (
+        fvm::ddt(rhoCp,T) + fvm::div(rhoPhiCp, T)
+      - fvm::Sp(fvc::ddt(rhoCp) + fvc::div(rhoPhiCp), T)
+      - fvm::laplacian(thermophysicalTransport.kappaEff(), T)
+      ==
+        fvModels().source(rhoCp, T)
+    );
+
     scalar resT, resSf, resMDot;
     label iter = 0;
+    const scalar TOL = 1e-3;
     do
     {
         T.storePrevIter();
 
-        fvScalarMatrix TEqn
-        (
-            fvm::ddt(rhoCp,T) + fvm::div(rhoPhiCp, T)
-            - fvm::Sp(fvc::ddt(rhoCp) + fvc::div(rhoPhiCp), T)
-            - fvm::laplacian(thermophysicalTransport.kappaEff(), T)
-            ==
-            fvModels().source(rhoCp, T)
-        );
+        fvScalarMatrix TEqn(TEqnBase);
         solidificationModel_->hSource(TEqn);
         evaporationModel_->hSource(TEqn);
 
@@ -71,7 +74,7 @@ void Foam::solvers::icoPhaseChangeVoF::thermophysicalPredictor()
     }
     while
     (
-           ++iter<50 && resSf > 0.001
+           ++iter<50 && (resSf>TOL || resT>TOL || resMDot>TOL)
     );
     Info<< "Converged at it = " << iter << endl;
 

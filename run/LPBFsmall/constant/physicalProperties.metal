@@ -55,7 +55,7 @@ mixture
 
 solidificationModel
 {
-    type    none;
+    type    linearExplicit;
     Lm      2.7e5;
     Tsol    1658.0;
     Tliq    1723.0;
@@ -66,11 +66,15 @@ solidificationModel
 
 evaporationModel
 {
-    type    none;
-    Lv      1;
-    M       55.8;
+    type    gasDynamic;
+    Lv      7.45e6;
+    Tv      3068.0;
+    Mv      55.8;
     p0      1e5;
-    T0      3000;
+    T0      300;
+    M0      40.0;
+    g0      1.4;
+    gv      1.6667;
 }
 
 

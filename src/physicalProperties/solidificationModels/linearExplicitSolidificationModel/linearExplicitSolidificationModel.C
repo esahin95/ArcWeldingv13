@@ -85,7 +85,21 @@ Foam::solidificationModels::linearExplicit::linearExplicit
 
     q_(dict_.lookupOrDefault<scalar>("q", 0.001)),
 
-    relax_(dict_.lookupOrDefault<scalar>("relax", 1.0))
+    relax_(dict_.lookupOrDefault<scalar>("relax", 1.0)),
+
+    alphaSolid_
+    (
+        IOobject
+        (
+            IOobject::groupName("alpha.solid", group),
+            mesh.time().name(),
+            mesh,
+            IOobject::NO_READ,
+            IOobject::AUTO_WRITE
+        ),
+        mesh,
+        dimensionedScalar(dimless, 0.0)
+    )
 {
     correct(false);
 }
@@ -109,6 +123,8 @@ Foam::solidificationModels::linearExplicit::correct(const bool relax)
     {
         sf_ = max(min((Tliq_ - T_)/(Tliq_ - Tsol_), 1.0), 0.0);
     }
+
+    alphaSolid_ = alpha_*sf_;
 
     //latentHeat_ = alpha_*thermo_.rho()*Lm_*(1-sf_)/rho_;
     return gMax(mag(sf_.prevIter() - sf_)().primitiveField());

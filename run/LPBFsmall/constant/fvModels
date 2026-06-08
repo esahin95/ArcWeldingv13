@@ -20,31 +20,32 @@ laser
 
     phase           gas;
 
-    position table
-    (
-        (  0    ( 40e-6 50e-6 150e-6))
-        (100e-6 (110e-6 50e-6 150e-6))
-    );
-
-    normal          (0.0 0.0 -1.0);
-
-    Q               10.0;
-
-    nRays           900;
-
-    relax           1.0;
-
-    radius          10e-6;
-
     absorption      1e+6;
+
+    powerModel
+    {
+        type        random;
+
+        radius      10e-6;
+        position table
+        (
+            (  0    ( 40e-6 50e-6 150e-6))
+            (100e-6 (110e-6 50e-6 150e-6))
+        );
+        normal      (0.0 0.0 -1.0);
+
+        Q           50.0;
+        powerDist   constant 1;
+        nRays       900;
+
+        relax       1.0;
+    };
 
     reflectionModel
     {
         type fresnelLaser;
         epsilon 0.18;
     };
-
-    powerDist       constant 1;
 
     setFormat       vtk;
 }

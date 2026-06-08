@@ -51,7 +51,7 @@ adjustTimeStep  yes;
 
 maxCo           0.2;
 maxAlphaCo      0.2;
-maxDiCo         10.0;
+maxDiCo         0.2;
 
 maxDeltaT       1e-6;
 
@@ -64,7 +64,8 @@ DebugSwitches
     laserDTRM       1;
     greyBodyRadiation 1;
     DTRMParticle    0;
-    incompressibleReactingVoF 1;
+    linearExplicit 1;
+    gasDynamic 1;
 }
 
 OptimisationSwitches

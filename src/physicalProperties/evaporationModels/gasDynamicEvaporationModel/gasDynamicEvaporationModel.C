@@ -29,6 +29,7 @@ License
 #include "fvcGrad.H"
 #include "mathematicalConstants.H"
 #include "physicoChemicalConstants.H"
+#include "fvcVolumeIntegrate.H"
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
@@ -83,23 +84,50 @@ Foam::evaporationModels::gasDynamic::gasDynamic
         dict_.lookup<scalar>("T0")
     ),
 
-    R_
+    R0_
     (
-        "twoPiR",
+        "R0",
         physicoChemical::R/
         dimensionedScalar
         (
             "M",
             dimMass/dimMoles,
-            dict_.lookup<scalar>("M")*1e-3 // expects g/mol
+            dict_.lookup<scalar>("M0")*1e-3 // expects g/mol
         )
     ),
 
-    pSat_
+    g0_(dict_.lookup<scalar>("g0")),
+
+    Rv_
+    (
+        "Rv",
+        physicoChemical::R/
+        dimensionedScalar
+        (
+            "M",
+            dimMass/dimMoles,
+            dict_.lookup<scalar>("Mv")*1e-3 // expects g/mol
+        )
+    ),
+
+    gv_(dict_.lookup<scalar>("gv")),
+
+    Tv_
+    (
+        "Tv",
+        dimTemperature,
+        dict_.lookup<scalar>("Tv")
+    ),
+
+    coeffA_(0.0),
+
+    coeffB_(0.0),
+
+    pRec_
     (
         IOobject
         (
-            IOobject::groupName("pSat", group),
+            IOobject::groupName("pRec", group),
             mesh.time().name(),
             mesh,
             IOobject::NO_READ,
@@ -109,6 +137,34 @@ Foam::evaporationModels::gasDynamic::gasDynamic
         dimensionedScalar(dimPressure, 0.0)
     )
 {
+    // Jump conditions
+    scalar m = sqrt(gv_/2.0);
+
+    scalar tmp = 0.5*m*(gv_ - 1.0)/(gv_ + 1.0);
+
+    scalar sqrtTByTs =
+        sqrt(1 + mathematical::pi*sqr(tmp)) - sqrt(mathematical::pi)*tmp;
+
+    scalar rhoByRhos =
+        (
+            (
+                (sqr(m)+0.5)*exp(sqr(m))*erfc(m)
+              - m/sqrt(mathematical::pi)
+            )/sqrtTByTs
+          + (
+                1.0 - sqrt(mathematical::pi)*m*exp(sqr(m))*erfc(m)
+            )/sqr(sqrtTByTs)/2.0
+        );
+
+    scalar pByPs = rhoByRhos*sqr(sqrtTByTs);
+
+    // Precompute coefficients
+    coeffA_ = 2*sqrt(mathematical::pi)*m*rhoByRhos*sqrtTByTs;
+    coeffB_ = pByPs + sqr(coeffA_)/mathematical::twoPi/rhoByRhos;
+    DebugInfo<< "Evaporation coefficient coeffA = " << coeffA_ <<endl;
+    DebugInfo<< "Recoil pressure coefficient coeffB = " << coeffB_ <<endl;
+
+    // Update mass transfer rate and recoil pressure
     correct(false);
 }
 
@@ -117,28 +173,34 @@ Foam::evaporationModels::gasDynamic::gasDynamic
 
 Foam::scalar Foam::evaporationModels::gasDynamic::correct(const bool relax)
 {
+    mDot_.storePrevIter();
+
     // Saturated vapor pressure
-    Info<<"Update pSat"<<endl;
-    pSat_ = p0_*exp((Lv_/R_/T0_)*(1.0 - (T0_/T_)));
-    forAll(pSat_, cellI)
-    {
-        if (pSat_[cellI] <= p0_.value())
-        {
-            pSat_[cellI] *= 0.0;
-        }
-    }
+    //DebugInfo<< "psat" <<endl;
+    volScalarField pSat = p0_*exp(Lv_/Rv_/Tv_*(1.0 - Tv_/T_));
 
     // Mass transfer rate
-    Info<<"Update mDot"<<endl;
-    mDot_ =
-        0.816*pSat_/sqrt((mathematical::twoPi*R_)*T_)*mag(fvc::grad(alpha_));
+    //DebugInfo<< "mDot" <<endl;
+    //DebugInfo<< "Min. T = "
+    //         << gMin(T_.primitiveField()) << endl;
+    mDot_ = coeffA_*pSat/sqrt(mathematical::twoPi*Rv_*T_)*mag(fvc::grad(alpha_));
 
-    return 0.0;
+    // Recoil pressure
+    //DebugInfo<< "prec" <<endl;
+    pRec_ = coeffB_*pSat;
+
+    return gMax(mag(mDot_.prevIter() - mDot_)().primitiveField());
 }
 
 
 void Foam::evaporationModels::gasDynamic::hSource(fvScalarMatrix& TEqn) const
 {
+    if (debug)
+    {
+        const dimensionedScalar hv = fvc::domainIntegrate(Lv_*mDot_);
+        Info<< "Total evaporative enthalphy: " << hv << endl;
+    }
+
     // Add latent heat of evaporation
     TEqn += Lv_*mDot_;
 }
@@ -147,7 +209,7 @@ void Foam::evaporationModels::gasDynamic::hSource(fvScalarMatrix& TEqn) const
 void Foam::evaporationModels::gasDynamic::USource(fvVectorMatrix& UEqn) const
 {
     // Add recoil pressure term
-    UEqn -= 0.55*pSat_*fvc::grad(alpha_);
+    UEqn -= pRec_*fvc::grad(alpha_);
 }
 
 // ************************************************************************* //

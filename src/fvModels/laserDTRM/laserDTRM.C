@@ -260,8 +260,7 @@ void Foam::fv::laserDTRM::correct()
 
     // Finalize computation
     Q_.primitiveFieldRef() /= mesh().V().primitiveField();
-
-    Q_.relax(relax_);
+    Q_ = Q_.prevIter()*(1.0-relax_) + Q_*relax_;
 
     curTimeIndex_ = mesh().time().timeIndex();
 }

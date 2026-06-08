@@ -70,6 +70,9 @@ protected:
         const scalar q_;
         const scalar relax_;
 
+    //- Alpha solid fraction
+    mutable volScalarField alphaSolid_;
+
 
 public:
 

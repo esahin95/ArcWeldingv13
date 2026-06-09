@@ -25,7 +25,7 @@ solvers
 
         solver          smoothSolver;
         smoother        symGaussSeidel;
-        tolerance       1e-10;
+        tolerance       1e-8;
         relTol          0;
     }
 
@@ -33,7 +33,7 @@ solvers
     {
         solver          PCG;
         preconditioner  DIC;
-        tolerance       1e-10;
+        tolerance       1e-8;
         relTol          0.05;
     }
 
@@ -52,12 +52,12 @@ solvers
     {
         solver          PBiCGStab;
         preconditioner  DILU;
-        tolerance       1e-10;
+        tolerance       1e-08;
         //solver          smoothSolver;
         //smoother        symGaussSeidel;
         //tolerance       1e-9;
         relTol          0.05;
-        //minIter         2;
+        minIter         2;
     }
 
     TFinal

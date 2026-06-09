@@ -61,7 +61,7 @@ solidificationModel
     Tliq    1723.0;
     Cu      1e12;
     q       1e-3;
-    relax   0.8;
+    relax   1.0;
 }
 
 evaporationModel
@@ -75,6 +75,8 @@ evaporationModel
     M0      40.0;
     g0      1.4;
     gv      1.6667;
+    relax   0.5;
+    q       1e-3;
 }
 
 

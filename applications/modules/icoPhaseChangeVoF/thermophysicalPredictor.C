@@ -69,7 +69,9 @@ void Foam::solvers::icoPhaseChangeVoF::thermophysicalPredictor()
         resSf = solidificationModel_->correct();
         resMDot = evaporationModel_->correct();
 
-        resT = gMax(mag(T.prevIter() - T)().primitiveField());
+        resT =
+            gMax(mag(T.prevIter() - T)().primitiveField())
+           /gMax(T.primitiveField());
         Info<< resT << " , " << resSf << " , " << resMDot << endl;
     }
     while

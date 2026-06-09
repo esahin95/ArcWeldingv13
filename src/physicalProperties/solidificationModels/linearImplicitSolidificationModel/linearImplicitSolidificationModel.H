@@ -22,106 +22,62 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::gasDynamicEvaporationModel
+    Foam::linearImplicitSolidificationModel
 
 Description
 
 SourceFiles
-    gasDynamicEvaporationModel.C
+    linearImplicitSolidificationModel.C
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef gasDynamicEvaporationModel_H
-#define gasDynamicEvaporationModel_H
+#ifndef linearImplicitSolidificationModel_H
+#define linearImplicitSolidificationModel_H
 
-#include "evaporationModel.H"
+#include "linearExplicitSolidificationModel.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam
 {
 
-namespace evaporationModels
+namespace solidificationModels
 {
 
 
 /*---------------------------------------------------------------------------*\
-                          Class gasDynamicEvaporationModel Declaration
+                          Class linearImplicitSolidificationModel Declaration
 \*---------------------------------------------------------------------------*/
 
-class gasDynamic
+class linearImplicit
 :
-    public evaporationModel
+    public linearExplicit
 {
+
 protected:
 
-    // Evaporation properties
+    //- apparent heat capacity
+    mutable volScalarField rhoCpApp_;
 
-        //- Evaporation properties dictionary
-        const dictionary& dict_;
-
-        //- Latent heat of evaporation
-        const dimensionedScalar Lv_;
-
-        //- Atmospheric pressure
-        const dimensionedScalar p0_;
-
-        //- Atmospheric temperature
-        const dimensionedScalar T0_;
-
-        // Specific gas constant atmosphere
-        const dimensionedScalar R0_;
-
-        // Adiabatic exponent atmosphere
-        const scalar g0_;
-
-        //- Specific gas constant vapor
-        const dimensionedScalar Rv_;
-
-        // Adiabatic exponent vapor
-        const scalar gv_;
-
-        // Evaporation temeprature
-        const dimensionedScalar Tv_;
-
-    // Numeric parameters
-
-        // relaxation
-        const scalar relax_;
-
-        // additive term in residual
-        const scalar q_;
-
-
-    // Precomputed factors
-
-        // mass flux coefficient
-        scalar coeffA_;
-
-        // recoil pressure coefficient
-        scalar coeffB_;
-
-
-    //- Recoil pressure
-    volScalarField pRec_;
-
+    //- Apparent heat capacity flux
+    mutable surfaceScalarField rhoPhiCpApp_;
 
 public:
 
     //- Runtime type information
-    TypeName("gasDynamic");
+    TypeName("linearImplicit");
 
     // Constructors
 
         //- Construct from components
-        gasDynamic(const fvMesh& mesh, const word& group);
+        linearImplicit(const fvMesh& mesh, const word& group);
 
         //- Disallow default bitwise copy construction
-        gasDynamic(const gasDynamic&) = delete;
+        linearImplicit(const linearImplicit&) = delete;
 
 
     //- Destructor
-    virtual ~gasDynamic()
+    virtual ~linearImplicit()
     {}
 
 
@@ -133,20 +89,17 @@ public:
         //- Source term for energy equation
         virtual void hSource(fvScalarMatrix& TEqn) const;
 
-        //- Source term for momentum equation
-        virtual void USource(fvVectorMatrix& UEqn) const;
-
 
     // Member Operators
 
         //- Disallow default bitwise assignment
-        void operator=(const gasDynamic&) = delete;
+        void operator=(const linearImplicit&) = delete;
 };
 
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-} // End namespace evaporationModels
+} // End namespace solidificationModels
 } // End namespace Foam
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

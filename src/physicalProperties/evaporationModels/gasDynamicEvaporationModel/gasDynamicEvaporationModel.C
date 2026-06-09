@@ -119,6 +119,10 @@ Foam::evaporationModels::gasDynamic::gasDynamic
         dict_.lookup<scalar>("Tv")
     ),
 
+    relax_(dict_.lookup<scalar>("relax")),
+
+    q_(dict_.lookup<scalar>("q")),
+
     coeffA_(0.0),
 
     coeffB_(0.0),
@@ -176,20 +180,23 @@ Foam::scalar Foam::evaporationModels::gasDynamic::correct(const bool relax)
     mDot_.storePrevIter();
 
     // Saturated vapor pressure
-    //DebugInfo<< "psat" <<endl;
     volScalarField pSat = p0_*exp(Lv_/Rv_/Tv_*(1.0 - Tv_/T_));
 
     // Mass transfer rate
-    //DebugInfo<< "mDot" <<endl;
-    //DebugInfo<< "Min. T = "
-    //         << gMin(T_.primitiveField()) << endl;
-    mDot_ = coeffA_*pSat/sqrt(mathematical::twoPi*Rv_*T_)*mag(fvc::grad(alpha_));
+    mDot_ =
+        coeffA_*pSat/sqrt(mathematical::twoPi*Rv_*T_)*mag(fvc::grad(alpha_));
+    if (relax)
+    {
+        mDot_ = relax_*mDot_ + (1-relax_)*mDot_.prevIter();
+    }
 
     // Recoil pressure
-    //DebugInfo<< "prec" <<endl;
     pRec_ = coeffB_*pSat;
 
-    return gMax(mag(mDot_.prevIter() - mDot_)().primitiveField());
+    //gMax(fvc::volumeIntegrate(mag(mDot_.prevIter()-mDot_))().primitiveField())
+    return
+        gMax(mag(mDot_.prevIter() - mDot_)().primitiveField())
+      /(gMax(mDot_.primitiveField()) + q_);
 }
 
 

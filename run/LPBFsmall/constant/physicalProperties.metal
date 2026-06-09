@@ -63,14 +63,15 @@ solidificationModel
 
 evaporationModel
 {
-    type    gasDynamic;
+    type    Knight;
     Lv      7.45e6;
     Tv      3068.0;
+    Th      4210.0;
     Mv      55.8;
     p0      1e5;
     T0      300;
     M0      40.0;
-    g0      1.4;
+    g0      1.6667;
     gv      1.6667;
     relax   0.5;
     q       1e-3;

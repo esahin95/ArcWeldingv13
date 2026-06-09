@@ -3,5 +3,6 @@ evaporationModel/evaporationModelNew.C
 
 noEvaporationModel/noEvaporationModel.C
 gasDynamicEvaporationModel/gasDynamicEvaporationModel.C
+KnightEvaporationModel/KnightEvaporationModel.C
 
 LIB = $(FOAM_USER_LIBBIN)/libevaporationModels

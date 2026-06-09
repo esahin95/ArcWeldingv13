@@ -61,4 +61,26 @@ radiation
     T0      300;
 }
 
+boussinesqMetal
+{
+    type    BoussinesqForce;
+
+    phase   metal;
+
+    beta    5e-6;
+
+    T0      1658;
+}
+
+boussinesqGas
+{
+    type    BoussinesqForce;
+
+    phase   gas;
+
+    beta    4e-5;
+
+    T0      300;
+}
+
 //************************************************************************ //

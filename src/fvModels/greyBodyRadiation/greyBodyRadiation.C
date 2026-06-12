@@ -80,6 +80,19 @@ Foam::fv::greyBodyRadiation::greyBodyRadiation
         "T0",
         dimTemperature,
         dict.lookup<scalar>("T0")
+    ),
+
+    radiation_
+    (
+        IOobject
+        (
+            "radiation",
+            mesh,
+            IOobject::NO_READ,
+            IOobject::AUTO_WRITE
+        ),
+        mesh,
+        dimensionedScalar(dimPower/dimVolume, 0.0)
     )
 {}
 
@@ -108,19 +121,48 @@ void Foam::fv::greyBodyRadiation::addSup
         Info<< type() << ": applying source to " << eqn.psi().name() << endl;
     }
 
+    /*
+    const scalarField& V = mesh().V();
+    const volScalarField magAlphaGrad = mag(fvc::grad(alpha_));
+    const scalar T0 = T0_.value();
+    const scalar eps = eps_.value();
+
+    scalarField& Sp = eqn.diag();
+    scalarField& Su = eqn.source();
+    forAll(Sp, cellI)
+    {
+        const scalar Vc = V[cellI];
+        const scalar sp = 4.0*eps*pow3(T[cellI])*magAlphaGrad[cellI];
+        const scalar su = -eps*(pow4(T0) + 3.0*pow4(T[cellI]))*magAlphaGrad[cellI];
+
+        Sp[cellI] += Vc*sp;
+        Su[cellI] += Vc*su;
+    }
+    */
+
+    /*
     fvScalarMatrix radEqn
     (
-        fvm::Sp(4*eps_*pow3(T)*mag(fvc::grad(alpha_)), T)
-        - eps_*(pow4(T0_) + 3*pow4(T))*mag(fvc::grad(alpha_))
+        fvm::Sp(-4*eps_*pow3(T)*mag(fvc::grad(alpha_)), T)
+        + eps_*(pow4(T0_) + 3*pow4(T))*mag(fvc::grad(alpha_))
     );
+
+    radiation_ = radEqn&T;
 
     if (debug)
     {
-        const dimensionedScalar Qtot = fvc::domainIntegrate(radEqn&T);
+        const dimensionedScalar Qtot = fvc::domainIntegrate(radiation_);
         Info<< "Radiation in fvModel to source: " << Qtot << endl;
     }
 
     eqn += radEqn;
+    */
+
+    eqn -=
+    (
+        fvm::Sp(4*eps_*pow3(T)*mag(fvc::grad(alpha_)), T)
+        - eps_*(pow4(T0_) + 3*pow4(T))*mag(fvc::grad(alpha_))
+    );
 }
 
 

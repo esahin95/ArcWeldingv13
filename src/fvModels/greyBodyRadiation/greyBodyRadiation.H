@@ -80,6 +80,9 @@ class greyBodyRadiation
         // Reference temperature
         const dimensionedScalar T0_;
 
+        // Radiation field
+        mutable volScalarField radiation_;
+
 public:
 
     //- Runtime type information

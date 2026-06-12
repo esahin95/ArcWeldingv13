@@ -136,7 +136,7 @@ void Foam::fv::BoussinesqForce::addSup
         Info<< type() << ": applying source to " << eqn.psi().name() << endl;
     }
 
-    eqn += alpha_*thermo_.rho()*g_*beta_*(T_ - T0_);
+    eqn -= alpha_*thermo_.rho()*g_*beta_*(T_ - T0_);
 }
 
 

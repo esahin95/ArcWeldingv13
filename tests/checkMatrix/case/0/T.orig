@@ -1,0 +1,56 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+  =========                 |
+  \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+   \\    /   O peration     | Website:  https://openfoam.org
+    \\  /    A nd           | Version:  10
+     \\/     M anipulation  |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    format      ascii;
+    class       volScalarField;
+    object      T;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+dimensions      [0 0 0 0 0];
+
+internalField   uniform 0;
+
+boundaryField
+{
+    "(bottom|right)"
+    {
+        type            zeroGradient;
+    }
+
+    top
+    {
+        type            fixedValue;
+        value           uniform 0;
+    }
+
+    left
+    {
+        type            codedFixedValue;
+        value           uniform 200;
+        name            leftTemperature;
+
+        code
+        #{
+            const vectorField& Cf = patch().Cf();
+            forAll(Cf, faceI)
+            {
+                operator[](faceI) = 1.0 - Cf[faceI].y();
+            }
+        #};
+    }
+
+    "(front|back)"
+    {
+        type            empty;
+    }
+}
+
+
+// ************************************************************************* //

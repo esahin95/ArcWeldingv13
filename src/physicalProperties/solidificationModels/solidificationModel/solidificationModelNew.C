@@ -40,9 +40,9 @@ Foam::autoPtr<Foam::solidificationModel> Foam::solidificationModel::New
         solidificationModel::findModelDict(mesh, group)
     );
 
-    if (dict.isDict("solidificationModel"))
+    if (dict.isDict("solidification"))
     {
-        const dictionary& modelDict = dict.subDict("solidificationModel");
+        const dictionary& modelDict = dict.subDict("solidification");
 
         const word modelType(modelDict.lookup("type"));
 

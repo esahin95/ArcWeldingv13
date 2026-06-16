@@ -63,47 +63,37 @@ protected:
         //- Latent heat of evaporation
         const dimensionedScalar Lv_;
 
-        //- Atmospheric pressure
-        const dimensionedScalar p0_;
-
-        //- Atmospheric temperature
-        const dimensionedScalar T0_;
-
-        // Specific gas constant atmosphere
-        const dimensionedScalar R0_;
-
-        // Adiabatic exponent atmosphere
+        //- Atmospheric properties
+        const scalar p0_;
+        const scalar T0_;
+        const scalar R0_;
         const scalar g0_;
 
-        //- Specific gas constant vapor
-        const dimensionedScalar Rv_;
-
-        // Adiabatic exponent vapor
+        //- Vapor properties
+        const scalar Rv_;
         const scalar gv_;
-
-        // Evaporation temeprature
-        const dimensionedScalar Tv_;
+        const scalar Tv_;
 
     // Numeric parameters
 
-        // relaxation
+        // Relaxation
         const scalar relax_;
 
-        // additive term in residual
+        // Stabilization term
         const scalar q_;
 
 
     // Precomputed factors
 
-        // mass flux coefficient
+        // Mass flux coefficient
         scalar coeffA_;
 
-        // recoil pressure coefficient
+        // Recoil pressure coefficient
         scalar coeffB_;
 
 
-    //- Recoil pressure
-    volScalarField pRec_;
+    //- Recoil pressure force
+    volVectorField pRec_;
 
 
 public:

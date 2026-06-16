@@ -10,43 +10,45 @@ FoamFile
     format      binary;
     class       volScalarField;
     location    "0";
-    object      T.water;
+    object      divU;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-dimensions      [0 0 0 1 0 0 0];
+dimensions      [0 0 -1 0 0 0 0];
 
-internalField   uniform 800;
+internalField   uniform 0;
 
 boundaryField
 {
-    top
+    ymax
     {
-        type            calculated;
-        value           uniform 800;
+        type            extrapolatedCalculated;
+        value           uniform 0;
     }
-    left
+    xmin
     {
-        type            calculated;
-        value           uniform 800;
+        type            extrapolatedCalculated;
+        value           uniform 0;
     }
-    right
+    xmax
     {
-        type            calculated;
-        value           uniform 800;
+        type            extrapolatedCalculated;
+        value           uniform 0;
     }
-    bottom
+    ymin
     {
-        type            calculated;
-        value           uniform 800;
+        type            extrapolatedCalculated;
+        value           uniform 0;
     }
-    front
+    zmin
     {
-        type            empty;
+        type            extrapolatedCalculated;
+        value           uniform 0;
     }
-    back
+    zmax
     {
-        type            empty;
+        type            extrapolatedCalculated;
+        value           uniform 0;
     }
 }
 

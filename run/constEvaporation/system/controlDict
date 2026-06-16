@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Version:  10
+    \\  /    A nd           | Version:  13
      \\/     M anipulation  |
 \*---------------------------------------------------------------------------*/
 FoamFile
@@ -23,14 +23,15 @@ startFrom       startTime;
 startTime       0;
 
 stopAt          endTime;
+stopAt          nextWrite;
 
-endTime         5e-8;
+endTime         100e-6;
 
-deltaT          5e-10;
+deltaT          1e-8;
 
 writeControl    adjustableRunTime;
 
-writeInterval   5e-9;
+writeInterval   1e-8;
 
 purgeWrite      0;
 
@@ -48,11 +49,11 @@ runTimeModifiable yes;
 
 adjustTimeStep  yes;
 
-maxCo           0.5;
-maxAlphaCo      0.5;
-maxDiCo         10.0;
+maxCo           0.2;
+maxAlphaCo      0.2;
+maxDiCo         5.0;
 
-maxDeltaT       5e-5;
+maxDeltaT       1e-6;
 
 
 // ************************************************************************* //
@@ -60,7 +61,7 @@ maxDeltaT       5e-5;
 DebugSwitches
 {
     MULES           1;
-    greyBodyRadiation 1;
+    evaporationModel 1;
 }
 
 OptimisationSwitches
@@ -76,7 +77,9 @@ functions
         libs            ("libfieldFunctionObjects.so");
 
         writeControl    writeTime;
+
         writeFields     false;
+
         regionType      all;
 
         result          divU;
@@ -92,7 +95,7 @@ functions
 
         log             true;
 
-        writeControl    timeStep;
+        writeControl    writeTime;
 
         writeFields     false;
 
@@ -113,7 +116,7 @@ functions
 
         log             true;
 
-        writeControl    timeStep;
+        writeControl    writeTime;
 
         writeFields     false;
 
@@ -134,7 +137,7 @@ functions
 
         log             true;
 
-        writeControl    timeStep;
+        writeControl    writeTime;
 
         writeFields     false;
 

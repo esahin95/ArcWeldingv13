@@ -82,6 +82,12 @@ Foam::fv::greyBodyRadiation::greyBodyRadiation
         dict.lookup<scalar>("T0")
     ),
 
+    delta_
+    (
+        "delta",
+        mag(fvc::grad(alpha_))
+    ),
+
     radiation_
     (
         IOobject
@@ -94,7 +100,9 @@ Foam::fv::greyBodyRadiation::greyBodyRadiation
         mesh,
         dimensionedScalar(dimPower/dimVolume, 0.0)
     )
-{}
+{
+    Info<< "eps times sigma = " << eps_<<endl;
+}
 
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
@@ -106,7 +114,10 @@ Foam::wordList Foam::fv::greyBodyRadiation::addSupFields() const
 
 
 void Foam::fv::greyBodyRadiation::correct()
-{}
+{
+    // Correct interface
+    delta_ = mag(fvc::grad(alpha_));
+}
 
 
 void Foam::fv::greyBodyRadiation::addSup
@@ -121,30 +132,10 @@ void Foam::fv::greyBodyRadiation::addSup
         Info<< type() << ": applying source to " << eqn.psi().name() << endl;
     }
 
-    /*
-    const scalarField& V = mesh().V();
-    const volScalarField magAlphaGrad = mag(fvc::grad(alpha_));
-    const scalar T0 = T0_.value();
-    const scalar eps = eps_.value();
-
-    scalarField& Sp = eqn.diag();
-    scalarField& Su = eqn.source();
-    forAll(Sp, cellI)
-    {
-        const scalar Vc = V[cellI];
-        const scalar sp = 4.0*eps*pow3(T[cellI])*magAlphaGrad[cellI];
-        const scalar su = -eps*(pow4(T0) + 3.0*pow4(T[cellI]))*magAlphaGrad[cellI];
-
-        Sp[cellI] += Vc*sp;
-        Su[cellI] += Vc*su;
-    }
-    */
-
-    /*
     fvScalarMatrix radEqn
     (
-        fvm::Sp(-4*eps_*pow3(T)*mag(fvc::grad(alpha_)), T)
-        + eps_*(pow4(T0_) + 3*pow4(T))*mag(fvc::grad(alpha_))
+        eps_*(pow4(T0_) + 3.0*pow4(T))*delta_
+        - fvm::Sp(4.0*eps_*pow3(T)*delta_, T)
     );
 
     radiation_ = radEqn&T;
@@ -152,17 +143,10 @@ void Foam::fv::greyBodyRadiation::addSup
     if (debug)
     {
         const dimensionedScalar Qtot = fvc::domainIntegrate(radiation_);
-        Info<< "Radiation in fvModel to source: " << Qtot << endl;
+        Info<< "Radiation linearized in fvModel to source: " << Qtot << endl;
     }
 
     eqn += radEqn;
-    */
-
-    eqn -=
-    (
-        fvm::Sp(4*eps_*pow3(T)*mag(fvc::grad(alpha_)), T)
-        - eps_*(pow4(T0_) + 3*pow4(T))*mag(fvc::grad(alpha_))
-    );
 }
 
 

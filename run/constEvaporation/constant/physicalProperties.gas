@@ -29,35 +29,27 @@ mixture
 {
     specie
     {
-        molWeight   208.0;
+        molWeight   40; // Argon
     }
 
     equationOfState
     {
-        rho         9780.0;
+        rho         1.0;
     }
 
     thermodynamics
     {
-        Cp          123;
+        Cp          520;
         hf          0;
     }
 
     transport
     {
-        mu          0.0016;
-        kappa       10.35;
+        mu          1.48e-05; // nu = 1.48e-5
+        kappa       0.04;
     }
-}
-
-solidification
-{
-    type    linearImplicit;
-    L       44600;
-    Tsol    544;
-    Tliq    545;
-    relax   150.0;
 }
 
 
 // ************************************************************************* //
+

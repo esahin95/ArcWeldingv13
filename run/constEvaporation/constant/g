@@ -8,21 +8,15 @@
 FoamFile
 {
     format      ascii;
-    class       dictionary;
+    class       uniformDimensionedVectorField;
     location    "constant";
-    object      fvModels;
+    object      g;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-radiation
-{
-    type    greyBodyRadiation;
+dimensions      [0 1 -2 0 0 0 0];
 
-    phase   air;
+value           (0 0 -9.81);
 
-    eps     1;
 
-    T0      300;
-}
-
-//************************************************************************ //
+// ************************************************************************* //

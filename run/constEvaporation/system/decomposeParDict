@@ -9,35 +9,16 @@ FoamFile
 {
     format      ascii;
     class       dictionary;
-    location    "constant";
-    object      phaseChangeProperties;
+    location    "system";
+    object      decomposeParDict;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-phase   bismuth;
+numberOfSubdomains 6;
 
-/*
-alphaSolidT table
-(
-    (544 1)
-    (545 0)
-);
-*/
-alphaSolidT
-{
-    type    errorFunction;
-    Tsol    544;
-    Tliq    545;
-}
+method          scotch;
 
-L       44600;
+distributed     no;
 
-Tsol    544;
-
-Tliq    545;
-
-Cu      100000;
-
-relax   0.7;
 
 // ************************************************************************* //

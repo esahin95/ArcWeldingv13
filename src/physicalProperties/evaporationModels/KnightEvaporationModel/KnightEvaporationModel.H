@@ -60,7 +60,7 @@ protected:
     // Evaporation properties
 
         //- Vaporization temperature for p0 and Ma = 1
-        const dimensionedScalar Th_;
+        const scalar Th_;
 
 
 public:

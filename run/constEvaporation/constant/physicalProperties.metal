@@ -29,34 +29,46 @@ mixture
 {
     specie
     {
-        molWeight   208.0;
+        molWeight   55.8; // Predominantly iron
     }
 
     equationOfState
     {
-        rho         9780.0;
+        rho         8000.0;
     }
 
     thermodynamics
     {
-        Cp          123;
+        Cp          520;
         hf          0;
     }
 
     transport
     {
-        mu          0.0016;
-        kappa       10.35;
+        mu          0.004; // nu = 5e-7
+        kappa       10.0;
     }
 }
 
 solidification
 {
-    type    linearImplicit;
-    L       44600;
-    Tsol    544;
-    Tliq    545;
-    relax   150.0;
+    type    none;
+}
+
+evaporation
+{
+    type    Knight;
+    L       7.45e6;
+    Tv      3068.0;
+    Th      4210.0;
+    Mv      55.8;
+    p0      1e5;
+    T0      300;
+    M0      40.0;
+    g0      1.6667;
+    gv      1.6667;
+    relax   0.5;
+    q       1e-3;
 }
 
 

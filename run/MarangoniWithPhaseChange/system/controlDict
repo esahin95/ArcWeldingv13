@@ -16,7 +16,7 @@ FoamFile
 
 application     foamRun;
 
-solver          compressibleReactingVoF;
+solver          icoPhaseChangeVoF;
 
 startFrom       startTime;
 
@@ -25,13 +25,13 @@ startTime       0;
 stopAt          endTime;
 stopAt          nextWrite;
 
-endTime         5.0;
+endTime         1.0;
 
 deltaT          1e-5;
 
 writeControl    adjustableRunTime;
 
-writeInterval   0.15;
+writeInterval   0.05;
 
 purgeWrite      0;
 
@@ -49,15 +49,11 @@ runTimeModifiable yes;
 
 adjustTimeStep  yes;
 
-maxCo           0.5;
-maxAlphaCo      0.5;
+maxCo           0.2;
+maxAlphaCo      0.2;
+maxDiCo         100000;
 
-maxDeltaT       5e-5;
-
-libs
-(
-    "liberrorFunction1.so"
-);
+maxDeltaT       5e-3;
 
 
 // ************************************************************************* //
@@ -65,7 +61,7 @@ libs
 DebugSwitches
 {
     MULES           1;
-    VoFSolidificationMelting    1;
+    solidificationModel 1;
 }
 
 OptimisationSwitches

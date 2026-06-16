@@ -25,6 +25,7 @@ License
 
 #include "KnightEvaporationModel.H"
 #include "addToRunTimeSelectionTable.H"
+#include "fvcGrad.H"
 
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
@@ -57,12 +58,7 @@ Foam::evaporationModels::Knight::Knight
 :
     gasDynamic(mesh, group),
 
-    Th_
-    (
-        "Th",
-        dimTemperature,
-        dict_.lookup<scalar>("Th")
-    )
+    Th_(dict_.lookup<scalar>("Th"))
 {}
 
 
@@ -71,55 +67,40 @@ Foam::evaporationModels::Knight::Knight
 Foam::scalar Foam::evaporationModels::Knight::correct(const bool relax)
 {
     mDot_.storePrevIter();
+    const volScalarField& mDot0 = mDot_.prevIter();
 
-    const scalar Th = Th_.value();
-    const scalar Tv = Tv_.value();
-    const scalar T0 = T0_.value();
-    const scalar Rv = Rv_.value();
-    const scalar R0 = R0_.value();
+    volVectorField gradAlpha = fvc::grad(alpha_);
 
-    const scalar a = sqrt(gv_*Rv/g0_/R0);
+    const scalar a = sqrt(gv_*Rv_/g0_/R0_);
     const scalar b = (g0_ + 1.0)/4.0;
 
     scalar tmp;
+    scalar res = 0;
+    scalar maxMDot = 0;
     forAll(mDot_, cellI)
     {
         const scalar T = T_[cellI];
-        const scalar Ma = max(min((T-Tv)/(Th-Tv), 1.0), 0.0);
+        const scalar Ma = max(min((T-Tv_)/(Th_ - Tv_), 1.0), 0.0);
         const scalar m = sqrt(0.5*gv_)*Ma;
 
-        tmp = 0.5*m*(gv_-1.0)/(gv_+1.0);
+        tmp = 0.5*m*(gv_ - 1.0)/(gv_ + 1.0);
         const scalar sqrtTByTs =
             sqrt(1.0 + mathematical::pi*sqr(tmp)) - sqrt(mathematical::pi)*tmp;
 
-        /*
-        const scalar rSqrtTByTs = 1.0/sqrtTByTs;
-        const scalar rhoByRhos =
-            (
-                (
-                    (sqr(m)+0.5)*exp(sqr(m))*erfc(m)
-                - m/sqrt(mathematical::pi)
-                )*rSqrtTByTs
-            + (
-                    1.0 - sqrt(mathematical::pi)*m*exp(sqr(m))*erfc(m)
-                )*sqr(rSqrtTByTs)/2.0
-            );
-        */
-
-        //const scalar pByPs = rhoByRhos*sqr(sqrtTByTs);
-
-        tmp = a*sqrt(T/T0)*sqrtTByTs*Ma;
+        tmp = a*sqrt(T/T0_)*sqrtTByTs*Ma;
         const scalar pByP1 = 1 + g0_*tmp*(b*tmp + sqrt(1.0 + sqr(b*tmp)));
 
-        mDot_[cellI] = sqrt(2.0/Rv/T)*m*pByP1/sqrtTByTs;
-        pRec_[cellI] = (1.0 + 2.0*sqr(m))*pByP1 - 1.0;
+        mDot_[cellI] = sqrt(2.0/Rv_/T)*m*pByP1/sqrtTByTs*mag(gradAlpha[cellI]);
+        pRec_[cellI] = ((1.0 + 2.0*sqr(m))*pByP1 - 1.0)*gradAlpha[cellI];
+
+        res = max(res, mag(mDot_[cellI] - mDot0[cellI]));
+        maxMDot = max(maxMDot, mDot_[cellI]);
     }
     mDot_.correctBoundaryConditions();
     pRec_.correctBoundaryConditions();
 
-    return
-        gMax(mag(mDot_.prevIter() - mDot_)().primitiveField())
-      /(gMax(mDot_.primitiveField()) + q_);
+    res /= (maxMDot + q_);
+    return returnReduce(res, maxOp<scalar>());
 }
 
 

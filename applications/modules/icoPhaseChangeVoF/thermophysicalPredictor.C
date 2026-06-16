@@ -29,6 +29,7 @@ License
 #include "fvmDiv.H"
 #include "fvmSup.H"
 #include "fvmLaplacian.H"
+#include "fvcVolumeIntegrate.H"
 
 
 // * * * * * * * * * * * * Protected Member Functions  * * * * * * * * * * * //

@@ -58,28 +58,18 @@ Foam::solidificationModels::linearExplicit::linearExplicit
 :
     solidificationModel(mesh, group),
 
-    dict_(subDict(solidificationModel::typeName)),
+    dict_(subDict("solidification")),
 
     Lm_
     (
-        "Lm",
+        "L",
         dimEnergy/dimMass,
-        dict_.lookup<scalar>("Lm")
+        dict_.lookup<scalar>("L")
     ),
 
-    Tliq_
-    (
-        "Tliq",
-        dimTemperature,
-        dict_.lookup<scalar>("Tliq")
-    ),
+    Tliq_(dict_.lookup<scalar>("Tliq")),
 
-    Tsol_
-    (
-        "Tsol",
-        dimTemperature,
-        dict_.lookup<scalar>("Tsol")
-    ),
+    Tsol_(dict_.lookup<scalar>("Tsol")),
 
     Cu_(dict_.lookupOrDefault<scalar>("Cu", 1e5)),
 
@@ -110,24 +100,44 @@ Foam::solidificationModels::linearExplicit::linearExplicit
 Foam::scalar
 Foam::solidificationModels::linearExplicit::correct(const bool relax)
 {
-    sf_.storePrevIter();
+    const scalar Lm = Lm_.value();
+    const scalarField& Cp = thermo_.Cp().primitiveField();
 
-    if (relax)
+    if (solidificationModel::debug)
     {
-        const volScalarField& Cp = thermo_.Cp();
+        const scalarField& V = mesh_.V();
 
-        sf_ += (relax_/Lm_)*Cp*(Tliq_ - T_ - sf_*(Tliq_ - Tsol_));
-        sf_ = max(min(sf_, 1.0), 0.0);
-    }
-    else
-    {
-        sf_ = max(min((Tliq_ - T_)/(Tliq_ - Tsol_), 1.0), 0.0);
+        const scalar St = gSum(Cp*V)/gSum(V)*(Tliq_ - Tsol_)/Lm;
+        Info<< "Avg. Stefan number St = " << St << endl;
     }
 
-    alphaSolid_ = alpha_*sf_;
+    scalar res = 0.0;
+    forAll(sf_, cellI)
+    {
+        // Equilibrium solid fraction
+        const scalar sfEq =
+            max(min((Tliq_ - T_[cellI])/(Tliq_ - Tsol_), 1.0), 0.0);
 
-    //latentHeat_ = alpha_*thermo_.rho()*Lm_*(1-sf_)/rho_;
-    return gMax(mag(sf_.prevIter() - sf_)().primitiveField());
+        // Correction
+        if (relax)
+        {
+            const scalar Teq = sf_[cellI]*Tsol_ + (1.0 - sf_[cellI])*Tliq_;
+            sf_[cellI] += relax_*Cp[cellI]/Lm*(Teq - T_[cellI]);
+            sf_[cellI] = max(min(sf_[cellI], 1.0), 0.0);
+        }
+        else
+        {
+            sf_[cellI] = sfEq;
+        }
+
+        // Phase extensive property
+        alphaSolid_[cellI] = sf_[cellI]*alpha_[cellI];
+
+        // Maximum deviation from Equilibirum
+        res = max(res, mag(sfEq - sf_[cellI]));
+    }
+
+    return returnReduce(res, maxOp<scalar>());
 }
 
 
@@ -150,13 +160,11 @@ void Foam::solidificationModels::linearExplicit::USource
 ) const
 {
     const scalarField& V = mesh_.V();
-
     scalarField& Sp = UEqn.diag();
     forAll(Sp, cellI)
     {
-        const scalar Vc = V[cellI];
         const scalar sf = alpha_[cellI]*sf_[cellI];
-        Sp[cellI] += Vc*Cu_*sqr(sf)/(pow3(1.0 - sf) + q_);
+        Sp[cellI] += V[cellI]*Cu_*sqr(sf)/(pow3(1.0 - sf) + q_);
     }
 }
 

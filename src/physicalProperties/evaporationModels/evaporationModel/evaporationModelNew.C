@@ -40,9 +40,9 @@ Foam::autoPtr<Foam::evaporationModel> Foam::evaporationModel::New
         evaporationModel::findModelDict(mesh, group)
     );
 
-    if (dict.isDict("evaporationModel"))
+    if (dict.isDict("evaporation"))
     {
-        const dictionary& modelDict = dict.subDict("evaporationModel");
+        const dictionary& modelDict = dict.subDict("evaporation");
 
         const word modelType(modelDict.lookup("type"));
 
@@ -64,7 +64,7 @@ Foam::autoPtr<Foam::evaporationModel> Foam::evaporationModel::New
     }
     else
     {
-        Info<<"There is no evaporationModel dictionary"<<endl;
+        Info<<"There is no evaporation dictionary"<<endl;
         Info<<"Selecting default evaporation model none"<<endl;
         return autoPtr<evaporationModel>
         (

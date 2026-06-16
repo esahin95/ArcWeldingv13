@@ -61,63 +61,28 @@ Foam::evaporationModels::gasDynamic::gasDynamic
 :
     evaporationModel(mesh, group),
 
-    dict_(subDict(evaporationModel::typeName)),
+    dict_(subDict("evaporation")),
 
     Lv_
     (
         "Lv",
         dimEnergy/dimMass,
-        dict_.lookup<scalar>("Lv")
+        dict_.lookup<scalar>("L")
     ),
 
-    p0_
-    (
-        "p0",
-        dimPressure,
-        dict_.lookup<scalar>("p0")
-    ),
+    p0_(dict_.lookup<scalar>("p0")),
 
-    T0_
-    (
-        "T0",
-        dimTemperature,
-        dict_.lookup<scalar>("T0")
-    ),
+    T0_(dict_.lookup<scalar>("T0")),
 
-    R0_
-    (
-        "R0",
-        physicoChemical::R/
-        dimensionedScalar
-        (
-            "M",
-            dimMass/dimMoles,
-            dict_.lookup<scalar>("M0")*1e-3 // expects g/mol
-        )
-    ),
+    R0_(physicoChemical::R.value()/dict_.lookup<scalar>("M0")*1e3),
 
     g0_(dict_.lookup<scalar>("g0")),
 
-    Rv_
-    (
-        "Rv",
-        physicoChemical::R/
-        dimensionedScalar
-        (
-            "M",
-            dimMass/dimMoles,
-            dict_.lookup<scalar>("Mv")*1e-3 // expects g/mol
-        )
-    ),
+    Rv_(physicoChemical::R.value()/dict_.lookup<scalar>("Mv")*1e3),
 
     gv_(dict_.lookup<scalar>("gv")),
 
-    Tv_
-    (
-        "Tv",
-        dimTemperature,
-        dict_.lookup<scalar>("Tv")
-    ),
+    Tv_(dict_.lookup<scalar>("Tv")),
 
     relax_(dict_.lookup<scalar>("relax")),
 
@@ -135,10 +100,10 @@ Foam::evaporationModels::gasDynamic::gasDynamic
             mesh.time().name(),
             mesh,
             IOobject::NO_READ,
-            IOobject::NO_WRITE
+            IOobject::AUTO_WRITE
         ),
         mesh,
-        dimensionedScalar(dimPressure, 0.0)
+        dimensionedVector(dimForce/dimVolume, vector::zero)
     )
 {
     // Jump conditions
@@ -165,8 +130,11 @@ Foam::evaporationModels::gasDynamic::gasDynamic
     // Precompute coefficients
     coeffA_ = 2*sqrt(mathematical::pi)*m*rhoByRhos*sqrtTByTs;
     coeffB_ = pByPs + sqr(coeffA_)/mathematical::twoPi/rhoByRhos;
-    DebugInfo<< "Evaporation coefficient coeffA = " << coeffA_ <<endl;
-    DebugInfo<< "Recoil pressure coefficient coeffB = " << coeffB_ <<endl;
+    if (evaporationModel::debug)
+    {
+        Info<< "Evaporation coefficient coeffA = " << coeffA_ <<endl;
+        Info<< "Recoil pressure coefficient coeffB = " << coeffB_ <<endl;
+    }
 
     // Update mass transfer rate and recoil pressure
     correct(false);
@@ -178,25 +146,39 @@ Foam::evaporationModels::gasDynamic::gasDynamic
 Foam::scalar Foam::evaporationModels::gasDynamic::correct(const bool relax)
 {
     mDot_.storePrevIter();
+    const volScalarField& mDot0 = mDot_.prevIter();
 
-    // Saturated vapor pressure
-    volScalarField pSat = p0_*exp(Lv_/Rv_/Tv_*(1.0 - Tv_/T_));
+    volVectorField gradAlpha = fvc::grad(alpha_);
 
-    // Mass transfer rate
-    mDot_ =
-        coeffA_*pSat/sqrt(mathematical::twoPi*Rv_*T_)*mag(fvc::grad(alpha_));
-    if (relax)
+    const scalar LByRTv = Lv_.value()/Rv_/Tv_;
+    const scalar cA = coeffA_ / sqrt(mathematical::twoPi*Rv_);
+    scalar res = 0;
+    scalar maxMDot = 0;
+    forAll(mDot_, cellI)
     {
-        mDot_ = relax_*mDot_ + (1-relax_)*mDot_.prevIter();
+        // Saturation pressure
+        const scalar pSat = p0_*exp(LByRTv*(1.0 - Tv_/T_[cellI]));
+
+        // Mass transfer rate
+        const scalar mDot = cA*pSat/sqrt(T_[cellI])*mag(gradAlpha[cellI]);
+        if (relax)
+        {
+            mDot_[cellI] = relax_*mDot + (1-relax_)*mDot0[cellI];
+        }
+        else
+        {
+            mDot_[cellI] = mDot;
+        }
+
+        // Recoil pressure
+        pRec_[cellI] = coeffB_*pSat*gradAlpha[cellI];
+
+        res = max(res, mag(mDot_[cellI] - mDot0[cellI]));
+        maxMDot = max(maxMDot, mDot_[cellI]);
     }
 
-    // Recoil pressure
-    pRec_ = coeffB_*pSat;
-
-    //gMax(fvc::volumeIntegrate(mag(mDot_.prevIter()-mDot_))().primitiveField())
-    return
-        gMax(mag(mDot_.prevIter() - mDot_)().primitiveField())
-      /(gMax(mDot_.primitiveField()) + q_);
+    res /= (maxMDot + q_);
+    return returnReduce(res, maxOp<scalar>());
 }
 
 
@@ -216,7 +198,7 @@ void Foam::evaporationModels::gasDynamic::hSource(fvScalarMatrix& TEqn) const
 void Foam::evaporationModels::gasDynamic::USource(fvVectorMatrix& UEqn) const
 {
     // Add recoil pressure term
-    UEqn -= pRec_*fvc::grad(alpha_);
+    UEqn -= pRec_;
 }
 
 // ************************************************************************* //

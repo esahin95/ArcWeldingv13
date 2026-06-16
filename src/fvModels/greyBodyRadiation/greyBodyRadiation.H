@@ -80,6 +80,9 @@ class greyBodyRadiation
         // Reference temperature
         const dimensionedScalar T0_;
 
+        // Numerical delta function
+        volScalarField delta_;
+
         // Radiation field
         mutable volScalarField radiation_;
 

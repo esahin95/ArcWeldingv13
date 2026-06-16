@@ -62,8 +62,8 @@ protected:
 
         //- Physical parameters
         const dimensionedScalar Lm_;
-        const dimensionedScalar Tliq_;
-        const dimensionedScalar Tsol_;
+        const scalar Tliq_;
+        const scalar Tsol_;
 
         //- Numerical parameters
         const scalar Cu_;

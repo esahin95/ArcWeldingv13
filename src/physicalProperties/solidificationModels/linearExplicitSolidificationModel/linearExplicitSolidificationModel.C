@@ -58,7 +58,7 @@ Foam::solidificationModels::linearExplicit::linearExplicit
 :
     solidificationModel(mesh, group),
 
-    dict_(subDict("solidification")),
+    dict_(subDict(solidificationDictName_)),
 
     Lm_
     (
@@ -141,12 +141,12 @@ Foam::solidificationModels::linearExplicit::correct(const bool relax)
 }
 
 
-void Foam::solidificationModels::linearExplicit::hSource
+void Foam::solidificationModels::linearExplicit::addSup
 (
-    fvScalarMatrix& TEqn
+    fvMatrix<scalar>& eqn
 ) const
 {
-    TEqn -= Lm_*
+    eqn -= Lm_*
         (
             fvc::ddt(alpha_, thermo_.rho(), sf_)
           + fvc::div(alphaRhoPhi_, sf_)
@@ -154,13 +154,13 @@ void Foam::solidificationModels::linearExplicit::hSource
 }
 
 
-void Foam::solidificationModels::linearExplicit::USource
+void Foam::solidificationModels::linearExplicit::addSup
 (
-    fvVectorMatrix& UEqn
+    fvMatrix<vector>& eqn
 ) const
 {
     const scalarField& V = mesh_.V();
-    scalarField& Sp = UEqn.diag();
+    scalarField& Sp = eqn.diag();
     forAll(Sp, cellI)
     {
         const scalar sf = alpha_[cellI]*sf_[cellI];

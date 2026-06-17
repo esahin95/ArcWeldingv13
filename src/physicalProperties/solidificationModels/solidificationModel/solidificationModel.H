@@ -57,6 +57,9 @@ class solidificationModel
 {
 protected:
 
+    // Solidification dictionary name
+    static const word solidificationDictName_;
+
     // References to database
 
         //- Reference to the mesh
@@ -135,10 +138,10 @@ public:
         virtual scalar correct(const bool relax=true) = 0;
 
         //- Source term for energy equation
-        virtual void hSource(fvScalarMatrix& TEqn) const = 0;
+        virtual void addSup(fvMatrix<scalar>& eqn) const = 0;
 
         //- Source term for momentum equation
-        virtual void USource(fvVectorMatrix& UEqn) const = 0;
+        virtual void addSup(fvMatrix<vector>& eqn) const = 0;
 
     // Member Operators
 

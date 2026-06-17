@@ -90,7 +90,10 @@ protected:
         // Evaporation model
         autoPtr<evaporationModel> evaporationModel_;
 
-    // Protected Member Functions
+    // Numerical Controls
+
+        // Thermo corrections
+        const label nThermoCorr_;
 
 
 

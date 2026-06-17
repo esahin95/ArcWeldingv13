@@ -28,6 +28,9 @@ License
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
+const Foam::word
+Foam::solidificationModel::solidificationDictName_ = "solidification";
+
 namespace Foam
 {
     defineTypeNameAndDebug(solidificationModel, 0);

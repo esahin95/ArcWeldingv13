@@ -182,7 +182,7 @@ Foam::scalar Foam::evaporationModels::gasDynamic::correct(const bool relax)
 }
 
 
-void Foam::evaporationModels::gasDynamic::hSource(fvScalarMatrix& TEqn) const
+void Foam::evaporationModels::gasDynamic::addSup(fvMatrix<scalar>& eqn) const
 {
     if (debug)
     {
@@ -191,14 +191,14 @@ void Foam::evaporationModels::gasDynamic::hSource(fvScalarMatrix& TEqn) const
     }
 
     // Add latent heat of evaporation
-    TEqn += Lv_*mDot_;
+    eqn += Lv_*mDot_;
 }
 
 
-void Foam::evaporationModels::gasDynamic::USource(fvVectorMatrix& UEqn) const
+void Foam::evaporationModels::gasDynamic::addSup(fvMatrix<vector>& eqn) const
 {
     // Add recoil pressure term
-    UEqn -= pRec_;
+    eqn -= pRec_;
 }
 
 // ************************************************************************* //

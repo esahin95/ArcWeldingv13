@@ -56,8 +56,8 @@ void Foam::solvers::icoPhaseChangeVoF::thermophysicalPredictor()
         T.storePrevIter();
 
         fvScalarMatrix TEqn(TEqnBase);
-        solidificationModel_->hSource(TEqn);
-        evaporationModel_->hSource(TEqn);
+        solidificationModel_->addSup(TEqn);
+        evaporationModel_->addSup(TEqn);
 
         TEqn.relax();
 
@@ -70,14 +70,12 @@ void Foam::solvers::icoPhaseChangeVoF::thermophysicalPredictor()
         resSf = solidificationModel_->correct();
         resMDot = evaporationModel_->correct();
 
-        resT =
-            gMax(mag(T.prevIter() - T)().primitiveField())
-           /gMax(T.primitiveField());
+        resT = gMax(mag(T.prevIter() - T)().primitiveField());
         Info<< resT << " , " << resSf << " , " << resMDot << endl;
     }
     while
     (
-           ++iter<50 && (resSf>TOL || resT>TOL || resMDot>TOL)
+           ++iter<nThermoCorr_ && (resSf>TOL || resT>TOL || resMDot>TOL)
     );
     Info<< "Converged at it = " << iter << endl;
 

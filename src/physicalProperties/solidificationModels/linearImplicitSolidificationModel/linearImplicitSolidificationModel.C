@@ -103,12 +103,12 @@ Foam::solidificationModels::linearImplicit::correct(const bool relax)
 }
 
 
-void Foam::solidificationModels::linearImplicit::hSource
+void Foam::solidificationModels::linearImplicit::addSup
 (
-    fvScalarMatrix& TEqn
+    fvMatrix<scalar>& eqn
 ) const
 {
-    TEqn +=
+    eqn +=
     (
         fvm::ddt(rhoCpApp_, T_) + fvm::div(rhoPhiCpApp_, T_)
       - fvm::Sp(fvc::ddt(rhoCpApp_) + fvc::div(rhoPhiCpApp_), T_)

@@ -42,7 +42,7 @@ Foam::autoPtr<Foam::solidificationModel> Foam::solidificationModel::New
 
     if (dict.isDict("solidification"))
     {
-        const dictionary& modelDict = dict.subDict("solidification");
+        const dictionary& modelDict = dict.subDict(solidificationDictName_);
 
         const word modelType(modelDict.lookup("type"));
 

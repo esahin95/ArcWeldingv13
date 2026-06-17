@@ -87,7 +87,7 @@ public:
         virtual scalar correct(const bool relax=true);
 
         //- Source term for energy equation
-        virtual void hSource(fvScalarMatrix& TEqn) const;
+        virtual void addSup(fvMatrix<scalar>& eqn) const;
 
 
     // Member Operators

@@ -54,6 +54,11 @@ Foam::solvers::icoPhaseChangeVoF::icoPhaseChangeVoF(fvMesh& mesh)
     evaporationModel_
     (
         evaporationModel::New(mesh, mixture_.phase1Name())
+    ),
+
+    nThermoCorr_
+    (
+        pimple.dict().lookup<label>("nThermoCorr")
     )
 {}
 

@@ -64,11 +64,11 @@ Foam::scalar Foam::evaporationModels::none::correct(const bool relax)
 }
 
 
-void Foam::evaporationModels::none::hSource(fvScalarMatrix& TEqn) const
+void Foam::evaporationModels::none::addSup(fvMatrix<scalar>& eqn) const
 {}
 
 
-void Foam::evaporationModels::none::USource(fvVectorMatrix& UEqn) const
+void Foam::evaporationModels::none::addSup(fvMatrix<vector>& eqn) const
 {}
 
 // ************************************************************************* //

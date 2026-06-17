@@ -64,11 +64,11 @@ Foam::scalar Foam::solidificationModels::none::correct(const bool relax)
 }
 
 
-void Foam::solidificationModels::none::hSource(fvScalarMatrix& TEqn) const
+void Foam::solidificationModels::none::addSup(fvMatrix<scalar>& eqn) const
 {}
 
 
-void Foam::solidificationModels::none::USource(fvVectorMatrix& UEqn) const
+void Foam::solidificationModels::none::addSup(fvMatrix<vector>& eqn) const
 {}
 
 // ************************************************************************* //

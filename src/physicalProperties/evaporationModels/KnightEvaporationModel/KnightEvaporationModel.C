@@ -66,6 +66,7 @@ Foam::evaporationModels::Knight::Knight
 
 Foam::scalar Foam::evaporationModels::Knight::correct(const bool relax)
 {
+    /*
     mDot_.storePrevIter();
     const volScalarField& mDot0 = mDot_.prevIter();
 
@@ -101,6 +102,8 @@ Foam::scalar Foam::evaporationModels::Knight::correct(const bool relax)
 
     res /= (maxMDot + q_);
     return returnReduce(res, maxOp<scalar>());
+    */
+    return gasDynamic::correct(relax);
 }
 
 

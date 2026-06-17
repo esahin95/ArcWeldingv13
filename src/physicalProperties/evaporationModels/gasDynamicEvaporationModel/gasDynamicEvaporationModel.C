@@ -70,27 +70,33 @@ Foam::evaporationModels::gasDynamic::gasDynamic
         dict_.lookup<scalar>("L")
     ),
 
-    p0_(dict_.lookup<scalar>("p0")),
+    p0_
+    (
+        "p0",
+        dimPressure,
+        dict_.lookup<scalar>("p0")
+    ),
 
-    T0_(dict_.lookup<scalar>("T0")),
+    Rv_
+    (
+        "R",
+        physicoChemical::R/
+        dimensionedScalar
+        (
+            "M",
+            dimMass/dimMoles,
+            dict_.lookup<scalar>("Mv")*1e-3
+        )
+    ),
 
-    R0_(physicoChemical::R.value()/dict_.lookup<scalar>("M0")*1e3),
-
-    g0_(dict_.lookup<scalar>("g0")),
-
-    Rv_(physicoChemical::R.value()/dict_.lookup<scalar>("Mv")*1e3),
-
-    gv_(dict_.lookup<scalar>("gv")),
-
-    Tv_(dict_.lookup<scalar>("Tv")),
+    Tv_
+    (
+        "T",
+        dimTemperature,
+        dict_.lookup<scalar>("Tv")
+    ),
 
     relax_(dict_.lookup<scalar>("relax")),
-
-    q_(dict_.lookup<scalar>("q")),
-
-    coeffA_(0.0),
-
-    coeffB_(0.0),
 
     pRec_
     (
@@ -103,39 +109,9 @@ Foam::evaporationModels::gasDynamic::gasDynamic
             IOobject::AUTO_WRITE
         ),
         mesh,
-        dimensionedVector(dimForce/dimVolume, vector::zero)
+        dimensionedScalar(dimPressure, 0.0)
     )
 {
-    // Jump conditions
-    scalar m = sqrt(gv_/2.0);
-
-    scalar tmp = 0.5*m*(gv_ - 1.0)/(gv_ + 1.0);
-
-    scalar sqrtTByTs =
-        sqrt(1 + mathematical::pi*sqr(tmp)) - sqrt(mathematical::pi)*tmp;
-
-    scalar rhoByRhos =
-        (
-            (
-                (sqr(m)+0.5)*exp(sqr(m))*erfc(m)
-              - m/sqrt(mathematical::pi)
-            )/sqrtTByTs
-          + (
-                1.0 - sqrt(mathematical::pi)*m*exp(sqr(m))*erfc(m)
-            )/sqr(sqrtTByTs)/2.0
-        );
-
-    scalar pByPs = rhoByRhos*sqr(sqrtTByTs);
-
-    // Precompute coefficients
-    coeffA_ = 2*sqrt(mathematical::pi)*m*rhoByRhos*sqrtTByTs;
-    coeffB_ = pByPs + sqr(coeffA_)/mathematical::twoPi/rhoByRhos;
-    if (evaporationModel::debug)
-    {
-        Info<< "Evaporation coefficient coeffA = " << coeffA_ <<endl;
-        Info<< "Recoil pressure coefficient coeffB = " << coeffB_ <<endl;
-    }
-
     // Update mass transfer rate and recoil pressure
     correct(false);
 }
@@ -148,37 +124,22 @@ Foam::scalar Foam::evaporationModels::gasDynamic::correct(const bool relax)
     mDot_.storePrevIter();
     const volScalarField& mDot0 = mDot_.prevIter();
 
-    volVectorField gradAlpha = fvc::grad(alpha_);
+    // Saturated vapor pressure
+    const dimensionedScalar LByRTv = Lv_/(Rv_*Tv_);
+    const volScalarField pSat = p0_*exp(LByRTv*(1. - Tv_/T_));
 
-    const scalar LByRTv = Lv_.value()/Rv_/Tv_;
-    const scalar cA = coeffA_ / sqrt(mathematical::twoPi*Rv_);
-    scalar res = 0;
-    scalar maxMDot = 0;
-    forAll(mDot_, cellI)
+    // Mass transfer rate
+    mDot_ = 0.816*pSat/sqrt(mathematical::twoPi*Rv_*T_);
+    if (relax)
     {
-        // Saturation pressure
-        const scalar pSat = p0_*exp(LByRTv*(1.0 - Tv_/T_[cellI]));
-
-        // Mass transfer rate
-        const scalar mDot = cA*pSat/sqrt(T_[cellI])*mag(gradAlpha[cellI]);
-        if (relax)
-        {
-            mDot_[cellI] = relax_*mDot + (1-relax_)*mDot0[cellI];
-        }
-        else
-        {
-            mDot_[cellI] = mDot;
-        }
-
-        // Recoil pressure
-        pRec_[cellI] = coeffB_*pSat*gradAlpha[cellI];
-
-        res = max(res, mag(mDot_[cellI] - mDot0[cellI]));
-        maxMDot = max(maxMDot, mDot_[cellI]);
+        mDot_ = relax*mDot_ + (1-relax)*mDot0;
     }
 
-    res /= (maxMDot + q_);
-    return returnReduce(res, maxOp<scalar>());
+    // Recoil pressure
+    pRec_ = 0.54*pSat;
+
+    // Return maximum change
+    return gMax(mag(mDot_ - mDot0)().primitiveField());
 }
 
 
@@ -191,14 +152,14 @@ void Foam::evaporationModels::gasDynamic::addSup(fvMatrix<scalar>& eqn) const
     }
 
     // Add latent heat of evaporation
-    eqn += Lv_*mDot_;
+    eqn += Lv_*mDot_*mag(fvc::grad(alpha_));
 }
 
 
 void Foam::evaporationModels::gasDynamic::addSup(fvMatrix<vector>& eqn) const
 {
     // Add recoil pressure term
-    eqn -= pRec_;
+    eqn -= pRec_*fvc::grad(alpha_);
 }
 
 // ************************************************************************* //

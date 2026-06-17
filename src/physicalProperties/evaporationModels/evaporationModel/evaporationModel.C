@@ -86,10 +86,10 @@ Foam::evaporationModel::evaporationModel
             mesh.time().name(),
             mesh,
             IOobject::NO_READ,
-            IOobject::AUTO_WRITE
+            IOobject::NO_WRITE
         ),
         mesh,
-        dimensionedScalar(dimDensity/dimTime, 0.0)
+        dimensionedScalar(dimMass/dimTime/dimArea, 0.0)
     )
 {}
 

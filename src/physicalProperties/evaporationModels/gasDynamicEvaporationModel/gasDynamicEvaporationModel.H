@@ -63,37 +63,22 @@ protected:
         //- Latent heat of evaporation
         const dimensionedScalar Lv_;
 
-        //- Atmospheric properties
-        const scalar p0_;
-        const scalar T0_;
-        const scalar R0_;
-        const scalar g0_;
+        //- Atmospheric pressure
+        const dimensionedScalar p0_;
 
         //- Vapor properties
-        const scalar Rv_;
-        const scalar gv_;
-        const scalar Tv_;
+        const dimensionedScalar Rv_;
+        const dimensionedScalar Tv_;
 
     // Numeric parameters
 
         // Relaxation
         const scalar relax_;
 
-        // Stabilization term
-        const scalar q_;
+    // New internal fields
 
-
-    // Precomputed factors
-
-        // Mass flux coefficient
-        scalar coeffA_;
-
-        // Recoil pressure coefficient
-        scalar coeffB_;
-
-
-    //- Recoil pressure force
-    volVectorField pRec_;
+        //- Recoil pressure force
+        mutable volScalarField pRec_;
 
 
 public:

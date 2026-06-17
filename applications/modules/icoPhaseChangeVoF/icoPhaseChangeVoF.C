@@ -58,7 +58,7 @@ Foam::solvers::icoPhaseChangeVoF::icoPhaseChangeVoF(fvMesh& mesh)
 
     nThermoCorr_
     (
-        pimple.dict().lookup<label>("nThermoCorr")
+        pimple.dict().lookupOrDefault<label>("nThermoCorr", 50)
     )
 {}
 
@@ -71,7 +71,37 @@ Foam::solvers::icoPhaseChangeVoF::~icoPhaseChangeVoF()
 
 // * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
 
+void Foam::solvers::icoPhaseChangeVoF::addSup(fvMatrix<scalar>& eqn) const
+{
+    // Add source terms
+    solidificationModel_->addSup(eqn);
+    evaporationModel_->addSup(eqn);
+}
 
+void Foam::solvers::icoPhaseChangeVoF::addSup(fvMatrix<vector>& eqn) const
+{
+    // Add source terms
+    solidificationModel_->addSup(eqn);
+    evaporationModel_->addSup(eqn);
+}
+
+
+Foam::scalar Foam::solvers::icoPhaseChangeVoF::correctPhaseChange()
+{
+    const volScalarField& T = mixture_.T();
+
+    // Correct models
+    const scalar res0 = gMax(mag(T.prevIter() - T)().primitiveField());
+    const scalar res1 = solidificationModel_->correct();
+    const scalar res2 = evaporationModel_->correct();
+
+    Info<< "resT = " << res0 << " , "
+        << "resS = " << res1 << " , "
+        << "resE = " << res2 << endl;
+
+    // return maximum
+    return max(res1, res2);
+}
 
 
 // ************************************************************************* //

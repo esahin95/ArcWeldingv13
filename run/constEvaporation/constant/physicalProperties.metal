@@ -50,11 +50,6 @@ mixture
     }
 }
 
-solidification
-{
-    type    none;
-}
-
 evaporation
 {
     type    Knight;

@@ -28,6 +28,9 @@ License
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
+const Foam::word
+Foam::evaporationModel::dictName_ = "evaporation";
+
 namespace Foam
 {
     defineTypeNameAndDebug(evaporationModel, 0);

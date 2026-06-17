@@ -58,7 +58,7 @@ class solidificationModel
 protected:
 
     // Solidification dictionary name
-    static const word solidificationDictName_;
+    static const word dictName_;
 
     // References to database
 

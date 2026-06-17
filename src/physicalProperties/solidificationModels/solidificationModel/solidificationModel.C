@@ -29,7 +29,7 @@ License
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
 const Foam::word
-Foam::solidificationModel::solidificationDictName_ = "solidification";
+Foam::solidificationModel::dictName_ = "solidification";
 
 namespace Foam
 {

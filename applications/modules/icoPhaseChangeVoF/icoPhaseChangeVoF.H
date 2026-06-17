@@ -78,23 +78,29 @@ class icoPhaseChangeVoF
     public icoThermoVoF
 {
 
-protected:
+    // Phase change models
 
-    //- Solidification melting properties
-
-        // Solidification model
+        //- Solidification model
         autoPtr<solidificationModel> solidificationModel_;
 
-    //- Evaporation condensation properties
-
-        // Evaporation model
+        //- Evaporation model
         autoPtr<evaporationModel> evaporationModel_;
+
 
     // Numerical Controls
 
         // Thermo corrections
         const label nThermoCorr_;
 
+
+    // Private member functions
+
+        // Add source terms
+        void addSup(fvMatrix<scalar>& eqn) const;
+        void addSup(fvMatrix<vector>& eqn) const;
+
+        // Correct phase change models
+        scalar correctPhaseChange();
 
 
 public:

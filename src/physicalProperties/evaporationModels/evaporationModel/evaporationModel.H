@@ -57,6 +57,9 @@ class evaporationModel
 {
 protected:
 
+    //- Evaporation dictionary name
+    static const word dictName_;
+
     // References to database
 
         //- Reference to the mesh

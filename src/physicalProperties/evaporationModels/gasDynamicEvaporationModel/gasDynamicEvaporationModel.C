@@ -61,7 +61,7 @@ Foam::evaporationModels::gasDynamic::gasDynamic
 :
     evaporationModel(mesh, group),
 
-    dict_(subDict("evaporation")),
+    dict_(subDict(dictName_)),
 
     Lv_
     (

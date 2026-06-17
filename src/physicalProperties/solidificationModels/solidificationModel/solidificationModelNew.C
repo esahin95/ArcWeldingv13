@@ -40,9 +40,9 @@ Foam::autoPtr<Foam::solidificationModel> Foam::solidificationModel::New
         solidificationModel::findModelDict(mesh, group)
     );
 
-    if (dict.isDict("solidification"))
+    if (dict.isDict(dictName_))
     {
-        const dictionary& modelDict = dict.subDict(solidificationDictName_);
+        const dictionary& modelDict = dict.subDict(dictName_);
 
         const word modelType(modelDict.lookup("type"));
 
@@ -64,7 +64,7 @@ Foam::autoPtr<Foam::solidificationModel> Foam::solidificationModel::New
     }
     else
     {
-        Info<<"There is no solidificationModel dictionary"<<endl;
+        Info<<"There is no " << dictName_ << " dictionary"<<endl;
         Info<<"Selecting default solidification model none"<<endl;
         return autoPtr<solidificationModel>
         (

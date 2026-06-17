@@ -48,16 +48,12 @@ void Foam::solvers::icoPhaseChangeVoF::thermophysicalPredictor()
         fvModels().source(rhoCp, T)
     );
 
-    scalar resT, resSf, resMDot;
-    label iter = 0;
-    const scalar TOL = 1e-3;
-    do
+    for(label i=0; i<nThermoCorr_; i++)
     {
         T.storePrevIter();
 
         fvScalarMatrix TEqn(TEqnBase);
-        solidificationModel_->addSup(TEqn);
-        evaporationModel_->addSup(TEqn);
+        addSup(TEqn);
 
         TEqn.relax();
 
@@ -67,17 +63,13 @@ void Foam::solvers::icoPhaseChangeVoF::thermophysicalPredictor()
 
         fvConstraints().constrain(T);
 
-        resSf = solidificationModel_->correct();
-        resMDot = evaporationModel_->correct();
-
-        resT = gMax(mag(T.prevIter() - T)().primitiveField());
-        Info<< resT << " , " << resSf << " , " << resMDot << endl;
+        // Termination criteria
+        if (correctPhaseChange() < 1e-3)
+        {
+            Info<< "Converged at it = " << i << endl;
+            break;
+        }
     }
-    while
-    (
-           ++iter<nThermoCorr_ && (resSf>TOL || resT>TOL || resMDot>TOL)
-    );
-    Info<< "Converged at it = " << iter << endl;
 
     mixture_.correctThermo();
     mixture_.correct();

@@ -57,7 +57,6 @@ solvers
         //smoother        symGaussSeidel;
         //tolerance       1e-9;
         relTol          0.05;
-        minIter         2;
     }
 
     TFinal

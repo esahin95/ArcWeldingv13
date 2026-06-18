@@ -27,6 +27,8 @@ License
 #include "addToRunTimeSelectionTable.H"
 #include "fvcGrad.H"
 
+#include "physicoChemicalConstants.H"
+
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
@@ -58,14 +60,94 @@ Foam::evaporationModels::Knight::Knight
 :
     gasDynamic(mesh, group),
 
-    Th_(dict_.lookup<scalar>("Th"))
-{}
+    T0_
+    (
+        "T0",
+        dimTemperature,
+        dict_.lookup<scalar>("T0")
+    ),
+
+    g0_
+    (
+        "g0",
+        dimless,
+        dict_.lookup<scalar>("g0")
+    ),
+
+    R0_
+    (
+        "R0",
+        physicoChemical::R/
+        dimensionedScalar
+        (
+            "M",
+            dimMass/dimMoles,
+            dict_.lookup<scalar>("M0")*1e-3
+        )
+    ),
+
+    Th_
+    (
+        "Th",
+        dimTemperature,
+        dict_.lookup<scalar>("Th")
+    ),
+
+    gv_
+    (
+        "gv",
+        dimless,
+        dict_.lookup<scalar>("gv")
+    )
+{
+    if (evaporationModel::debug)
+    {
+        Info<< "R0 = " << R0_ << endl;
+    }
+
+    // Update mass transfer rate and recoil pressure
+    correct(false);
+}
 
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
 Foam::scalar Foam::evaporationModels::Knight::correct(const bool relax)
 {
+    mDot_.storePrevIter();
+    const volScalarField& mDot0 = mDot_.prevIter();
+
+    // Temporary field data
+    tmp<volScalarField> tcData
+    (
+        volScalarField::New("cData", mesh_, dimless)
+    );
+    volScalarField& cData = tcData.ref();
+
+    // Modified Mach number
+    const volScalarField m
+        = max(min((T_ - Tv_)/(Th_ - Tv_), 1.0), 0.0)*sqrt(0.5*gv_);
+
+    cData = 0.5*m*(gv_ - 1.0)/(gv_ + 1.0);
+    const volScalarField sqrtTByTs =
+        sqrt(1.0 + mathematical::pi*sqr(cData)) - sqrt(mathematical::pi)*cData;
+
+    cData = sqrt(2.0*Rv_/R0_/g0_)*sqrt(T_/T0_)*sqrtTByTs*m;
+    const dimensionedScalar b = (g0_ + 1.0)/4.0;
+    const volScalarField pByP1 =
+        1.0 + g0_*cData*(b*cData + sqrt(1.0 + sqr(b*cData)));
+
+    mDot_ = sqrt(2.0/Rv_/T_)*m*pByP1/sqrtTByTs*p0_;
+    if (relax)
+    {
+        mDot_ = relax_*mDot_ + (1 - relax_)*mDot0;
+    }
+
+    pRec_ = ((1.0 + 2.0*sqr(m))*pByP1 - 1.0)*p0_;
+
+    // Return maximum change
+    return gMax(mag(mDot_.v() - mDot0.v())().primitiveField());
+
     /*
     mDot_.storePrevIter();
     const volScalarField& mDot0 = mDot_.prevIter();
@@ -103,7 +185,7 @@ Foam::scalar Foam::evaporationModels::Knight::correct(const bool relax)
     res /= (maxMDot + q_);
     return returnReduce(res, maxOp<scalar>());
     */
-    return gasDynamic::correct(relax);
+    //return gasDynamic::correct(relax);
 }
 
 

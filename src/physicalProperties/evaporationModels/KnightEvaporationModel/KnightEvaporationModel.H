@@ -59,8 +59,14 @@ protected:
 
     // Evaporation properties
 
-        //- Vaporization temperature for p0 and Ma = 1
-        const scalar Th_;
+        //- Atmospheric properties
+        const dimensionedScalar T0_;
+        const dimensionedScalar g0_;
+        const dimensionedScalar R0_;
+
+        //- Vapor properties
+        const dimensionedScalar Th_;
+        const dimensionedScalar gv_;
 
 
 public:

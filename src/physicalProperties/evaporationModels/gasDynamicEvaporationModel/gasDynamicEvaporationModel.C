@@ -80,7 +80,7 @@ Foam::evaporationModels::gasDynamic::gasDynamic
 
     Rv_
     (
-        "R",
+        "Rv",
         physicoChemical::R/
         dimensionedScalar
         (

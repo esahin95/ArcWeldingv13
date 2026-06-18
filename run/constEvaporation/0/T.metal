@@ -16,39 +16,39 @@ FoamFile
 
 dimensions      [0 0 0 1 0 0 0];
 
-internalField   uniform 4000;
+internalField   uniform 3500;
 
 boundaryField
 {
     ymax
     {
         type            calculated;
-        value           uniform 4000;
+        value           uniform 3500;
     }
     xmin
     {
         type            calculated;
-        value           uniform 4000;
+        value           uniform 3500;
     }
     xmax
     {
         type            calculated;
-        value           uniform 4000;
+        value           uniform 3500;
     }
     ymin
     {
         type            calculated;
-        value           uniform 4000;
+        value           uniform 3500;
     }
     zmin
     {
         type            calculated;
-        value           uniform 4000;
+        value           uniform 3500;
     }
     zmax
     {
         type            calculated;
-        value           uniform 4000;
+        value           uniform 3500;
     }
 }
 

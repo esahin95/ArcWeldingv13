@@ -52,12 +52,12 @@ mixture
 
 evaporation
 {
-    type    gasDynamic;
+    type    gasDynamicImplicit;
     L       7.45e6;
     p0      1e5;
     Tv      3068.0;
     Mv      55.8;
-    relax   0.7;
+    relax   1.0;
 }
 
 /*

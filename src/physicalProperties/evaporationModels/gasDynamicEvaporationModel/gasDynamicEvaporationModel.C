@@ -27,6 +27,7 @@ License
 #include "addToRunTimeSelectionTable.H"
 
 #include "fvcGrad.H"
+#include "fvmSup.H"
 #include "mathematicalConstants.H"
 #include "physicoChemicalConstants.H"
 #include "fvcVolumeIntegrate.H"
@@ -150,9 +151,12 @@ Foam::scalar Foam::evaporationModels::gasDynamic::correct(const bool relax)
 
 void Foam::evaporationModels::gasDynamic::addSup(fvMatrix<scalar>& eqn) const
 {
-    if (debug)
+    if (evaporationModel::debug)
     {
-        const dimensionedScalar hv = fvc::domainIntegrate(Lv_*mDot_);
+        const dimensionedScalar hv = fvc::domainIntegrate
+            (
+                Lv_*mDot_*mag(fvc::grad(alpha_))
+            );
         Info<< "Total evaporative enthalphy: " << hv << endl;
     }
 

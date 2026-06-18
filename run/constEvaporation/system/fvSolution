@@ -75,7 +75,8 @@ PIMPLE
     nOuterCorrectors 1;
 
     flow    false;
-    flow    true;
+
+    nThermoCorr  50;
 
     //pRefCell    0;
     //pRefValue   0;

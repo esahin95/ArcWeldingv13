@@ -91,7 +91,7 @@ Foam::scalar Foam::solvers::icoPhaseChangeVoF::correctPhaseChange()
     const volScalarField& T = mixture_.T();
 
     // Correct models
-    const scalar res0 = gMax(mag(T.prevIter() - T)().primitiveField());
+    const scalar res0 = gMax(mag(T.prevIter().v() - T.v())().primitiveField());
     const scalar res1 = solidificationModel_->correct();
     const scalar res2 = evaporationModel_->correct();
 

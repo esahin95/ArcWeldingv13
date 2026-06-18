@@ -112,6 +112,11 @@ Foam::evaporationModels::gasDynamic::gasDynamic
         dimensionedScalar(dimPressure, 0.0)
     )
 {
+    if (evaporationModel::debug)
+    {
+        Info<< "Rv = " << Rv_ << endl;
+    }
+
     // Update mass transfer rate and recoil pressure
     correct(false);
 }
@@ -132,14 +137,14 @@ Foam::scalar Foam::evaporationModels::gasDynamic::correct(const bool relax)
     mDot_ = 0.816*pSat/sqrt(mathematical::twoPi*Rv_*T_);
     if (relax)
     {
-        mDot_ = relax*mDot_ + (1-relax)*mDot0;
+        mDot_ = relax_*mDot_ + (1-relax_)*mDot0;
     }
 
     // Recoil pressure
     pRec_ = 0.54*pSat;
 
     // Return maximum change
-    return gMax(mag(mDot_ - mDot0)().primitiveField());
+    return gMax(mag(mDot_.v() - mDot0.v())().primitiveField());
 }
 
 

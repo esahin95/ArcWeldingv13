@@ -27,7 +27,7 @@ stopAt          nextWrite;
 
 endTime         100e-6;
 
-deltaT          1e-10;
+deltaT          1e-08;
 
 writeControl    adjustableRunTime;
 
@@ -95,7 +95,7 @@ functions
 
         log             true;
 
-        writeControl    writeTime;
+        writeControl    timeStep;
 
         writeFields     false;
 
@@ -116,7 +116,7 @@ functions
 
         log             true;
 
-        writeControl    writeTime;
+        writeControl    timeStep;
 
         writeFields     false;
 
@@ -137,7 +137,7 @@ functions
 
         log             true;
 
-        writeControl    writeTime;
+        writeControl    timeStep;
 
         writeFields     false;
 

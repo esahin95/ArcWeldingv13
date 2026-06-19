@@ -57,7 +57,7 @@ evaporation
     p0      1e5;
     Tv      3068.0;
     Mv      55.8;
-    relax   0.5;
+    relax   0.6;
 
     Th      4210.0;
     T0      300;

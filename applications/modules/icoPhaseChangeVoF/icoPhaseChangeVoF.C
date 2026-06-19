@@ -71,21 +71,6 @@ Foam::solvers::icoPhaseChangeVoF::~icoPhaseChangeVoF()
 
 // * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
 
-void Foam::solvers::icoPhaseChangeVoF::addSup(fvMatrix<scalar>& eqn) const
-{
-    // Add source terms
-    solidificationModel_->addSup(eqn);
-    evaporationModel_->addSup(eqn);
-}
-
-void Foam::solvers::icoPhaseChangeVoF::addSup(fvMatrix<vector>& eqn) const
-{
-    // Add source terms
-    solidificationModel_->addSup(eqn);
-    evaporationModel_->addSup(eqn);
-}
-
-
 Foam::scalar Foam::solvers::icoPhaseChangeVoF::correctPhaseChange()
 {
     const volScalarField& T = mixture_.T();

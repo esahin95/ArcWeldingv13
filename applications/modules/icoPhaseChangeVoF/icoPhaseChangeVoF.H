@@ -62,6 +62,7 @@ See also
 #include "solidificationModel.H"
 #include "evaporationModel.H"
 
+
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam
@@ -96,8 +97,12 @@ class icoPhaseChangeVoF
     // Private member functions
 
         // Add source terms
-        void addSup(fvMatrix<scalar>& eqn) const;
-        void addSup(fvMatrix<vector>& eqn) const;
+        template<class Type>
+        void addSup(fvMatrix<Type>& eqn) const;
+        //{
+        //    solidificationModel_->addSup(eqn);
+        //    evaporationModel_->addSup(eqn);
+        //}
 
         // Correct phase change models
         scalar correctPhaseChange();
@@ -144,6 +149,11 @@ public:
 } // End namespace Foam
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+#ifdef NoRepository
+    #include "icoPhaseChangeVoFTemplates.C"
+#endif
+
 
 #endif
 

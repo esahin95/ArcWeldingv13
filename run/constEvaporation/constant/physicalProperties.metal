@@ -52,12 +52,12 @@ mixture
 
 evaporation
 {
-    type    Knight;
+    type    gasDynamicImplicit;
     L       7.45e6;
     p0      1e5;
     Tv      3068.0;
     Mv      55.8;
-    relax   0.6;
+    relax   1.0;//0.6;
 
     Th      4210.0;
     T0      300;

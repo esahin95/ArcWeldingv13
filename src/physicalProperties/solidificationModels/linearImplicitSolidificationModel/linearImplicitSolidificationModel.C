@@ -85,10 +85,10 @@ Foam::solidificationModels::linearImplicit::correct(const bool relax)
 
     // Update heat capacities
     const volScalarField& rho = thermo_.rho();
-    const scalar CpApp = Lm_.value()/(Tliq_ - Tsol_);
+    const scalar CpApp = Lm_.value()/(Tliq_.value() - Tsol_.value());
     forAll(rhoCpApp_, cellI)
     {
-        if (T_[cellI]>Tliq_ || T_[cellI]<Tsol_)
+        if (T_[cellI]>Tliq_.value() || T_[cellI]<Tsol_.value())
         {
             rhoCpApp_[cellI] = 0.0;
         }

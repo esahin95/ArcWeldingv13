@@ -84,9 +84,7 @@ Foam::evaporationModel::evaporationModel
         (
             IOobject::groupName("mDot", group),
             mesh.time().name(),
-            mesh,
-            IOobject::NO_READ,
-            IOobject::AUTO_WRITE
+            mesh
         ),
         mesh,
         dimensionedScalar(dimMass/dimTime/dimArea, 0.0)

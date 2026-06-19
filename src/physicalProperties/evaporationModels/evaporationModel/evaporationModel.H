@@ -85,7 +85,7 @@ protected:
 
 
     //- Mass transfer rate
-    volScalarField mDot_;
+    volScalarField::Internal mDot_;
 
 
 public:

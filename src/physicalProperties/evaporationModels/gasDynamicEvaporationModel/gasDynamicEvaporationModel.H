@@ -77,8 +77,11 @@ protected:
 
     // New internal fields
 
-        //- Recoil pressure force
-        mutable volScalarField pRec_;
+        //- Recoil pressure
+        volScalarField::Internal pRec_;
+
+        //- Phase extensive evaporation rate
+        //volScalarField mDotv_;
 
 
 public:

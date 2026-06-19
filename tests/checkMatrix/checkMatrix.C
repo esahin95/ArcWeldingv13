@@ -171,6 +171,13 @@ int main(int argc, char *argv[])
 
         volScalarField su(Q*(0.0*T + 1.0));
         TEqn -= fvm::Sp(Q, T) - su;
+        TEqn += fvm::Sp(su.v(), T);
+
+        volScalarField::Internal TI(T);
+        fvScalarMatrix XEqn
+        (
+            fvm::ddt(su, T)
+        );
 
         // Adding a source term on the right of TEqn is the same as adding it
         // to source or subtracting from TEqn

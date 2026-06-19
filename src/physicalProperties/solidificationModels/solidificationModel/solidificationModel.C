@@ -84,9 +84,7 @@ Foam::solidificationModel::solidificationModel
         (
             IOobject::groupName("solid", group),
             mesh.time().name(),
-            mesh,
-            IOobject::NO_READ,
-            IOobject::NO_WRITE
+            mesh
         ),
         mesh,
         dimensionedScalar(dimless, 0.0)

@@ -105,9 +105,7 @@ Foam::evaporationModels::gasDynamic::gasDynamic
         (
             IOobject::groupName("pRec", group),
             mesh.time().name(),
-            mesh,
-            IOobject::NO_READ,
-            IOobject::AUTO_WRITE
+            mesh
         ),
         mesh,
         dimensionedScalar(dimPressure, 0.0)
@@ -127,15 +125,15 @@ Foam::evaporationModels::gasDynamic::gasDynamic
 
 Foam::scalar Foam::evaporationModels::gasDynamic::correct(const bool relax)
 {
-    mDot_.storePrevIter();
-    const volScalarField& mDot0 = mDot_.prevIter();
+    // cache old mass transfer rate
+    const volScalarField::Internal mDot0(mDot_);
 
     // Saturated vapor pressure
     const dimensionedScalar LByRTv = Lv_/(Rv_*Tv_);
-    const volScalarField pSat = p0_*exp(LByRTv*(1. - Tv_/T_));
+    const volScalarField::Internal pSat = p0_*exp(LByRTv*(1. - Tv_/T_.v()));
 
     // Mass transfer rate
-    mDot_ = 0.816*pSat/sqrt(mathematical::twoPi*Rv_*T_);
+    mDot_ = 0.816*pSat/sqrt(mathematical::twoPi*Rv_*T_.v());
     if (relax)
     {
         mDot_ = relax_*mDot_ + (1-relax_)*mDot0;
@@ -145,30 +143,32 @@ Foam::scalar Foam::evaporationModels::gasDynamic::correct(const bool relax)
     pRec_ = 0.54*pSat;
 
     // Return maximum change
-    return gMax(mag(mDot_.v() - mDot0.v())().primitiveField());
+    return gMax(mag(mDot_ - mDot0)().primitiveField());
 }
 
 
 void Foam::evaporationModels::gasDynamic::addSup(fvMatrix<scalar>& eqn) const
 {
+    const volScalarField::Internal magGradAlpha = mag(fvc::grad(alpha_)()());
+
     if (evaporationModel::debug)
     {
         const dimensionedScalar hv = fvc::domainIntegrate
             (
-                Lv_*mDot_*mag(fvc::grad(alpha_))
+                Lv_*mDot_*magGradAlpha
             );
         Info<< "Total evaporative enthalphy: " << hv << endl;
     }
 
     // Add latent heat of evaporation
-    eqn += Lv_*mDot_*mag(fvc::grad(alpha_));
+    eqn += Lv_*mDot_*magGradAlpha;
 }
 
 
 void Foam::evaporationModels::gasDynamic::addSup(fvMatrix<vector>& eqn) const
 {
     // Add recoil pressure term
-    eqn -= pRec_*fvc::grad(alpha_);
+    eqn -= pRec_*fvc::grad(alpha_)()();
 }
 
 // ************************************************************************* //

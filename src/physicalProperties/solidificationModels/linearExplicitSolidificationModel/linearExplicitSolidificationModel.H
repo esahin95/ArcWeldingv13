@@ -62,16 +62,21 @@ protected:
 
         //- Physical parameters
         const dimensionedScalar Lm_;
-        const scalar Tliq_;
-        const scalar Tsol_;
+        const dimensionedScalar Tliq_;
+        const dimensionedScalar Tsol_;
 
         //- Numerical parameters
+        /*
+        const dimensionedScalar Cu_;
+        const dimensionedScalar q_;
+        const dimensionedScalar relax_;
+        */
         const scalar Cu_;
         const scalar q_;
         const scalar relax_;
 
     //- Alpha solid fraction
-    mutable volScalarField alphaSolid_;
+    volScalarField alphaSolid_;
 
 
 public:

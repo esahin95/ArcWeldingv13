@@ -67,15 +67,40 @@ Foam::solidificationModels::linearExplicit::linearExplicit
         dict_.lookup<scalar>("L")
     ),
 
-    Tliq_(dict_.lookup<scalar>("Tliq")),
+    Tliq_
+    (
+        "Tliq",
+        dimTemperature,
+        dict_.lookup<scalar>("Tliq")
+    ),
 
-    Tsol_(dict_.lookup<scalar>("Tsol")),
+    Tsol_
+    (
+        "Tsol",
+        dimTemperature,
+        dict_.lookup<scalar>("Tsol")
+    ),
 
-    Cu_(dict_.lookupOrDefault<scalar>("Cu", 1e5)),
+    Cu_
+    (
+        //"Cu",
+        //dimless,
+        dict_.lookupOrDefault<scalar>("Cu", 1e5)
+    ),
 
-    q_(dict_.lookupOrDefault<scalar>("q", 0.001)),
+    q_
+    (
+        //"q",
+        //dimless,
+        dict_.lookupOrDefault<scalar>("q", 0.001)
+    ),
 
-    relax_(dict_.lookupOrDefault<scalar>("relax", 1.0)),
+    relax_
+    (
+        //"relax",
+        //dimless,
+        dict_.lookupOrDefault<scalar>("relax", 1.0)
+    ),
 
     alphaSolid_
     (
@@ -100,44 +125,42 @@ Foam::solidificationModels::linearExplicit::linearExplicit
 Foam::scalar
 Foam::solidificationModels::linearExplicit::correct(const bool relax)
 {
-    const scalar Lm = Lm_.value();
-    const scalarField& Cp = thermo_.Cp().primitiveField();
+    tmp<volScalarField> tsfNew
+    (
+        volScalarField::New("sfNew", mesh_, dimless)
+    );
+    volScalarField& sfNew = tsfNew.ref();
 
-    if (solidificationModel::debug)
+    // Relaxation
+    if (relax)
     {
-        const scalarField& V = mesh_.V();
-
-        const scalar St = gSum(Cp*V)/gSum(V)*(Tliq_ - Tsol_)/Lm;
-        Info<< "Avg. Stefan number St = " << St << endl;
+        sfNew = max
+            (
+                min
+                (
+                    sf_ + relax_*thermo_.Cp()/Lm_*
+                    (
+                        Tliq_ - T_ - sf_*(Tliq_ - Tsol_)
+                    ),
+                    1.0
+                ),
+                0.0
+            );
+    }
+    else
+    {
+        sfNew = max(min((Tliq_ - T_)/(Tliq_ - Tsol_), 1.0), 0.0);
     }
 
-    scalar res = 0.0;
-    forAll(sf_, cellI)
-    {
-        // Equilibrium solid fraction
-        const scalar sfEq =
-            max(min((Tliq_ - T_[cellI])/(Tliq_ - Tsol_), 1.0), 0.0);
+    // Residual
+    const scalar res =
+        gMax(mag(sf_.primitiveField() - sfNew.primitiveField()));
 
-        // Correction
-        if (relax)
-        {
-            const scalar Teq = sf_[cellI]*Tsol_ + (1.0 - sf_[cellI])*Tliq_;
-            sf_[cellI] += relax_*Cp[cellI]/Lm*(Teq - T_[cellI]);
-            sf_[cellI] = max(min(sf_[cellI], 1.0), 0.0);
-        }
-        else
-        {
-            sf_[cellI] = sfEq;
-        }
+    // Update fields
+    sf_ = sfNew;
+    alphaSolid_ = alpha_*sf_;
 
-        // Phase extensive property
-        alphaSolid_[cellI] = sf_[cellI]*alpha_[cellI];
-
-        // Maximum deviation from Equilibirum
-        res = max(res, mag(sfEq - sf_[cellI]));
-    }
-
-    return returnReduce(res, maxOp<scalar>());
+    return res;
 }
 
 

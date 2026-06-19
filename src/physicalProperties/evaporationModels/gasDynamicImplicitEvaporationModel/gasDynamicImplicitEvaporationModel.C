@@ -67,12 +67,13 @@ Foam::evaporationModels::gasDynamicImplicit::gasDynamicImplicit
 
 void Foam::evaporationModels::gasDynamicImplicit::addSup(fvMatrix<scalar>& eqn) const
 {
-    const volScalarField magAlphaGrad = mag(fvc::grad(alpha_));
+    const volScalarField::Internal& T = T_.v();
 
+    const volScalarField::Internal magGradAlpha = mag(fvc::grad(alpha_)()());
     const fvMatrix<scalar> evapEqn
     (
-        fvm::Sp(Lv_*mDot_/T_*(Lv_/Rv_/T_ - 0.5)*magAlphaGrad, eqn.psi())
-        - Lv_*mDot_*(Lv_/Rv_/T_ - 1.5)*magAlphaGrad
+        fvm::Sp(Lv_*mDot_/T*(Lv_/Rv_/T - 0.5)*magGradAlpha, eqn.psi())
+        - Lv_*mDot_*(Lv_/Rv_/T - 1.5)*magGradAlpha
     );
 
     if (evaporationModel::debug)

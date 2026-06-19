@@ -114,30 +114,30 @@ Foam::evaporationModels::Knight::Knight
 
 Foam::scalar Foam::evaporationModels::Knight::correct(const bool relax)
 {
-    mDot_.storePrevIter();
-    const volScalarField& mDot0 = mDot_.prevIter();
+    // cache old mass transfer rate
+    const volScalarField::Internal mDot0(mDot_);
 
     // Temporary field data
-    tmp<volScalarField> tcData
+    tmp<volScalarField::Internal> tcData
     (
-        volScalarField::New("cData", mesh_, dimless)
+        volScalarField::Internal::New("cData", mesh_, dimless)
     );
-    volScalarField& cData = tcData.ref();
+    volScalarField::Internal& cData = tcData.ref();
 
     // Modified Mach number
-    const volScalarField m
-        = max(min((T_ - Tv_)/(Th_ - Tv_), 1.0), 0.0)*sqrt(0.5*gv_);
+    const volScalarField::Internal m
+        = max(min((T_.v() - Tv_)/(Th_ - Tv_), 1.0), 0.0)*sqrt(0.5*gv_);
 
     cData = 0.5*m*(gv_ - 1.0)/(gv_ + 1.0);
-    const volScalarField sqrtTByTs =
+    const volScalarField::Internal sqrtTByTs =
         sqrt(1.0 + mathematical::pi*sqr(cData)) - sqrt(mathematical::pi)*cData;
 
-    cData = sqrt(2.0*Rv_/R0_/g0_)*sqrt(T_/T0_)*sqrtTByTs*m;
+    cData = sqrt(2.0*Rv_/R0_/g0_)*sqrt(T_.v()/T0_)*sqrtTByTs*m;
     const dimensionedScalar b = (g0_ + 1.0)/4.0;
-    const volScalarField pByP1 =
+    const volScalarField::Internal pByP1 =
         1.0 + g0_*cData*(b*cData + sqrt(1.0 + sqr(b*cData)));
 
-    mDot_ = sqrt(2.0/Rv_/T_)*m*pByP1/sqrtTByTs*p0_;
+    mDot_ = sqrt(2.0/Rv_/T_.v())*m*pByP1/sqrtTByTs*p0_;
     if (relax)
     {
         mDot_ = relax_*mDot_ + (1 - relax_)*mDot0;
@@ -146,46 +146,7 @@ Foam::scalar Foam::evaporationModels::Knight::correct(const bool relax)
     pRec_ = ((1.0 + 2.0*sqr(m))*pByP1 - 1.0)*p0_;
 
     // Return maximum change
-    return gMax(mag(mDot_.v() - mDot0.v())().primitiveField());
-
-    /*
-    mDot_.storePrevIter();
-    const volScalarField& mDot0 = mDot_.prevIter();
-
-    volVectorField gradAlpha = fvc::grad(alpha_);
-
-    const scalar a = sqrt(gv_*Rv_/g0_/R0_);
-    const scalar b = (g0_ + 1.0)/4.0;
-
-    scalar tmp;
-    scalar res = 0;
-    scalar maxMDot = 0;
-    forAll(mDot_, cellI)
-    {
-        const scalar T = T_[cellI];
-        const scalar Ma = max(min((T-Tv_)/(Th_ - Tv_), 1.0), 0.0);
-        const scalar m = sqrt(0.5*gv_)*Ma;
-
-        tmp = 0.5*m*(gv_ - 1.0)/(gv_ + 1.0);
-        const scalar sqrtTByTs =
-            sqrt(1.0 + mathematical::pi*sqr(tmp)) - sqrt(mathematical::pi)*tmp;
-
-        tmp = a*sqrt(T/T0_)*sqrtTByTs*Ma;
-        const scalar pByP1 = 1 + g0_*tmp*(b*tmp + sqrt(1.0 + sqr(b*tmp)));
-
-        mDot_[cellI] = sqrt(2.0/Rv_/T)*m*pByP1/sqrtTByTs*mag(gradAlpha[cellI]);
-        pRec_[cellI] = ((1.0 + 2.0*sqr(m))*pByP1 - 1.0)*gradAlpha[cellI];
-
-        res = max(res, mag(mDot_[cellI] - mDot0[cellI]));
-        maxMDot = max(maxMDot, mDot_[cellI]);
-    }
-    mDot_.correctBoundaryConditions();
-    pRec_.correctBoundaryConditions();
-
-    res /= (maxMDot + q_);
-    return returnReduce(res, maxOp<scalar>());
-    */
-    //return gasDynamic::correct(relax);
+    return gMax(mag(mDot_ - mDot0)().primitiveField());
 }
 
 

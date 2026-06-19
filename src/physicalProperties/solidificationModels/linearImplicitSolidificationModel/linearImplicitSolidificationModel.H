@@ -57,10 +57,10 @@ class linearImplicit
 protected:
 
     //- apparent heat capacity
-    mutable volScalarField rhoCpApp_;
+    volScalarField rhoCpApp_;
 
     //- Apparent heat capacity flux
-    mutable surfaceScalarField rhoPhiCpApp_;
+    surfaceScalarField rhoPhiCpApp_;
 
 public:
 

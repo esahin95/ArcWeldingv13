@@ -70,7 +70,7 @@ PIMPLE
     nNonOrthogonalCorrectors 0;
     nOuterCorrectors 1;
 
-    nThermoCorr 50;
+    nThermoCorr 10;
 
     pRefCell    0;
     pRefValue   0;

@@ -23,7 +23,7 @@ startFrom       startTime;
 startTime       0;
 
 stopAt          endTime;
-stopAt          nextWrite;
+//stopAt          nextWrite;
 
 endTime         1.0;
 
@@ -51,9 +51,9 @@ adjustTimeStep  yes;
 
 maxCo           0.2;
 maxAlphaCo      0.2;
-maxDiCo         100000;
+maxDiCo         10000;
 
-maxDeltaT       5e-3;
+maxDeltaT       1e-3;
 
 
 // ************************************************************************* //
@@ -61,13 +61,17 @@ maxDeltaT       5e-3;
 DebugSwitches
 {
     MULES 0;
-    solidificationModel 0;
+    solidificationModel 1;
+    evaporationModel 1;
 }
 
 OptimisationSwitches
 {
     fileHandler collated;
 }
+
+
+writeFO     writeTime;
 
 functions
 {
@@ -79,7 +83,6 @@ functions
         writeControl    writeTime;
         writeFields     false;
         regionType      all;
-
         result          divU;
 
         field           phi;
@@ -88,19 +91,13 @@ functions
     maxValue
     {
         type            volFieldValue;
-
         libs            ("libfieldFunctionObjects.so");
 
         log             true;
-
-        writeControl    timeStep;
-
+        writeControl    $writeFO;
         writeFields     false;
-
         regionType      all;
-
         cellZone        all;
-
         operation       max;
 
         fields (p_rgh T divU);
@@ -109,19 +106,13 @@ functions
     minValue
     {
         type            volFieldValue;
-
         libs            ("libfieldFunctionObjects.so");
 
         log             true;
-
-        writeControl    timeStep;
-
+        writeControl    $writeFO;
         writeFields     false;
-
         regionType      all;
-
         cellZone        all;
-
         operation       min;
 
         fields (p_rgh T divU);
@@ -130,19 +121,13 @@ functions
     maxMagValue
     {
         type            volFieldValue;
-
         libs            ("libfieldFunctionObjects.so");
 
         log             true;
-
-        writeControl    timeStep;
-
+        writeControl    $writeFO;
         writeFields     false;
-
         regionType      all;
-
         cellZone        all;
-
         operation       maxMag;
 
         fields (U);

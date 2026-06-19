@@ -56,7 +56,7 @@ solidification
     L       44600;
     Tsol    544;
     Tliq    545;
-    relax   150.0;
+    relax   300.0;
 }
 
 

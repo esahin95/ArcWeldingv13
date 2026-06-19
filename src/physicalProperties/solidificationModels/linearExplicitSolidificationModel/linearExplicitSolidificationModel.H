@@ -66,12 +66,7 @@ protected:
         const dimensionedScalar Tsol_;
 
         //- Numerical parameters
-        /*
         const dimensionedScalar Cu_;
-        const dimensionedScalar q_;
-        const dimensionedScalar relax_;
-        */
-        const scalar Cu_;
         const scalar q_;
         const scalar relax_;
 

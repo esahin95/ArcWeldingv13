@@ -83,24 +83,14 @@ Foam::solidificationModels::linearExplicit::linearExplicit
 
     Cu_
     (
-        //"Cu",
-        //dimless,
+        "Cu",
+        dimDensity/dimTime,
         dict_.lookupOrDefault<scalar>("Cu", 1e5)
     ),
 
-    q_
-    (
-        //"q",
-        //dimless,
-        dict_.lookupOrDefault<scalar>("q", 0.001)
-    ),
+    q_(dict_.lookupOrDefault<scalar>("q", 0.001)),
 
-    relax_
-    (
-        //"relax",
-        //dimless,
-        dict_.lookupOrDefault<scalar>("relax", 1.0)
-    ),
+    relax_(dict_.lookupOrDefault<scalar>("relax", 1.0)),
 
     alphaSolid_
     (
@@ -116,6 +106,13 @@ Foam::solidificationModels::linearExplicit::linearExplicit
         dimensionedScalar(dimless, 0.0)
     )
 {
+    if (solidificationModel::debug)
+    {
+        const dimensionedScalar minSt
+            = gMin((thermo_.Cp()*(Tliq_ - Tsol_)/Lm_)().primitiveField());
+        Info<< "Minimum Stefan number St = " << minSt.value() << endl;
+    }
+
     correct(false);
 }
 
@@ -125,13 +122,8 @@ Foam::solidificationModels::linearExplicit::linearExplicit
 Foam::scalar
 Foam::solidificationModels::linearExplicit::correct(const bool relax)
 {
-    tmp<volScalarField> tsfNew
-    (
-        volScalarField::New("sfNew", mesh_, dimless)
-    );
-    volScalarField& sfNew = tsfNew.ref();
-
     // Relaxation
+    volScalarField sfNew(sf_);
     if (relax)
     {
         sfNew = max
@@ -154,7 +146,7 @@ Foam::solidificationModels::linearExplicit::correct(const bool relax)
 
     // Residual
     const scalar res =
-        gMax(mag(sf_.primitiveField() - sfNew.primitiveField()));
+        gMax(mag(sf_.v().primitiveField() - sfNew.v().primitiveField()));
 
     // Update fields
     sf_ = sfNew;
@@ -182,13 +174,11 @@ void Foam::solidificationModels::linearExplicit::addSup
     fvMatrix<vector>& eqn
 ) const
 {
-    const scalarField& V = mesh_.V();
-    scalarField& Sp = eqn.diag();
-    forAll(Sp, cellI)
-    {
-        const scalar sf = alpha_[cellI]*sf_[cellI];
-        Sp[cellI] += V[cellI]*Cu_*sqr(sf)/(pow3(1.0 - sf) + q_);
-    }
+    eqn += fvm::Sp
+        (
+            Cu_*sqr(alphaSolid_)/(pow3(1.0 - alphaSolid_) + q_),
+            eqn.psi()
+        );
 }
 
 // ************************************************************************* //

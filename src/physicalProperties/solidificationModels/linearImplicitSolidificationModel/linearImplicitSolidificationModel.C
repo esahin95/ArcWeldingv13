@@ -80,26 +80,13 @@ Foam::solidificationModels::linearImplicit::linearImplicit
 Foam::scalar
 Foam::solidificationModels::linearImplicit::correct(const bool relax)
 {
-    // Update solid fraction
-    const scalar res = linearExplicit::correct(relax);
-
     // Update heat capacities
-    const volScalarField& rho = thermo_.rho();
-    const scalar CpApp = Lm_.value()/(Tliq_.value() - Tsol_.value());
-    forAll(rhoCpApp_, cellI)
-    {
-        if (T_[cellI]>Tliq_.value() || T_[cellI]<Tsol_.value())
-        {
-            rhoCpApp_[cellI] = 0.0;
-        }
-        else
-        {
-            rhoCpApp_[cellI] = alpha_[cellI]*rho[cellI]*CpApp;
-        }
-    }
+    rhoCpApp_ =
+        Lm_/(Tliq_-Tsol_)*alpha_*thermo_.rho()*pos(Tliq_-T_)*pos(T_-Tsol_);
     rhoPhiCpApp_ = alphaRhoPhi_*fvc::interpolate(rhoCpApp_/rho_);
 
-    return res;
+    // Update solid fraction
+    return linearExplicit::correct(relax);
 }
 
 

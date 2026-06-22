@@ -21,64 +21,71 @@ License
     You should have received a copy of the GNU General Public License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
+Application
+    mySimpleFoam
+
+Description
+
 \*---------------------------------------------------------------------------*/
 
-#include "icoPhaseChangeVoF.H"
-#include "fvcMeshPhi.H"
-#include "fvcDdt.H"
-#include "fvmDiv.H"
-#include "fvmSup.H"
+#include "argList.H"
+#include "volFields.H"
 #include "fvmLaplacian.H"
-#include "fvcVolumeIntegrate.H"
+using namespace Foam;
 
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-// * * * * * * * * * * * * Protected Member Functions  * * * * * * * * * * * //
-
-
-void Foam::solvers::icoPhaseChangeVoF::thermophysicalPredictor()
+int main(int argc, char *argv[])
 {
-    volScalarField& T = mixture_.T();
+    #include "setRootCase.H"
+    #include "createTime.H"
+    #include "createMesh.H"
+    #include "createFields.H"
 
-    fvScalarMatrix TEqnBase
+    // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+    Info<< nl << "ExecutionTime = " << runTime.elapsedCpuTime() << " s"
+        << "  ClockTime = " << runTime.elapsedClockTime() << " s"
+        << nl << endl;
+
+
+    runTime++;
+
+    const dimensionedScalar kappa
     (
-        fvm::ddt(rhoCp,T) + fvm::div(rhoPhiCp, T)
-      - fvm::Sp(fvc::ddt(rhoCp) + fvc::div(rhoPhiCp), T)
-      ==
-        fvModels().source(rhoCp, T)
+        "kappa",
+        dimPower/dimLength/dimTemperature,
+        1.0
     );
 
-    for(label i=0; i<nThermoCorr_; i++)
+    for(label i=0; i<3; i++)
     {
-        T.storePrevIter();
+        fvScalarMatrix TEqn
+        (
+            fvm::laplacian(kappa, T)
+        );
 
-        while (pimple.correctNonOrthogonal())
-        {
-            fvScalarMatrix TEqn
-            (
-                TEqnBase
-              - fvm::laplacian(thermophysicalTransport.kappaEff(), T)
-            );
-            addSup(TEqn);
-
-            TEqn.relax();
-
-            fvConstraints().constrain(TEqn);
-
-            solve(TEqn);
-
-            fvConstraints().constrain(T);
-        }
-
-        // Termination criteria
-        if (correctPhaseChange() < 1e-3)
-        {
-            Info<< "Converged at it = " << i << endl;
-            break;
-        }
+        TEqn.solve();
     }
 
-    mixture_.correctThermo();
-    mixture_.correct();
+    T.write();
+
+    volVectorField gradT
+    (
+        IOobject
+        (
+            "gradT",
+            runTime.name(),
+            mesh
+        ),
+        fvc::grad(T)
+    );
+
+    gradT.write();
+
+    Info<< "End\n" << endl;
+
+    return 0;
 }
 
 

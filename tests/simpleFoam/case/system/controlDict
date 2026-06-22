@@ -8,28 +8,42 @@
 FoamFile
 {
     format      ascii;
-    class       polyBoundaryMesh;
-    location    "constant/polyMesh";
-    object      boundary;
+    class       dictionary;
+    location    "system";
+    object      controlDict;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-2
-(
-    walls
-    {
-        type            wall;
-        inGroups        List<word> 1(wall);
-        nFaces          48;
-        startFace       232;
-    }
-    frontAndBack
-    {
-        type            empty;
-        inGroups        List<word> 1(empty);
-        nFaces          256;
-        startFace       280;
-    }
-)
+solver          compressibleVoF;
+
+startFrom       startTime;
+
+startTime       0;
+
+stopAt          endTime;
+
+endTime         1;
+
+deltaT          1;
+
+writeControl    timeStep;
+
+writeInterval   1;
+
+purgeWrite      0;
+
+writeFormat     ascii;
+
+writePrecision  8;
+
+writeCompression off;
+
+timeFormat      general;
+
+timePrecision   10;
+
+runTimeModifiable no;
+
+adjustTimeStep  no;
 
 // ************************************************************************* //

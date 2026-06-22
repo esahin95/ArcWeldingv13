@@ -50,31 +50,31 @@ mixture
     }
 }
 
-solidificationModel
+solidification
 {
-    type    linearExplicit;
-    Lm      2.7e5;
+    type    linearImplicit;
+    L       2.7e5;
     Tsol    1658.0;
     Tliq    1723.0;
-    Cu      1e12;
+    Cu      1e10;
     q       1e-3;
-    relax   1.0;
+    relax   0.7;
 }
 
-evaporationModel
+evaporation
 {
-    type    Knight;
-    Lv      7.45e6;
+    type    gasDynamicImplicit;
+    L       7.45e6;
     Tv      3068.0;
-    Th      4210.0;
     Mv      55.8;
     p0      1e5;
+    relax   0.7;
+
+    Th      4210.0;
     T0      300;
     M0      40.0;
     g0      1.6667;
     gv      1.6667;
-    relax   0.5;
-    q       1e-3;
 }
 
 

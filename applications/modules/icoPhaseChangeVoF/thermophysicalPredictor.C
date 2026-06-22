@@ -64,7 +64,7 @@ void Foam::solvers::icoPhaseChangeVoF::thermophysicalPredictor()
         fvConstraints().constrain(T);
 
         // Termination criteria
-        if (correctPhaseChange() < 1e-4)
+        if (correctPhaseChange() < 1e-3)
         {
             Info<< "Converged at it = " << i << endl;
             break;

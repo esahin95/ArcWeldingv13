@@ -23,7 +23,7 @@ startFrom       startTime;
 startTime       0;
 
 stopAt          endTime;
-stopAt          nextWrite;
+//stopAt          nextWrite;
 
 endTime         100e-6;
 
@@ -31,7 +31,7 @@ deltaT          1e-8;
 
 writeControl    adjustableRunTime;
 
-writeInterval   1e-8;
+writeInterval   1e-6;
 
 purgeWrite      0;
 
@@ -63,17 +63,17 @@ DebugSwitches
     MULES           1;
     laserDTRM       1;
     greyBodyRadiation 1;
-    DTRMParticle    0;
-    linearExplicit 1;
-    gasDynamic 1;
-    Knight     1;
     fresnelLaser 1;
+    solidificationModel 1;
+    evaporationModel 1;
 }
 
 OptimisationSwitches
 {
     fileHandler collated;
 }
+
+writeOF writeTime;
 
 functions
 {
@@ -101,8 +101,7 @@ functions
 
         log             true;
 
-        writeControl    timeStep;
-        //writeControl    writeTime;
+        writeControl    $writeOF;
 
         writeFields     false;
 
@@ -123,8 +122,7 @@ functions
 
         log             true;
 
-        writeControl    timeStep;
-        //writeControl    writeTime;
+        writeControl    $writeOF;
 
         writeFields     false;
 
@@ -145,8 +143,7 @@ functions
 
         log             true;
 
-        writeControl    timeStep;
-        //writeControl    writeTime;
+        writeControl    $writeOF;
 
         writeFields     false;
 

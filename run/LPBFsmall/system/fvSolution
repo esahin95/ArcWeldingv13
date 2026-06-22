@@ -53,11 +53,7 @@ solvers
         solver          PBiCGStab;
         preconditioner  DILU;
         tolerance       1e-08;
-        //solver          smoothSolver;
-        //smoother        symGaussSeidel;
-        //tolerance       1e-9;
         relTol          0.05;
-        minIter         2;
     }
 
     TFinal
@@ -74,11 +70,7 @@ PIMPLE
     nNonOrthogonalCorrectors 0;
     nOuterCorrectors 1;
 
-    flow    false;
-    flow    true;
-
-    //pRefCell    0;
-    //pRefValue   0;
+    nThermoCorr     50;
 }
 
 

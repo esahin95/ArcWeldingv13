@@ -23,7 +23,7 @@ startFrom       startTime;
 startTime       0;
 
 stopAt          endTime;
-//stopAt          nextWrite;
+stopAt          nextWrite;
 
 endTime         100e-6;
 
@@ -67,6 +67,7 @@ DebugSwitches
     solidificationModel 1;
     evaporationModel 1;
 }
+
 
 OptimisationSwitches
 {

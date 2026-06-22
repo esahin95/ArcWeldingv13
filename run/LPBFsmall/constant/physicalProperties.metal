@@ -52,13 +52,13 @@ mixture
 
 solidification
 {
-    type    linearImplicit;
+    type    linearExplicit;
     L       2.7e5;
     Tsol    1658.0;
     Tliq    1723.0;
     Cu      1e10;
     q       1e-3;
-    relax   1.0;
+    relax   0.7;
 }
 
 evaporation

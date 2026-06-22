@@ -30,6 +30,8 @@ License
 #include "fvmDiv.H"
 #include "fvmSup.H"
 
+#include "mathematicalConstants.H"
+
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
 namespace Foam
@@ -46,6 +48,8 @@ namespace solidificationModels
     );
 }
 }
+
+using namespace Foam::constant;
 
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
@@ -69,9 +73,7 @@ Foam::solidificationModels::linearImplicit::linearImplicit
         IOobject::groupName("rhoPhiCp", group),
         alphaRhoPhi_*fvc::interpolate(thermo_.Cp())
     )
-{
-    rhoCpApp_.oldTime();
-}
+{}
 
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
@@ -80,9 +82,18 @@ Foam::solidificationModels::linearImplicit::linearImplicit
 Foam::scalar
 Foam::solidificationModels::linearImplicit::correct(const bool relax)
 {
-    // Update heat capacities
+    rhoCpApp_.storePrevIter();
+    const volScalarField& rhoCpApp0 = rhoCpApp_.prevIter();
+
     rhoCpApp_ =
         Lm_/(Tliq_-Tsol_)*alpha_*thermo_.rho()*pos(Tliq_-T_)*pos(T_-Tsol_);
+
+    if (relax)
+    {
+        const scalar r = min(relax_, 1.0);
+        rhoCpApp_ = r*rhoCpApp_ + (1.0-r)*rhoCpApp0;
+    }
+
     rhoPhiCpApp_ = alphaRhoPhi_*fvc::interpolate(rhoCpApp_/rho_);
 
     // Update solid fraction

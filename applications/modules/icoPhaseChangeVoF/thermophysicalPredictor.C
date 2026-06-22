@@ -51,26 +51,23 @@ void Foam::solvers::icoPhaseChangeVoF::thermophysicalPredictor()
     {
         T.storePrevIter();
 
-        while (pimple.correctNonOrthogonal())
-        {
-            fvScalarMatrix TEqn
-            (
-                TEqnBase
-              - fvm::laplacian(thermophysicalTransport.kappaEff(), T)
-            );
-            addSup(TEqn);
+        fvScalarMatrix TEqn
+        (
+            TEqnBase
+            - fvm::laplacian(thermophysicalTransport.kappaEff(), T)
+        );
+        addSup(TEqn);
 
-            TEqn.relax();
+        TEqn.relax();
 
-            fvConstraints().constrain(TEqn);
+        fvConstraints().constrain(TEqn);
 
-            solve(TEqn);
+        solve(TEqn);
 
-            fvConstraints().constrain(T);
-        }
+        fvConstraints().constrain(T);
 
         // Termination criteria
-        if (correctPhaseChange() < 1e-3)
+        if (correctPhaseChange() < 1e-3 && i > pimple.nCorrNonOrth())
         {
             Info<< "Converged at it = " << i << endl;
             break;

@@ -122,37 +122,23 @@ Foam::solidificationModels::linearExplicit::linearExplicit
 Foam::scalar
 Foam::solidificationModels::linearExplicit::correct(const bool relax)
 {
+    sf_.storePrevIter();
+    const volScalarField& sf0 = sf_.prevIter();
+
     // Relaxation
-    volScalarField sfNew(sf_);
     if (relax)
     {
-        sfNew = max
-            (
-                min
-                (
-                    sf_ + relax_*thermo_.Cp()/Lm_*
-                    (
-                        Tliq_ - T_ - sf_*(Tliq_ - Tsol_)
-                    ),
-                    1.0
-                ),
-                0.0
-            );
+        sf_ = sf_ + relax_*thermo_.Cp()/Lm_*(Tliq_-T_ - sf_*(Tliq_-Tsol_));
+        sf_ = max(min(sf_, 1.0), 0.0);
     }
     else
     {
-        sfNew = max(min((Tliq_ - T_)/(Tliq_ - Tsol_), 1.0), 0.0);
+        sf_ = max(min((Tliq_ - T_)/(Tliq_ - Tsol_), 1.0), 0.0);
     }
-
-    // Residual
-    const scalar res =
-        gMax(mag(sf_.v().primitiveField() - sfNew.v().primitiveField()));
-
-    // Update fields
-    sf_ = sfNew;
     alphaSolid_ = alpha_*sf_;
 
-    return res;
+    // Residual
+    return gMax(mag(sf_.v().primitiveField() - sf0.v().primitiveField()));
 }
 
 

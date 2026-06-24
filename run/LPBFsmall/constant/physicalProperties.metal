@@ -52,7 +52,7 @@ mixture
 
 solidification
 {
-    type    linearExplicit;
+    type    linearSemiImplicit;
     L       2.7e5;
     Tsol    1658.0;
     Tliq    1723.0;
@@ -63,7 +63,7 @@ solidification
 
 evaporation
 {
-    type    gasDynamicImplicit;
+    type    none;
     L       7.45e6;
     Tv      3068.0;
     Mv      55.8;

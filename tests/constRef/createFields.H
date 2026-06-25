@@ -16,7 +16,7 @@ volScalarField newp
 (
     IOobject
     (
-        "p",
+        "newP",
         runTime.name(),
         mesh,
         IOobject::NO_READ,

@@ -96,6 +96,11 @@ Foam::solidificationModels::linearSemiImplicit::correct(const bool relax)
     const volScalarField sf0("sf0", sf_);
 
     sf_ = max(min(sf0 + dsdT_*(T_-T0_), 1.0), 0.0);
+    if (relax)
+    {
+        sf_ = relax_*sf_ + (1.0-relax_)*sf0;
+    }
+
     alphaSolid_ = alpha_*sf_;
 
     // Residual
@@ -111,7 +116,7 @@ void Foam::solidificationModels::linearSemiImplicit::addSup
     // Update slope
     dsdT_ = 1.0/(Tliq_ - Tsol_);
     const scalar slope = 1e10;
-    const scalar tol = 1e-6;
+    const scalar tol = 1e-3;
 
     forAll(dsdT_, cellI)
     {
@@ -146,7 +151,7 @@ void Foam::solidificationModels::linearSemiImplicit::addSup
         else
         {
             dsdT_[cellI] = -1.0/(Tliq_-Tsol_).value();
-            T0_[cellI] = Tliq_.value();
+            T0_[cellI] = Tsol_.value() + (s - 1.0)/dsdT_[cellI];
         }
     }
 
@@ -191,12 +196,10 @@ void Foam::solidificationModels::linearSemiImplicit::addSup
             else
             {
                 dsdTPatch[faceI] = -1.0/(Tliq_-Tsol_).value();
-                T0Patch[faceI] = Tliq_.value();
+                T0Patch[faceI] = Tsol_.value() + (s - 1.0)/dsdTPatch[faceI];
             }
         }
     }
-    //dsdT_.correctBoundaryConditions();
-    //T0_.correctBoundaryConditions();
 
     const dimensionedScalar rDeltaT = 1.0 / mesh_.time().deltaT();
 

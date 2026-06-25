@@ -137,8 +137,17 @@ Foam::solidificationModels::linearExplicit::correct(const bool relax)
     }
     alphaSolid_ = alpha_*sf_;
 
+    if (debug)
+    {
+        const volScalarField sfEq =
+            max(min((Tliq_ - T_)/(Tliq_ - Tsol_), 1.0), 0.0);
+
+        Info<< "Difference to equilibrium res = "
+        << gMax(mag(sf_.v() - sfEq.v())().primitiveField()) << endl;
+    }
+
     // Residual
-    return gMax(mag(sf_.v().primitiveField() - sf0.v().primitiveField()));
+    return gMax(mag(sf_.v() - sf0.v())().primitiveField());
 }
 
 

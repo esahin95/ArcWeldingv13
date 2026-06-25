@@ -62,15 +62,15 @@ Foam::solidificationModels::linearImplicit::linearImplicit
 :
     linearExplicit(mesh, group),
 
-    rhoCpApp_
+    rhoCpLatent_
     (
-        IOobject::groupName("rhoCp", group),
-        alpha_*thermo_.rho()*thermo_.Cp()
+        IOobject::groupName("rhoCpLatent", group),
+        alpha_*thermo_.rho()().v()*thermo_.Cp().v()
     ),
 
-    rhoPhiCpApp_
+    rhoPhiCpLatent_
     (
-        IOobject::groupName("rhoPhiCp", group),
+        IOobject::groupName("rhoPhiCpLatent", group),
         alphaRhoPhi_*fvc::interpolate(thermo_.Cp())
     )
 {}
@@ -82,12 +82,19 @@ Foam::solidificationModels::linearImplicit::linearImplicit
 Foam::scalar
 Foam::solidificationModels::linearImplicit::correct(const bool relax)
 {
-    rhoCpApp_ =
-        Lm_/(Tliq_-Tsol_)*alpha_*thermo_.rho()*pos(Tliq_-T_)*pos(T_-Tsol_);
-    rhoPhiCpApp_ = alphaRhoPhi_*fvc::interpolate(rhoCpApp_/rho_);
+    sf_.storePrevIter();
+    const volScalarField& sf0 = sf_.prevIter();
 
-    // Update solid fraction
-    return linearExplicit::correct(relax);
+    sf_ = max(min((Tliq_ - T_)/(Tliq_ - Tsol_), 1.0), 0.0);
+    if (relax)
+    {
+        sf_ = relax_*sf_ + (1.0 - relax_)*sf0;
+    }
+
+    alphaSolid_ = alpha_*sf_;
+
+    // Residual
+    return gMax(mag(sf_.v() - sf0.v())().primitiveField());
 }
 
 
@@ -96,11 +103,22 @@ void Foam::solidificationModels::linearImplicit::addSup
     fvMatrix<scalar>& eqn
 ) const
 {
+    const scalar TOL = 1e-3;
+
+    const volScalarField& rho = thermo_.rho();
+
+    rhoCpLatent_ =
+        Lm_/(Tliq_-Tsol_)*alpha_.v()*rho.v()*pos(sf_.v() - TOL)*pos(1.0-TOL - sf_.v());
+    //rhoPhiCpLatent_ = alphaRhoPhi_*fvc::interpolate(rhoCpApp_/rho_);
+
+    eqn += rhoCpLatent_*fvm::ddt(eqn.psi());
+    /*
     eqn +=
     (
-        fvm::ddt(rhoCpApp_, T_) + fvm::div(rhoPhiCpApp_, T_)
-      - fvm::Sp(fvc::ddt(rhoCpApp_) + fvc::div(rhoPhiCpApp_), T_)
+        fvm::ddt(rhoCpLatent_, T_) + fvm::div(rhoPhiCpLatent_, T_)
+      - fvm::Sp(fvc::ddt(rhoCpLatent_) + fvc::div(rhoPhiCpLatent_), T_)
     );
+    */
 }
 
 

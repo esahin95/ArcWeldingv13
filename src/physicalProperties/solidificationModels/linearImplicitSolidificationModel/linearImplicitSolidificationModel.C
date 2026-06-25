@@ -29,6 +29,7 @@ License
 #include "fvcDdt.H"
 #include "fvmDiv.H"
 #include "fvmSup.H"
+#include "fvcGrad.H"
 
 #include "mathematicalConstants.H"
 
@@ -64,16 +65,28 @@ Foam::solidificationModels::linearImplicit::linearImplicit
 
     rhoCpLatent_
     (
-        IOobject::groupName("rhoCpLatent", group),
-        alpha_*thermo_.rho()().v()*thermo_.Cp().v()
+        IOobject
+        (
+            IOobject::groupName("rhoCpLatent", group),
+            mesh.time().name(),
+            mesh
+        ),
+        alpha_*thermo_.rho()*thermo_.Cp()
     ),
 
     rhoPhiCpLatent_
     (
-        IOobject::groupName("rhoPhiCpLatent", group),
+        IOobject
+        (
+            IOobject::groupName("rhoPhiCpLatent", group),
+            mesh.time().name(),
+            mesh
+        ),
         alphaRhoPhi_*fvc::interpolate(thermo_.Cp())
     )
-{}
+{
+    rhoCpLatent_.oldTime();
+}
 
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
@@ -103,15 +116,18 @@ void Foam::solidificationModels::linearImplicit::addSup
     fvMatrix<scalar>& eqn
 ) const
 {
-    const scalar TOL = 1e-3;
-
+    const scalar TOL = 1e-6;
     const volScalarField& rho = thermo_.rho();
 
     rhoCpLatent_ =
-        Lm_/(Tliq_-Tsol_)*alpha_.v()*rho.v()*pos(sf_.v() - TOL)*pos(1.0-TOL - sf_.v());
-    //rhoPhiCpLatent_ = alphaRhoPhi_*fvc::interpolate(rhoCpApp_/rho_);
+        Lm_/(Tliq_-Tsol_)*alpha_*rho*pos(sf_ - TOL)*pos(1.0-TOL - sf_);
+    //rhoPhiCpLatent_ = alphaRhoPhi_*fvc::interpolate(rhoCpLatent_/rho_);
+    //const volVectorField& U = mesh_.lookupObject<volVectorField>("U");
 
-    eqn += rhoCpLatent_*fvm::ddt(eqn.psi());
+    //eqn += rhoCpLatent_*fvm::ddt(eqn.psi());
+    eqn += fvm::ddt(rhoCpLatent_, T_) - fvm::Sp(fvc::ddt(rhoCpLatent_), T_);
+
+    //eqn += rhoCpLatent_*(fvm::ddt(eqn.psi()) + (U&fvc::grad(T_)));
     /*
     eqn +=
     (

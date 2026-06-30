@@ -18,6 +18,7 @@ defaultValues
 {
     alpha.water 0;
     T 300;
+    heat.water 0;
 }
 
 zones
@@ -38,12 +39,13 @@ zones
     {
         type        sphere;
 
-        centre  (5e-3 5e-3 5e-3);
+        centre  (5e-3 12e-3 5e-3);
         radius  2e-3;
 
         values
         {
             T   350;
+            heat.water 1;
         }
     }
 }

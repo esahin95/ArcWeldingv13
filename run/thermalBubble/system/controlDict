@@ -23,6 +23,7 @@ startFrom       startTime;
 startTime       0;
 
 stopAt          endTime;
+//stopAt          nextWrite;
 
 endTime         0.05;
 
@@ -68,86 +69,86 @@ OptimisationSwitches
 }
 
 writeFO     timeStep;
-//writeFO     writeTime;
+writeFO     writeTime;
 
 functions
 {
-    divU
+    /*
+    vCellProc
     {
-        type            div;
+        type            volField;
         libs            ("libfieldFunctionObjects.so");
-
+        log             true;
         writeControl    writeTime;
-
-        writeFields     false;
-
-        regionType      all;
-
-        result          divU;
-
-        field           phi;
+        writeFields     true;
+        field           cellProc;
     }
+    */
 
     maxValue
     {
         type            volFieldValue;
-
         libs            ("libfieldFunctionObjects.so");
-
         log             true;
-
         writeControl    $writeFO;
-
         writeFields     false;
-
         regionType      all;
-
         cellZone        all;
-
         operation       max;
-
-        fields (p_rgh T divU);
+        fields (p_rgh T alphaHeat.water heat.water);
     }
 
     minValue
     {
         type            volFieldValue;
-
         libs            ("libfieldFunctionObjects.so");
-
         log             true;
-
         writeControl    $writeFO;
-
         writeFields     false;
-
         regionType      all;
-
         cellZone        all;
-
         operation       min;
-
-        fields (p_rgh T divU);
+        fields (p_rgh T alphaHeat.water heat.water);
     }
 
     maxMagValue
     {
         type            volFieldValue;
-
         libs            ("libfieldFunctionObjects.so");
-
         log             true;
-
         writeControl    $writeFO;
-
         writeFields     false;
-
         regionType      all;
-
         cellZone        all;
-
         operation       maxMag;
-
         fields (U);
     }
+
+    volIntHeat
+    {
+        type            volFieldValue;
+        libs            ("libfieldFunctionObjects.so");
+        log             true;
+        writeControl    writeTime;
+        writeFields     false;
+        regionType      all;
+        cellZone        all;
+        operation       volIntegrate;
+        fields (alphaHeat.water);
+    }
+
+    bubble
+    {
+        type            phaseScalarTransport;
+        libs            ("libsolverFunctionObjects.so");
+        field           heat.water;
+        schemesField    alpha.water;
+        p               p;
+        alpha           alpha.water;
+        alphaPhi        alphaRhoPhi.water;
+        diffusivity     constant;
+        D               1.4285e-6;
+        writeControl    writeTime;
+    }
+
 }

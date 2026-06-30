@@ -20,6 +20,11 @@ solvers
     {
         nCorrectors     1;
         nSubCycles      polynomial (0 4);
+
+        solver          PBiCGStab;
+        preconditioner  DILU;
+        tolerance       1e-8;
+        relTol          0;
     }
 
     "pcorr.*"

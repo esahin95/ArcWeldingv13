@@ -51,7 +51,7 @@ adjustTimeStep  yes;
 
 maxCo           0.2;
 maxAlphaCo      0.2;
-maxDiCo         250.0;
+maxDiCo         500.0;
 
 maxDeltaT       1e-6;
 
@@ -158,21 +158,5 @@ functions
         cellZone        all;
         operation       maxMag;
         fields (U);
-    }
-
-    phaseCopper
-    {
-        type            phaseScalarTransport;
-        libs            ("libsolverFunctionObjects.so");
-        field           copper.metal;   // Name of the transported scalar
-        schemesField    alpha.metal;    // Name of the field from which to use schemes
-                                        // and solvers settings
-        p               p;              // Name of the pressure field
-
-        alpha           alpha.metal;
-        alphaPhi        alphaPhi.metal;
-
-        diffusivity     none;
-        writeControl    writeTime;
     }
 }

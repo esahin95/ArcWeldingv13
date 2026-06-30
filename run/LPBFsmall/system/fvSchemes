@@ -16,27 +16,43 @@ FoamFile
 
 ddtSchemes
 {
-    default         Euler;
+    default         CrankNicolson
+    ocCoeff
+    {
+        type scale;
+        scale linearRamp;
+        duration 1e-8;
+        value 0.0;
+    };
 }
 
 gradSchemes
 {
     default         Gauss linear;
+    limited         cellLimited<cubic> 1.5 Gauss linear 1;
 }
 
 divSchemes
 {
     default         none;
 
-    div(phi,alpha)    Gauss interfaceCompression vanLeer 1;
-    //div(phi,alpha)      Gauss MPLIC;
+    //div(phi,alpha)  Gauss interfaceCompression vanLeer 1;
+    div(phi,alpha)      Gauss MPLIC;
 
-    div(rhoPhi,U)       Gauss limitedLinear 1;
-    //div(rhoPhi,alpha)   Gauss limitedLinear 1;
-    div(rhoPhiCp,T)     Gauss limitedLinear 1;
-    div(alphaRhoPhi,solid) Gauss limitedLinear 1;
+    div(alphaPhi,alpha) Gauss upwind;
+
+    scheme  Gauss linearUpwind limited;
+    div(rhoPhi,U)           $scheme;
+    div(rhoPhiCp,T)         $scheme;
+    div(alphaRhoPhi,solid)  $scheme;
 
     div(((rho*nuEff)*dev2(T(grad(U))))) Gauss linear;
+
+    // Only for compressibleVoF
+    div(rhoPhi,K)       $scheme;
+    div(phi,p)          $scheme;
+    div(alphaRhoPhi,h)  $scheme;
+    div(alphaRhoPhi,T)  $scheme;
 }
 
 laplacianSchemes

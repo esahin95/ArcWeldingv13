@@ -172,6 +172,17 @@ public:
                 fvMatrix<scalar>& eqn
             ) const;
 
+            //- Add explicit contribution to phase energy equation
+            /*
+            virtual void addSup
+            (
+                const volScalarField& alpha,
+                const volScalarField& rho,
+                const volScalarField& he,
+                fvMatrix<scalar>& eqn
+            ) const;
+            */
+
 
         // Mesh changes
 

@@ -58,7 +58,12 @@ Foam::solvers::icoPhaseChangeVoF::icoPhaseChangeVoF(fvMesh& mesh)
 
     nThermoCorr_
     (
-        pimple.dict().lookupOrDefault<label>("nThermoCorr", 50)
+        pimple.dict().lookupOrDefault<label>("nThermoCorr", 20)
+    ),
+
+    thermoTol_
+    (
+        pimple.dict().lookupOrDefault<scalar>("thermoTol", 1e-6)
     )
 {}
 

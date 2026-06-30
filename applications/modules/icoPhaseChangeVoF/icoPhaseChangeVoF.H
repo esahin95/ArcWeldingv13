@@ -93,16 +93,15 @@ class icoPhaseChangeVoF
         // Thermo corrections
         const label nThermoCorr_;
 
+        // Thermo tolerance
+        const scalar thermoTol_;
+
 
     // Private member functions
 
         // Add source terms
         template<class Type>
         void addSup(fvMatrix<Type>& eqn) const;
-        //{
-        //    solidificationModel_->addSup(eqn);
-        //    evaporationModel_->addSup(eqn);
-        //}
 
         // Correct phase change models
         scalar correctPhaseChange();

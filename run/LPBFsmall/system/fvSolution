@@ -65,12 +65,13 @@ solvers
 
 PIMPLE
 {
-    momentumPredictor no;
-    nCorrectors     3;
-    nNonOrthogonalCorrectors 0;
-    nOuterCorrectors 1;
+    momentumPredictor   no;
+    nCorrectors         3;
+    nNonOrthogonalCorrectors 2;
+    nOuterCorrectors    1;
 
-    nThermoCorr     50;
+    nThermoCorr         20;
+    thermoTol           1e-4;
 }
 
 

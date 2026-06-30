@@ -167,6 +167,7 @@ Foam::fv::laserDTRM::laserDTRM
 
 Foam::wordList Foam::fv::laserDTRM::addSupFields() const
 {
+    //return wordList({"T", thermo_.he().name()});
     return wordList(1, "T");
 }
 
@@ -284,6 +285,26 @@ void Foam::fv::laserDTRM::addSup
     eqn += Q_;
 }
 
+/*
+void Foam::fv::laserDTRM::addSup
+(
+    const volScalarField& alpha,
+    const volScalarField& rho,
+    const volScalarField& he,
+    fvMatrix<scalar>& eqn
+) const
+{
+    if (debug)
+    {
+        Info<< type() << ": applying source to " << eqn.psi().name() << endl;
+
+        const dimensionedScalar Qtot = fvc::domainIntegrate(Q_);
+        Info<< "Adding laser deposition to source: " << Qtot << endl;
+    }
+
+    eqn += Q_;
+}
+*/
 
 void Foam::fv::laserDTRM::topoChange(const polyTopoChangeMap& map)
 {}

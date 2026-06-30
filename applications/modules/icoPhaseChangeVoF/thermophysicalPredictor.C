@@ -39,22 +39,17 @@ void Foam::solvers::icoPhaseChangeVoF::thermophysicalPredictor()
 {
     volScalarField& T = mixture_.T();
 
-    fvScalarMatrix TEqnBase
-    (
-        fvm::ddt(rhoCp,T) + fvm::div(rhoPhiCp, T)
-      - fvm::Sp(fvc::ddt(rhoCp) + fvc::div(rhoPhiCp), T)
-      ==
-        fvModels().source(rhoCp, T)
-    );
-
     for(label i=0; i<nThermoCorr_; i++)
     {
         T.storePrevIter();
 
         fvScalarMatrix TEqn
         (
-            TEqnBase
+            fvm::ddt(rhoCp,T) + fvm::div(rhoPhiCp, T)
+            - fvm::Sp(fvc::ddt(rhoCp) + fvc::div(rhoPhiCp), T)
             - fvm::laplacian(thermophysicalTransport.kappaEff(), T)
+            ==
+            fvModels().source(rhoCp, T)
         );
         addSup(TEqn);
 
@@ -67,7 +62,7 @@ void Foam::solvers::icoPhaseChangeVoF::thermophysicalPredictor()
         fvConstraints().constrain(T);
 
         // Termination criteria
-        if (correctPhaseChange() < 1e-3 && i > pimple.nCorrNonOrth())
+        if (correctPhaseChange() < thermoTol_ && i > pimple.nCorrNonOrth())
         {
             Info<< "Converged at it = " << i << endl;
             break;

@@ -8,46 +8,30 @@
 FoamFile
 {
     format      ascii;
-    class       dictionary;
-    location    "system";
-    object      setFieldsDict;
+    class       volScalarField;
+    object      alpha.copper;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-defaultValues
-{
-    alpha.metal 0;
-    copper.metal 0;
-};
+dimensions      [];
 
-zones
+internalField   uniform 0;
+
+boundaryField
 {
-    metalPlate
+    "(xmin|xmax|ymin|ymax|zmin)"
     {
-        type        box;
-        zoneType    cell;
-        box (-1 -1 -1) (1 1 100e-6);
-        values
-        {
-            alpha.metal   1;
-        }
+        type            zeroGradient;
+        value           $internalField;
     }
 
-    powderBed
+    zmax
     {
-        type        spheres;
-        data
-        (
-            #include "powderBed"
-        );
-        offset      (0 0 100e-6);
-        scale       1.0;
-        values
-        {
-            alpha.metal     1;
-            copper.metal    1;
-        }
+        type            inletOutlet;
+        inletValue      uniform 0;
+        value           uniform 0;
     }
-};
+}
+
 
 // ************************************************************************* //

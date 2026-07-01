@@ -9,43 +9,15 @@ FoamFile
 {
     format      ascii;
     class       dictionary;
-    location    "constant";
-    object      physicalProperties.air;
+    object      fvConstraints;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-thermoType
+limitp
 {
-    type            heRhoThermo;
-    mixture         pureMixture;
-    transport       const;
-    thermo          hConst;
-    equationOfState rhoConst;
-    specie          specie;
-    energy          sensibleEnthalpy;
-}
+    type       limitPressure;
 
-mixture
-{
-    specie
-    {
-        molWeight   28.9;
-    }
-    thermodynamics
-    {
-        Cp          1007;
-        hf          0;
-    }
-    equationOfState
-    {
-        rho         1.0;
-    }
-    transport
-    {
-        mu          1.48e-05;
-        Pr          0.7;
-    }
+    min        1e4;
 }
-
 
 // ************************************************************************* //

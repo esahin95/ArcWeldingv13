@@ -10,13 +10,14 @@ FoamFile
     format      ascii;
     class       dictionary;
     location    "constant";
-    object      phaseProperties;
+    object      thermophysicalTransport;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-phases          (liquid gas);
-
-sigma           0.0707106;
+laminar
+{
+    model FickianFourierf;
+}
 
 
 // ************************************************************************* //

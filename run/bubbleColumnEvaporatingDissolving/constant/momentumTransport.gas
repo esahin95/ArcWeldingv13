@@ -10,13 +10,10 @@ FoamFile
     format      ascii;
     class       dictionary;
     location    "constant";
-    object      phaseProperties;
+    object      momentumTransport.gas;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-phases          (liquid gas);
-
-sigma           0.0707106;
-
+simulationType  laminar;
 
 // ************************************************************************* //

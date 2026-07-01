@@ -8,15 +8,42 @@
 FoamFile
 {
     format      ascii;
-    class       dictionary;
-    location    "constant";
-    object      phaseProperties;
+    class       volScalarField;
+    object      alpha.liquid;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-phases          (liquid gas);
+dimensions      [];
 
-sigma           0.0707106;
+internalField   uniform 0;
+
+boundaryField
+{
+    inlet
+    {
+        type            inletOutlet;
+        value           uniform 1;
+        inletValue      uniform 1;
+    }
+
+    atmosphere
+    {
+        type            zeroGradient;
+    }
+
+    walls
+    {
+        type           contactAngle;
+        theta0         45;
+        limit          gradient;
+        value          uniform 0;
+    }
+
+    defaultFaces
+    {
+        type            empty;
+    }
+}
 
 
 // ************************************************************************* //

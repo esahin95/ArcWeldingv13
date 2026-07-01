@@ -10,13 +10,34 @@ FoamFile
     format      ascii;
     class       dictionary;
     location    "constant";
-    object      phaseProperties;
+    object      heatTransfer;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-phases          (liquid gas);
+blending        heatAndDiffusiveMassTransfer;
 
-sigma           0.0707106;
+gas_dispersedIn_liquid_inThe_gas
+{
+    type            spherical;
+    residualAlpha   1e-4;
+}
 
+gas_dispersedIn_liquid_inThe_liquid
+{
+    type            RanzMarshall;
+    residualAlpha   1e-4;
+}
+
+liquid_dispersedIn_gas_inThe_gas
+{
+    type            RanzMarshall;
+    residualAlpha   1e-4;
+}
+
+liquid_dispersedIn_gas_inThe_liquid
+{
+    type            spherical;
+    residualAlpha   1e-4;
+}
 
 // ************************************************************************* //

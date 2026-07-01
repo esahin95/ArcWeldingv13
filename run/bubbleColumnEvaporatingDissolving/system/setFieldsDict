@@ -8,38 +8,32 @@
 FoamFile
 {
     format      ascii;
-    class       volScalarField;
-    location    "0";
-    object      T.air;
+    class       dictionary;
+    location    "system";
+    object      setFieldsDict;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-dimensions      [0 0 0 1 0 0 0];
-
-internalField   uniform 300;
-
-boundaryField
+defaultValues
 {
-    inlet
-    {
-        type            calculated;
-        value           uniform 300;
-    }
-    atmosphere
-    {
-        type            calculated;
-        value           uniform 300;
-    }
-    walls
-    {
-        type            calculated;
-        value           uniform 300;
-    }
-    frontAndBack
-    {
-        type            empty;
-    }
+    alpha.gas       1;
+    alpha.liquid    0;
 }
 
+zones
+{
+    liquid
+    {
+        type        box;
+
+        box         (0 0 0) (0.15 0.501 0.1);
+
+        values
+        {
+            alpha.gas       0;
+            alpha.liquid    1;
+        }
+    }
+}
 
 // ************************************************************************* //

@@ -10,13 +10,45 @@ FoamFile
     format      ascii;
     class       dictionary;
     location    "constant";
-    object      phaseProperties;
+    object      momentumTransfer;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-phases          (liquid gas);
+drag
+{
+    gas_dispersedIn_liquid
+    {
+        type            SchillerNaumann;
+    }
 
-sigma           0.0707106;
+    liquid_dispersedIn_gas
+    {
+        type            SchillerNaumann;
+    }
+}
 
+virtualMass
+{
+    gas_dispersedIn_liquid
+    {
+        type            constantCoefficient;
+        Cvm             0.5;
+    }
+
+    liquid_dispersedIn_gas
+    {
+        type            constantCoefficient;
+        Cvm             0.5;
+    }
+}
+
+lift
+{}
+
+wallLubrication
+{}
+
+turbulentDispersion
+{}
 
 // ************************************************************************* //

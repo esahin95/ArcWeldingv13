@@ -8,15 +8,33 @@
 FoamFile
 {
     format      ascii;
-    class       dictionary;
-    location    "constant";
-    object      phaseProperties;
+    class       volScalarField;
+    object      p_rgh;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-phases          (liquid gas);
+dimensions          [1 -1 -2 0 0 0 0];
 
-sigma           0.0707106;
+internalField       uniform 1e5;
 
+boundaryField
+{
+    inlet
+    {
+        type            fixedFluxPressure;
+        value           $internalField;
+    }
+    outlet
+    {
+        type            prghPressure;
+        p                  $internalField;
+        value           $internalField;
+    }
+    walls
+    {
+        type            fixedFluxPressure;
+        value           $internalField;
+    }
+}
 
 // ************************************************************************* //

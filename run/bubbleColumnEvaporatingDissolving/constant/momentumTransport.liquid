@@ -8,42 +8,12 @@
 FoamFile
 {
     format      ascii;
-    class       volScalarField;
-    object      alpha.water;
+    class       dictionary;
+    location    "constant";
+    object      momentumTransport.liquid;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-dimensions      [];
-
-internalField   uniform 0;
-
-boundaryField
-{
-    inlet
-    {
-        type            inletOutlet;
-        value           uniform 1;
-        inletValue      uniform 1;
-    }
-
-    atmosphere
-    {
-        type            zeroGradient;
-    }
-
-    walls
-    {
-        type           contactAngle;
-        theta0         45;
-        limit          gradient;
-        value          uniform 0;
-    }
-
-    defaultFaces
-    {
-        type            empty;
-    }
-}
-
+simulationType  laminar;
 
 // ************************************************************************* //

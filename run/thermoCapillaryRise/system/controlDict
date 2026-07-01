@@ -23,6 +23,7 @@ startFrom       startTime;
 startTime       0;
 
 stopAt          endTime;
+stopAt          nextWrite;
 
 endTime         0.02;
 

@@ -16,63 +16,68 @@ FoamFile
 
 solvers
 {
-    alpha.liquid
+    "alpha.*"
     {
         nCorrectors     1;
-        nSubCycles      polynomial (0 4);
-    }
-
-    "pcorr.*"
-    {
-        solver          PCG;
-        preconditioner  DIC;
-        tolerance       1e-10;
-        relTol          0;
+        nSubCycles      3;
     }
 
     p_rgh
     {
-        solver          PCG;
+        solver          PBiCGStab;
         preconditioner  DIC;
-        tolerance       1e-7;
-        relTol          0.05;
+        tolerance       1e-12;
+        relTol          0.001;
     }
 
     p_rghFinal
     {
         $p_rgh;
-        tolerance       1e-7;
         relTol          0;
     }
 
-    U
-    {
-        solver          smoothSolver;
-        smoother        symGaussSeidel;
-        tolerance       1e-6;
-        relTol          0;
-    }
-
-    T
+    "U.*"
     {
         solver          PBiCGStab;
         preconditioner  DILU;
-        tolerance       1e-7;
-        relTol          0.05;
+        tolerance       1e-12;
+        relTol          0;
     }
 
-    TFinal
+    "(e|h).*"
     {
-        $T;
-        relTol          0.0;
+        solver          PBiCGStab;
+        preconditioner  DILU;
+        tolerance       1e-12;
+        relTol          0;
+    }
+
+    "Yi.*"
+    {
+        solver          PBiCGStab;
+        preconditioner  DILU;
+        tolerance       1e-12;
+        relTol          0;
     }
 }
 
 PIMPLE
 {
-    momentumPredictor no;
-    nCorrectors     3;
+    nOuterCorrectors 5;
+    nCorrectors      1;
     nNonOrthogonalCorrectors 0;
+
+    faceMomentum        no;
+    VmDdtCorrection     yes;
+    dragCorrection      yes;
+}
+
+relaxationFactors
+{
+    equations
+    {
+        ".*"            1;
+    }
 }
 
 

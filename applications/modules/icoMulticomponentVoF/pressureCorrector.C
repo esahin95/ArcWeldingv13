@@ -62,6 +62,13 @@ void Foam::solvers::icoMulticomponentVoF::pressureCorrector()
 
         MRF.makeRelative(phiHbyA);
 
+        if (p_rgh.needReference())
+        {
+            fvc::makeRelative(phiHbyA, U);
+            adjustPhi(phiHbyA, U, p_rgh);
+            fvc::makeAbsolute(phiHbyA, U);
+        }
+
         const surfaceScalarField phig
         (
             (
@@ -75,104 +82,67 @@ void Foam::solvers::icoMulticomponentVoF::pressureCorrector()
         // Update the pressure BCs to ensure flux consistency
         constrainPressure(p_rgh, U, phiHbyA, rAUf, MRF);
 
-        PtrList<fvScalarMatrix> p_rghEqnComps(phases.size());
-
+        // Evaluate any phase sources
+        fvScalarMatrix p_rghEqnSource(p_rgh, dimVolume/dimTime);
         forAll(phases, phasei)
         {
-            const compressibleVoFphase& phase = phases[phasei];
-            const rhoFluidThermo& thermo = phase.thermo();
-            const volScalarField& rho = phases[phasei].thermo().rho();
-
-            p_rghEqnComps.set
-            (
-                phasei,
-                (
-                    fvc::ddt(rho) + thermo.psi()*correction(fvm::ddt(p_rgh))
-                  + fvc::div(phi, rho) - fvc::Sp(fvc::div(phi), rho)
-                  - fvModels().sourceProxy(phase, rho, p_rgh)
-                ).ptr()
-            );
+            p_rghEqnSource +=
+                fvModels().sourceProxy(phases[phasei], p_rgh);
         }
-
-        // Cache p_rgh prior to solve for density update
-        const volScalarField p_rgh_0(p_rgh);
 
         while (pimple.correctNonOrthogonal())
         {
-            fvScalarMatrix p_rghEqnIncomp
+            fvScalarMatrix p_rghEqn
             (
-                fvc::div(phiHbyA)
-              - fvm::laplacian(rAUf, p_rgh)
+                fvc::div(phiHbyA) - fvm::laplacian(rAUf, p_rgh)
+             == p_rghEqnSource
             );
 
-            tmp<fvScalarMatrix> p_rghEqnComp;
+            p_rghEqn.setReference
+            (
+                pressureReference().refCell(),
+                getRefCellValue(p_rgh, pressureReference().refCell())
+            );
 
-            forAll(phases, phasei)
-            {
-                const compressibleVoFphase& phase = phases[phasei];
-
-                tmp<fvScalarMatrix> p_rghEqnCompi
-                (
-                    (max(phase, scalar(0))/phase.thermo().rho())
-                   *p_rghEqnComps[phasei]
-                );
-
-                if (phasei == 0)
-                {
-                    p_rghEqnComp = p_rghEqnCompi;
-                }
-                else
-                {
-                    p_rghEqnComp.ref() += p_rghEqnCompi;
-                }
-            }
-
-            {
-                fvScalarMatrix p_rghEqn(p_rghEqnComp + p_rghEqnIncomp);
-
-                fvConstraints().constrain(p_rghEqn);
-
-                p_rghEqn.solve();
-            }
+            p_rghEqn.solve();
 
             if (pimple.finalNonOrthogonalIter())
             {
-                forAll(phases, phasei)
-                {
-                    compressibleVoFphase& phase = phases[phasei];
+                phi = phiHbyA + p_rghEqn.flux();
 
-                    phase.vDot() =
-                        pos0(phase)
-                       *(p_rghEqnComps[phasei] & p_rgh)/phase.thermo().rho();
-                }
-
-                phi = phiHbyA + p_rghEqnIncomp.flux();
-
-                p = p_rgh + rho*buoyancy.gh + buoyancy.pRef;
-                fvConstraints().constrain(p);
-                p_rgh = p - rho*buoyancy.gh - buoyancy.pRef;
-                p_rgh.correctBoundaryConditions();
+                p_rgh.relax();
 
                 U = HbyA
-                  + rAU()*fvc::reconstruct((phig + p_rghEqnIncomp.flux())/rAUf);
+                  + rAU()*fvc::reconstruct((phig + p_rghEqn.flux())/rAUf);
                 U.correctBoundaryConditions();
                 fvConstraints().constrain(U);
             }
         }
 
-        // Update densities from change in p_rgh
-        mixture.correctRho(p_rgh - p_rgh_0);
+        continuityErrors();
+
+        // Correct Uf if the mesh is moving
+        fvc::correctUf(Uf, U, phi, MRF);
+
+        // Make the fluxes relative to the mesh motion
+        fvc::makeRelative(phi, U);
+
+        p == p_rgh + rho*buoyancy.gh;
+
+        if (p_rgh.needReference())
+        {
+            p += dimensionedScalar
+            (
+                "p",
+                p.dimensions(),
+                pressureReference().refValue()
+              - getRefCellValue(p, pressureReference().refCell())
+            );
+            p_rgh = p - rho*buoyancy.gh;
+        }
+
         mixture.correct();
-
-        // Correct p_rgh for consistency with p and the updated densities
-        p_rgh = p - rho*buoyancy.gh - buoyancy.pRef;
-        p_rgh.correctBoundaryConditions();
     }
-
-    // Correct Uf if the mesh is moving
-    fvc::correctUf(Uf, U, fvc::absolute(phi, U), MRF);
-
-    K = 0.5*magSqr(U);
 
     clearrAU();
     tUEqn.clear();

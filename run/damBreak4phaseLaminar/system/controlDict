@@ -22,7 +22,7 @@ startFrom       startTime;
 startTime       0;
 
 stopAt          endTime;
-stopAt          nextWrite;
+//stopAt          nextWrite;
 
 endTime         10;
 
@@ -34,7 +34,7 @@ writeInterval   0.05;
 
 purgeWrite      0;
 
-writeFormat     ascii;
+writeFormat     binary;
 
 writePrecision  6;
 
@@ -55,6 +55,10 @@ maxDeltaT       1;
 
 // ************************************************************************* //
 
+OptimisationSwitches
+{
+    fileHandler collated;
+}
 
 functions
 {

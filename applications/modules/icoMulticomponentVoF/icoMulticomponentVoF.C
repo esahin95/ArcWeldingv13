@@ -28,6 +28,7 @@ License
 #include "fvcDdt.H"
 #include "fvcDiv.H"
 #include "addToRunTimeSelectionTable.H"
+#include "zeroGradientFvPatchField.H"
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
@@ -79,8 +80,6 @@ Foam::solvers::icoMulticomponentVoF::icoMulticomponentVoF
         false
     ),
 
-    K("K", 0.5*magSqr(U)),
-
     momentumTransport_
     (
         compressible::momentumTransportModel::New
@@ -92,7 +91,25 @@ Foam::solvers::icoMulticomponentVoF::icoMulticomponentVoF
         )
     ),
 
-    momentumTransport(momentumTransport_())
+    momentumTransport(momentumTransport_()),
+
+    contErr
+    (
+        new volScalarField
+        (
+            IOobject
+            (
+                "contErr",
+                mesh.time().name(),
+                mesh,
+                IOobject::NO_READ,
+                IOobject::AUTO_WRITE
+            ),
+            mesh,
+            dimensionedScalar(dimDensity/dimTime, 0.0),
+            zeroGradientFvPatchField<scalar>::typeName
+        )
+    )
 {
     if (correctPhi || mesh.topoChanging())
     {
@@ -110,6 +127,13 @@ Foam::solvers::icoMulticomponentVoF::icoMulticomponentVoF
             dimensionedScalar(dimTime/dimDensity, 1)
         );
     }
+
+    if (!incompressible())
+    {
+        FatalErrorInFunction
+            << "At least one phase is compressible!"
+            << exit(FatalError);
+    }
 }
 
 
@@ -125,13 +149,15 @@ void Foam::solvers::icoMulticomponentVoF::prePredictor()
 {
     multiphaseVoFSolver::prePredictor();
 
-    contErr = fvc::ddt(rho)()() + fvc::div(rhoPhi)()();
+    contErr.ref() = fvc::ddt(rho)() + fvc::div(rhoPhi)();
 
     forAll(mixture.phases(), phasei)
     {
         const volScalarField& rho = phases[phasei].thermo().rho();
         contErr.ref() -= (fvModels().source(phases[phasei], rho)&rho)();
     }
+
+    contErr.ref().correctBoundaryConditions();
 }
 
 

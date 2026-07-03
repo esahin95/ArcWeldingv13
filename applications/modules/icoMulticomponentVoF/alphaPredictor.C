@@ -27,6 +27,7 @@ License
 #include "subCycle.H"
 #include "CMULES.H"
 #include "fvcFlux.H"
+#include "fvcSnGrad.H"
 #include "fvcMeshPhi.H"
 
 // * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
@@ -71,14 +72,32 @@ void Foam::solvers::icoMulticomponentVoF::alphaSolve()
 
             if (&alpha2 == &alpha) continue;
 
-            surfaceScalarField phir(phic*mixture.nHatf(alpha, alpha2));
+            // Diffusion for missible phases, otherwise compression
+            if (mixture.missible(phasei, phasej))
+            {
+                const dimensionedScalar D(dimArea/dimTime, 1e-4);
+                surfaceScalarField phiD
+                (
+                    D*mesh.magSf()
+                   *(
+                        fvc::interpolate(alpha2)*fvc::snGrad(alpha)
+                      - fvc::interpolate(alpha)*fvc::snGrad(alpha2)
+                    )
+                );
 
-            alphaPhi += fvc::flux
-            (
-                -fvc::flux(-phir, alpha2, alpharScheme),
-                alpha,
-                alpharScheme
-            );
+                alphaPhi += phiD;
+            }
+            else
+            {
+                surfaceScalarField phir(phic*mixture.nHatf(alpha, alpha2));
+
+                alphaPhi += fvc::flux
+                (
+                    -fvc::flux(-phir, alpha2, alpharScheme),
+                    alpha,
+                    alpharScheme
+                );
+            }
         }
 
         // Limit alphaPhi for each phase
@@ -122,78 +141,11 @@ void Foam::solvers::icoMulticomponentVoF::alphaSolve()
 
         surfaceScalarField& alphaPhi = alphaPhis[phasei];
 
-        volScalarField::Internal Sp
-        (
-            IOobject
-            (
-                "Sp",
-                mesh.time().name(),
-                mesh
-            ),
-            mesh,
-            dimensionedScalar(alpha.vDot().dimensions(), 0)
-        );
-
-        volScalarField::Internal Su
-        (
-            IOobject
-            (
-                "Su",
-                mesh.time().name(),
-                mesh
-            ),
-            // Divergence term is handled explicitly to be
-            // consistent with the explicit transport solution
-            divU.v()*min(alpha.v(), scalar(1))
-        );
-
-        {
-            const scalarField& vDot = alpha.vDot();
-
-            forAll(vDot, celli)
-            {
-                if (vDot[celli] < 0.0 && alpha[celli] > 0.0)
-                {
-                    Sp[celli] += vDot[celli]*alpha[celli];
-                    Su[celli] -= vDot[celli]*alpha[celli];
-                }
-                else if (vDot[celli] > 0.0 && alpha[celli] < 1.0)
-                {
-                    Sp[celli] -= vDot[celli]*(1.0 - alpha[celli]);
-                }
-            }
-        }
-
-
-        forAll(phases, phasej)
-        {
-            const compressibleVoFphase& alpha2 = phases[phasej];
-
-            if (&alpha2 == &alpha) continue;
-
-            const scalarField& vDot2 = alpha2.vDot();
-
-            forAll(vDot2, celli)
-            {
-                if (vDot2[celli] > 0.0 && alpha2[celli] < 1.0)
-                {
-                    Sp[celli] -= vDot2[celli]*(1.0 - alpha2[celli]);
-                    Su[celli] += vDot2[celli]*alpha[celli];
-                }
-                else if (vDot2[celli] < 0.0 && alpha2[celli] > 0.0)
-                {
-                    Sp[celli] += vDot2[celli]*alpha2[celli];
-                }
-            }
-        }
-
         MULES::explicitSolve
         (
             geometricOneField(),
             alpha,
-            alphaPhi,
-            Sp,
-            Su
+            alphaPhi
         );
 
         rhoPhi += fvc::interpolate(alpha.thermo().rho())*alphaPhi;
@@ -206,6 +158,12 @@ void Foam::solvers::icoMulticomponentVoF::alphaSolve()
 
         sumAlpha += alpha;
     }
+
+    Info<< "Phase-sum volume fraction, min, max = "
+        << sumAlpha.weightedAverage(mesh.V()).value()
+        << ' ' << min(sumAlpha).value()
+        << ' ' << max(sumAlpha).value()
+        << endl;
 
     // Correct the sum of the phase-fractions to avoid 'drift'
     const volScalarField sumCorr(1.0 - sumAlpha);

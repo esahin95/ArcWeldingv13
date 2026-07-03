@@ -105,6 +105,12 @@ public:
             const volScalarField& nut
         );
 
+        //- Phases missible?
+        bool missible(label i, label j)
+        {
+            return metals_[i] && metals_[j];
+        }
+
 };
 
 

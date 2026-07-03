@@ -57,12 +57,12 @@ Foam::multicomponentVoFMixture::multicomponentVoFMixture
     )
 {
     wordList metals(lookup("metals"));
-
-    forAll(metals, phasei)
+    forAll(phases(), phasei)
     {
-        if (phases().found(metals[phasei]))
+        forAll(metals, wordj)
         {
-            metals_[phasei] = true;
+            metals_[phasei] =
+                metals_[phasei] || (phases()[phasei].name() == metals[wordj]);
         }
     }
 
@@ -83,7 +83,7 @@ void Foam::multicomponentVoFMixture::correct()
 {
     compressibleMultiphaseVoFMixture::correct();
 
-    rhoCp_ *= 0.0;
+    rhoCp_ = Zero;
     forAll(phases(), phasei)
     {
         rhoCp_ += phases()[phasei]

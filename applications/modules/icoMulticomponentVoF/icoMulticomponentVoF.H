@@ -98,13 +98,6 @@ protected:
         Foam::pressureReference pressureReference_;
 
 
-    // Kinematic properties
-
-        //- Kinetic energy field
-        //  Used in the energy equation
-        volScalarField K;
-
-
     // Momentum transport
 
         //- Momentum transport model pointer
@@ -117,7 +110,7 @@ protected:
     // Cached temporary fields
 
         //- Continuity error
-        tmp<volScalarField::Internal> contErr;
+        tmp<volScalarField> contErr;
 
 
     // Protected Member Functions
@@ -142,10 +135,10 @@ protected:
         }
 
         //- Return the mixture compressibility/density
-        //  Used by CorrectPhi for compressible mixtures following mesh change
+        //  Not required for incompressible fluids
         virtual tmp<volScalarField> psiByRho() const
         {
-            return mixture.psiByRho();
+            return tmp<volScalarField>(nullptr);
         }
 
         //- Return the momentum equation stress term

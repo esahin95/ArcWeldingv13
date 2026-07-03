@@ -34,18 +34,14 @@ Foam::solvers::icoMulticomponentVoF::divDevTau
     volVectorField& U
 )
 {
-    return momentumTransport.divDevTau(U) - fvm::Sp(contErr(), U);
+    //return momentumTransport.divDevTau(U) - fvm::Sp(contErr(), U);
+    return momentumTransport.divDevTau(U);
 }
 
 
 void Foam::solvers::icoMulticomponentVoF::momentumPredictor()
 {
     multiphaseVoFSolver::momentumPredictor();
-
-    if (pimple.momentumPredictor())
-    {
-        K = 0.5*magSqr(U);
-    }
 }
 
 

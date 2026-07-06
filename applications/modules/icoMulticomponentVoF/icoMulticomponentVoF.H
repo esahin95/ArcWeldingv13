@@ -147,6 +147,9 @@ protected:
         //- Solve for the phase-fractions
         virtual void alphaPredictor();
 
+        //- Return the interface surface tension force for the momentum equation
+        virtual tmp<surfaceScalarField> surfaceTensionForce() const;
+
 
 private:
 

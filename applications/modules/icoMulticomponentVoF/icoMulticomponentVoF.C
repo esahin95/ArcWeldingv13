@@ -42,6 +42,15 @@ namespace solvers
 }
 
 
+// * * * * * * * * * * * * * Protected Member Functions  * * * * * * * * * * //
+
+Foam::tmp<Foam::surfaceScalarField>
+Foam::solvers::icoMulticomponentVoF::surfaceTensionForce() const
+{
+    return mixture.surfaceTensionForce(U);
+}
+
+
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
 Foam::solvers::icoMulticomponentVoF::icoMulticomponentVoF

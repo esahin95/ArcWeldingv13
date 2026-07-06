@@ -25,6 +25,12 @@ License
 
 #include "multicomponentVoFMixture.H"
 
+#include "correctContactAngle.H"
+#include "surfaceInterpolate.H"
+#include "fvcGrad.H"
+#include "fvcSnGrad.H"
+#include "fvcDiv.H"
+
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
 namespace Foam
@@ -42,7 +48,9 @@ Foam::multicomponentVoFMixture::multicomponentVoFMixture
 :
     compressibleMultiphaseVoFMixture(mesh),
 
-    metals_(phases().size(), false),
+    phases_(phases()),
+
+    missible_(phases().size(), false),
 
     rhoCp_
     (
@@ -56,13 +64,81 @@ Foam::multicomponentVoFMixture::multicomponentVoFMixture
         dimensionedScalar("rhoCp", dimEnergy/dimVolume/dimTemperature, 0)
     )
 {
-    wordList metals(lookup("metals"));
-    forAll(phases(), phasei)
     {
-        forAll(metals, wordj)
+        wordList missible(lookup("missible"));
+        forAll(phases_, phasei)
         {
-            metals_[phasei] =
-                metals_[phasei] || (phases()[phasei].name() == metals[wordj]);
+            forAll(missible, phasej)
+            {
+                missible_[phasei] =
+                    missible_[phasei] ||
+                    (
+                        phases_[phasei].name() == missible[phasej]
+                    );
+            }
+
+            phases_[phasei].vDot().writeOpt() = IOobject::NO_WRITE;
+        }
+        Info<< "Missible phases: " << missible_ << endl;
+    }
+
+    if (found("sigmaDicts"))
+    {
+        typedef HashTable
+            <
+                dictionary,
+                interfacePair,
+                interfacePair::hash
+            > dictTable;
+
+        const dictTable sigmaDicts(lookup("sigmaDicts"));
+        forAllConstIter(dictTable, sigmaDicts, iter)
+        {
+            sigmaPtrs_.insert
+            (
+                iter.key(),
+                surfaceTensionModel::New(iter(), mesh)
+            );
+        }
+    }
+    else
+    {
+        forAllConstIter(sigmaTable, sigmas_, iter)
+        {
+            dictionary dict;
+            dict.add("sigma", iter());
+
+            sigmaPtrs_.insert
+            (
+                iter.key(),
+                surfaceTensionModel::New
+                (
+                    dict,
+                    mesh
+                )
+            );
+        }
+    }
+
+    forAll(phases_, phasei)
+    {
+        const compressibleVoFphase& alpha1 = phases_[phasei];
+
+        for (label phasej = phasei+1; phasej<phases_.size(); phasej++)
+        {
+            const compressibleVoFphase& alpha2 = phases_[phasej];
+
+            sigmaPtrTable::const_iterator sigmaPtr =
+            sigmaPtrs_.find(interfacePair(alpha1, alpha2));
+
+            if (sigmaPtr == sigmaPtrs_.end() && !missible(phasei, phasej))
+            {
+                FatalErrorInFunction
+                    << "Cannot find interface "
+                    << interfacePair(alpha1, alpha2)
+                    << " in list of sigma dictionaries"
+                    << exit(FatalError);
+            }
         }
     }
 
@@ -71,6 +147,83 @@ Foam::multicomponentVoFMixture::multicomponentVoFMixture
 
 
 // * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
+
+Foam::tmp<Foam::surfaceScalarField>
+Foam::multicomponentVoFMixture::surfaceTensionForce
+(
+    const volVectorField& U
+) const
+{
+    tmp<surfaceScalarField> tstf
+    (
+        surfaceScalarField::New
+        (
+            "surfaceTensionForce",
+            mesh_,
+            dimensionedScalar(dimensionSet(1, -2, -2, 0, 0), 0)
+        )
+    );
+
+    surfaceScalarField& stf = tstf.ref();
+
+    forAll(phases_, phasei)
+    {
+        const compressibleVoFphase& alpha1 = phases_[phasei];
+
+        for (label phasej = phasei+1; phasej<phases_.size(); phasej++)
+        {
+            const compressibleVoFphase& alpha2 = phases_[phasej];
+
+            tmp<volScalarField> tsigma
+            (
+                volScalarField::New("sigma", mesh_, dimSigma_)
+            );
+            volScalarField& sigma = tsigma.ref();
+
+            sigmaPtrTable::const_iterator sigmaPtr =
+                sigmaPtrs_.find(interfacePair(alpha1, alpha2));
+
+            if (sigmaPtr == sigmaPtrs_.end())
+            {
+                sigma = Zero;
+            }
+            else
+            {
+                sigma = sigmaPtr()->sigma();
+            }
+
+            const surfaceVectorField gradSigma
+            (
+                fvc::interpolate(fvc::grad(sigma))
+            );
+
+            const surfaceVectorField nHat
+            (
+                nHatfv(alpha1, alpha2)
+            );
+
+            stf += fvc::interpolate(sigma*K(alpha1, alpha2, U))*
+                (
+                    fvc::interpolate(alpha2)*fvc::snGrad(alpha1)
+                  - fvc::interpolate(alpha1)*fvc::snGrad(alpha2)
+                ) +
+                (
+                    (
+                        fvc::interpolate
+                        (
+                            mag
+                            (
+                                alpha2*fvc::grad(alpha1)
+                              - alpha1*fvc::grad(alpha2)
+                            )
+                        ) * (gradSigma - (gradSigma&nHat)*nHat)
+                    ) & (mesh_.Sf() / mesh_.magSf())
+                );
+        }
+    }
+
+    return tstf;
+}
 
 
 void Foam::multicomponentVoFMixture::correctThermo()
@@ -84,11 +237,11 @@ void Foam::multicomponentVoFMixture::correct()
     compressibleMultiphaseVoFMixture::correct();
 
     rhoCp_ = Zero;
-    forAll(phases(), phasei)
+    forAll(phases_, phasei)
     {
-        rhoCp_ += phases()[phasei]
-                 *phases()[phasei].thermo().rho()
-                 *phases()[phasei].thermo().Cp();
+        rhoCp_ += phases_[phasei]
+                 *phases_[phasei].thermo().rho()
+                 *phases_[phasei].thermo().Cp();
     }
 }
 
@@ -100,20 +253,20 @@ Foam::tmp<Foam::volScalarField> Foam::multicomponentVoFMixture::kappaEff
 {
     tmp<volScalarField> tkappaEff
     (
-        phases()[0]
+        phases_[0]
        *(
-            phases()[0].thermo().kappa()
-          + phases()[0].thermo().rho()*phases()[0].thermo().Cp()*nut
+            phases_[0].thermo().kappa()
+          + phases_[0].thermo().rho()*phases_[0].thermo().Cp()*nut
         )
     );
 
-    for (label phasei=1; phasei<phases().size(); phasei++)
+    for (label phasei=1; phasei<phases_.size(); phasei++)
     {
         tkappaEff.ref() +=
-            phases()[phasei]
+            phases_[phasei]
            *(
-               phases()[phasei].thermo().kappa()
-             + phases()[phasei].thermo().rho()*phases()[phasei].thermo().Cp()*nut
+               phases_[phasei].thermo().kappa()
+             + phases_[phasei].thermo().rho()*phases_[phasei].thermo().Cp()*nut
             );
     }
 

@@ -47,6 +47,8 @@ See also
 
 #include "compressibleMultiphaseVoFMixture.H"
 
+#include "surfaceTensionModel.H"
+
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam
@@ -62,11 +64,24 @@ class multicomponentVoFMixture
 {
     // Private Data
 
+        //- Phases
+        UPtrListDictionary<compressibleVoFphase>& phases_;
+
         //- Components
-        List<bool> metals_;
+        List<bool> missible_;
 
         //- Heat capacity
         volScalarField rhoCp_;
+
+        //- surface tension models
+        typedef HashTable
+            <
+                autoPtr<surfaceTensionModel>,
+                interfacePair,
+                interfacePair::hash
+            > sigmaPtrTable;
+
+        sigmaPtrTable sigmaPtrs_;
 
 
 public:
@@ -87,7 +102,13 @@ public:
 
     // Member Functions
 
-        // Access heat capacity
+        //- Surface tension force
+        tmp<surfaceScalarField> surfaceTensionForce
+        (
+            const volVectorField& U
+        ) const;
+
+        //- Access heat capacity
         const volScalarField& rhoCp() const
         {
             return rhoCp_;
@@ -106,9 +127,9 @@ public:
         );
 
         //- Phases missible?
-        bool missible(label i, label j)
+        bool missible(label phasei, label phasej)
         {
-            return metals_[i] && metals_[j];
+            return missible_[phasei] && missible_[phasej];
         }
 
 };

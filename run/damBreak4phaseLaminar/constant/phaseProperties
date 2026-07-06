@@ -16,14 +16,30 @@ FoamFile
 
 phases (water oil air);
 
-metals (water oil);
+missible (water oil);
 
 sigmas
 (
     (air water)     0.07
     (air oil)       0.07
-    (water oil)     0.0
 );
 
+/*
+sigmaDicts
+(
+    (air water)
+    {
+        sigma
+        {
+            type constant;
+            sigma 0.07;
+        }
+    }
+    (air oil)
+    {
+        sigma 0.07;
+    }
+);
+*/
 
 // ************************************************************************* //

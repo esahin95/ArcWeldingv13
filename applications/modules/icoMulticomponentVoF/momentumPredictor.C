@@ -26,6 +26,10 @@ License
 #include "icoMulticomponentVoF.H"
 #include "fvmSup.H"
 
+#include "fvmDiv.H"
+#include "fvcSnGrad.H"
+#include "fvcReconstruct.H"
+
 // * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
 
 Foam::tmp<Foam::fvVectorMatrix>
@@ -41,7 +45,40 @@ Foam::solvers::icoMulticomponentVoF::divDevTau
 
 void Foam::solvers::icoMulticomponentVoF::momentumPredictor()
 {
-    multiphaseVoFSolver::momentumPredictor();
+    volVectorField& U = U_;
+
+    tUEqn =
+    (
+        fvm::ddt(rho, U) + fvm::div(rhoPhi, U)
+      + MRF.DDt(rho, U)
+      + divDevTau(U)
+     ==
+        fvModels().source(rho, U)
+    );
+    fvVectorMatrix& UEqn = tUEqn.ref();
+
+    UEqn.relax();
+
+    fvConstraints().constrain(UEqn);
+
+    if (pimple.momentumPredictor())
+    {
+        solve
+        (
+            UEqn
+         ==
+            fvc::reconstruct
+            (
+                (
+                    surfaceTensionForce()
+                  - buoyancy.ghf*fvc::snGrad(rho)
+                  - fvc::snGrad(p_rgh)
+                ) * mesh.magSf()
+            )
+        );
+
+        fvConstraints().constrain(U);
+    }
 }
 
 

@@ -1,0 +1,6 @@
+base/base.C
+derived/derived.C
+
+inheritance.C
+
+EXE = $(FOAM_USER_APPBIN)/inheritance

@@ -48,6 +48,7 @@ See also
 #include "compressibleMultiphaseVoFMixture.H"
 
 #include "surfaceTensionModel.H"
+#include "Function2.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -76,12 +77,23 @@ class multicomponentVoFMixture
         //- surface tension models
         typedef HashTable
             <
+                dictionary,
+                interfacePair,
+                interfacePair::hash
+            > dictTable;
+        typedef HashTable
+            <
                 autoPtr<surfaceTensionModel>,
                 interfacePair,
                 interfacePair::hash
             > sigmaPtrTable;
-
         sigmaPtrTable sigmaPtrs_;
+
+        //- Binary mass diffusion coefficient functions
+        sigmaTable Ds_;
+
+        //- Mass diffusion coefficients in the mixture
+        mutable PtrList<volScalarField> Dm_;
 
 
 public:
@@ -124,14 +136,22 @@ public:
         virtual tmp<volScalarField> kappaEff
         (
             const volScalarField& nut
-        );
+        ) const;
 
         //- Phases missible?
-        bool missible(label phasei, label phasej)
+        bool missible(label phasei, label phasej) const
         {
             return missible_[phasei] && missible_[phasej];
         }
 
+        //- Mixture mass diffusion for phase
+        tmp<volScalarField> DEff(const compressibleVoFphase& phase) const;
+
+        //- Mass diffusion flux for phase
+        tmp<surfaceScalarField> j(const compressibleVoFphase& phase) const;
+
+        //- Update mixture diffusion coefficients
+        void updateDm() const;
 };
 
 

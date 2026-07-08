@@ -37,6 +37,8 @@ Description
 
 #include "derived.H"
 
+#include <limits>
+
 using namespace Foam;
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
@@ -52,6 +54,13 @@ int main(int argc, char *argv[])
     derived d(0.0);
 
     d.method();
+
+    Info<<small<<endl;
+    Info<<great<<endl;
+    Info<<(1.0/great)<<endl;
+
+    double x = std::numeric_limits<double>::epsilon();
+    Info<<x<<endl;
 
     return 0;
 }

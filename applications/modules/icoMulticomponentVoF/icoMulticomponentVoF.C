@@ -156,6 +156,8 @@ Foam::solvers::icoMulticomponentVoF::~icoMulticomponentVoF()
 
 void Foam::solvers::icoMulticomponentVoF::prePredictor()
 {
+    mixture.updateDm();
+
     multiphaseVoFSolver::prePredictor();
 
     contErr.ref() = fvc::ddt(rho)() + fvc::div(rhoPhi)();

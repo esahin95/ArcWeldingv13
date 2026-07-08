@@ -14,7 +14,7 @@ FoamFile
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-phases (water oil air);
+phases (oil water air);
 
 missible (water oil);
 
@@ -41,5 +41,10 @@ sigmaDicts
     }
 );
 */
+
+Ds
+(
+    (water oil)     1e-4
+);
 
 // ************************************************************************* //

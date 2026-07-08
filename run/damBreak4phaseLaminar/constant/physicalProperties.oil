@@ -19,7 +19,7 @@ thermoType
     type            heRhoThermo;
     mixture         pureMixture;
     transport       const;
-    thermo          eConst;
+    thermo          hConst;
     equationOfState rhoConst;
     specie          specie;
     energy          sensibleInternalEnergy;
@@ -29,15 +29,15 @@ mixture
 {
     specie
     {
-        molWeight   100.21;
+        molWeight   18.0;//100.21;
     }
     equationOfState
     {
-        rho         684;
+        rho         1027;//684;
     }
     thermodynamics
     {
-        Cv          2240;
+        Cp          2240;
         hf          0;
     }
     transport

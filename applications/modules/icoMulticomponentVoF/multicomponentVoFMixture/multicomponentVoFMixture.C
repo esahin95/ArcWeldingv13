@@ -39,6 +39,11 @@ namespace Foam
 }
 
 
+// * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
+
+
+
+
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
 Foam::multicomponentVoFMixture::multicomponentVoFMixture
@@ -62,7 +67,11 @@ Foam::multicomponentVoFMixture::multicomponentVoFMixture
         ),
         mesh,
         dimensionedScalar("rhoCp", dimEnergy/dimVolume/dimTemperature, 0)
-    )
+    ),
+
+    Ds_(lookup("Ds")),
+
+    Dm_(phases().size())
 {
     {
         wordList missible(lookup("missible"));
@@ -84,13 +93,6 @@ Foam::multicomponentVoFMixture::multicomponentVoFMixture
 
     if (found("sigmaDicts"))
     {
-        typedef HashTable
-            <
-                dictionary,
-                interfacePair,
-                interfacePair::hash
-            > dictTable;
-
         const dictTable sigmaDicts(lookup("sigmaDicts"));
         forAllConstIter(dictTable, sigmaDicts, iter)
         {
@@ -129,7 +131,7 @@ Foam::multicomponentVoFMixture::multicomponentVoFMixture
             const compressibleVoFphase& alpha2 = phases_[phasej];
 
             sigmaPtrTable::const_iterator sigmaPtr =
-            sigmaPtrs_.find(interfacePair(alpha1, alpha2));
+                sigmaPtrs_.find(interfacePair(alpha1, alpha2));
 
             if (sigmaPtr == sigmaPtrs_.end() && !missible(phasei, phasej))
             {
@@ -139,7 +141,40 @@ Foam::multicomponentVoFMixture::multicomponentVoFMixture
                     << " in list of sigma dictionaries"
                     << exit(FatalError);
             }
+
+            sigmaTable::const_iterator D =
+                Ds_.find(interfacePair(alpha1, alpha2));
+
+            if (D == Ds_.end() && missible(phasei, phasej))
+            {
+                FatalErrorInFunction
+                    << "Cannot find binary mass diffusion "
+                    << interfacePair(alpha1, alpha2)
+                    << " in list of interfaces"
+                    << exit(FatalError);
+            }
         }
+    }
+
+    forAll(phases_, phasei)
+    {
+        Dm_.set
+        (
+            phasei,
+            new volScalarField
+            (
+                IOobject
+                (
+                    IOobject::groupName("Dm", phases_[phasei].name()),
+                    mesh_.time().name(),
+                    mesh_,
+                    IOobject::NO_READ,
+                    IOobject::AUTO_WRITE
+                ),
+                mesh,
+                dimensionedScalar(dimKinematicViscosity, Zero)
+            )
+        );
     }
 
     correct();
@@ -249,7 +284,7 @@ void Foam::multicomponentVoFMixture::correct()
 Foam::tmp<Foam::volScalarField> Foam::multicomponentVoFMixture::kappaEff
 (
     const volScalarField& nut
-)
+) const
 {
     tmp<volScalarField> tkappaEff
     (
@@ -273,5 +308,130 @@ Foam::tmp<Foam::volScalarField> Foam::multicomponentVoFMixture::kappaEff
     return tkappaEff;
 }
 
+
+Foam::tmp<Foam::volScalarField> Foam::multicomponentVoFMixture::DEff
+(
+    const compressibleVoFphase& phase
+) const
+{
+    return volScalarField::New("Deff", mesh_, dimKinematicViscosity);
+}
+
+
+Foam::tmp<Foam::surfaceScalarField> Foam::multicomponentVoFMixture::j
+(
+    const compressibleVoFphase& phase
+) const
+{
+    return surfaceScalarField::New("j", mesh_, dimMass/dimArea/dimTime);
+}
+
+
+void Foam::multicomponentVoFMixture::updateDm() const
+{
+    forAll(phases_, phasei)
+    {
+        Dm_[phasei] = Zero;
+    }
+
+    tmp<volScalarField> trhoByW
+    (
+        max(min(phases_[0], 1.0), 0.0)
+       *phases_[0].thermo().rho()
+       /phases_[0].thermo().W()
+    );
+    volScalarField& rhoByW = trhoByW.ref();
+
+    for(label phasei=1; phasei<phases_.size(); phasei++)
+    {
+        rhoByW += max(min(phases_[phasei], 1.0), 0.0)
+                 *phases_[phasei].thermo().rho()
+                 /phases_[phasei].thermo().W();
+    }
+
+    forAll(phases_, phasei)
+    {
+        //if (!missible_[phasei]) continue;
+
+        const compressibleVoFphase& alpha1 = phases_[phasei];
+
+        tmp<volScalarField> tsumRhoByWD
+        (
+            volScalarField::New
+            (
+                "sumRhoByWD",
+                mesh_,
+                dimensionedScalar
+                (
+                    dimMoles/dimVolume/dimKinematicViscosity,
+                    Zero
+                )
+            )
+        );
+        volScalarField& sumRhoByWD = tsumRhoByWD.ref();
+
+        forAll(phases_, phasej)
+        {
+            const compressibleVoFphase& alpha2 = phases_[phasej];
+            if (&alpha1 == &alpha2) continue;
+
+            sigmaTable::const_iterator D =
+                Ds_.find(interfacePair(alpha1, alpha2));
+
+            dimensionedScalar rDij
+            (
+                dimless/dimKinematicViscosity,
+                D == Ds_.end()? 0.0 : 1.0/max(D(), small)
+            );
+            //Info<< alpha1.name() << " , " << alpha2.name() << " : " << rDij<<endl;
+
+            sumRhoByWD += max(min(alpha2, 1.0), 0.0)
+                         *alpha2.thermo().rho()
+                         /alpha2.thermo().W()
+                         *rDij;
+        }
+
+        Info<< phasei << " : " << Dm_[phasei].name() << endl;
+        volScalarField& Dm = Dm_[phasei];
+
+        /*
+        Dm =
+            (
+                rhoByW
+              - max(min(alpha1, 1.0), 0.0)
+               *alpha1.thermo().rho()
+               /alpha1.thermo().W()
+            ) /
+            max
+            (
+                sumRhoByWD,
+                dimensionedScalar(sumRhoByWD.dimensions(), small)
+            );
+        */
+
+        /*
+        Dm =
+            (
+                rhoByW
+              - max(min(alpha1, 1.0), 0.0)
+               *alpha1.thermo().rho()
+               /alpha1.thermo().W()
+            ) / dimensionedScalar(sumRhoByWD.dimensions(), 1.0);
+        */
+
+        Dm =
+            dimensionedScalar(rhoByW.dimensions(), 1.0)/
+            max
+            (
+                sumRhoByWD,
+                dimensionedScalar(sumRhoByWD.dimensions(), small)
+            );
+        /*
+        Dm_[phasei].primitiveFieldRef() = rhoByW.primitiveField() -
+        (phases_[phasei]*phases_[phasei].thermo().rho()/phases_[phasei].thermo().W())().primitiveField();
+        */
+        //Dm_[phasei].primitiveFieldRef() = rhoByWD.primitiveField();
+    }
+}
 
 // ************************************************************************* //

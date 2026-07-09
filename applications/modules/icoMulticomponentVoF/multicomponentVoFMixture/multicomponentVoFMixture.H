@@ -145,10 +145,10 @@ public:
         }
 
         //- Mixture mass diffusion for phase
-        tmp<volScalarField> DEff(const compressibleVoFphase& phase) const;
+        tmp<volScalarField> DEff(const label phasei) const;
 
         //- Mass diffusion flux for phase
-        tmp<surfaceScalarField> j(const compressibleVoFphase& phase) const;
+        tmp<surfaceScalarField> j(const label phasei) const;
 
         //- Update mixture diffusion coefficients
         void updateDm() const;

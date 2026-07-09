@@ -70,35 +70,23 @@ void Foam::solvers::icoMulticomponentVoF::alphaSolve()
         {
             compressibleVoFphase& alpha2 = phases[phasej];
 
-            if (&alpha2 == &alpha) continue;
+            if
+            (
+                &alpha2 == &alpha || mixture.missible(phasei, phasej)
+            ) continue;
 
-            // Diffusion for missible phases, otherwise compression
-            if (mixture.missible(phasei, phasej))
-            {
-                const dimensionedScalar D(dimArea/dimTime, 0);
-                surfaceScalarField phiD
-                (
-                    D*mesh.magSf()
-                   *(
-                        fvc::interpolate(alpha2)*fvc::snGrad(alpha)
-                      - fvc::interpolate(alpha)*fvc::snGrad(alpha2)
-                    )
-                );
+            surfaceScalarField phir(phic*mixture.nHatf(alpha, alpha2));
 
-                alphaPhi += phiD;
-            }
-            else
-            {
-                surfaceScalarField phir(phic*mixture.nHatf(alpha, alpha2));
-
-                alphaPhi += fvc::flux
-                (
-                    -fvc::flux(-phir, alpha2, alpharScheme),
-                    alpha,
-                    alpharScheme
-                );
-            }
+            alphaPhi += fvc::flux
+            (
+                -fvc::flux(-phir, alpha2, alpharScheme),
+                alpha,
+                alpharScheme
+            );
         }
+
+        // Add diffusion mass flux
+        alphaPhi += mixture.j(phasei);
 
         // Limit alphaPhi for each phase
         MULES::limit

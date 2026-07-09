@@ -178,7 +178,9 @@ void Foam::solvers::icoMulticomponentVoF::momentumTransportPredictor()
 
 void Foam::solvers::icoMulticomponentVoF::
 thermophysicalTransportPredictor()
-{}
+{
+    mixture.updateDm();
+}
 
 
 void Foam::solvers::icoMulticomponentVoF::momentumTransportCorrector()
@@ -189,9 +191,7 @@ void Foam::solvers::icoMulticomponentVoF::momentumTransportCorrector()
 
 void Foam::solvers::icoMulticomponentVoF::
 thermophysicalTransportCorrector()
-{
-    mixture.updateDm();
-}
+{}
 
 
 // ************************************************************************* //

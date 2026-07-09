@@ -318,58 +318,65 @@ Foam::tmp<Foam::volScalarField> Foam::multicomponentVoFMixture::kappaEff
 
 Foam::tmp<Foam::volScalarField> Foam::multicomponentVoFMixture::DEff
 (
-    const compressibleVoFphase& phase
+    const label phasei
 ) const
 {
-    return volScalarField::New("Deff", mesh_, dimKinematicViscosity);
+    return volScalarField::New("DEff", rho()*Dm_[phasei]);
 }
 
 
 Foam::tmp<Foam::surfaceScalarField> Foam::multicomponentVoFMixture::j
 (
-    const compressibleVoFphase& phase
+    const label phasei
 ) const
 {
-    return surfaceScalarField::New("j", mesh_, dimMass/dimArea/dimTime);
+    return surfaceScalarField::New
+    (
+        "j",
+        -fvc::interpolate(Dm_[phasei])
+        *mesh_.magSf()
+        *fvc::snGrad(phases_[phasei])
+    );
 }
 
 
 void Foam::multicomponentVoFMixture::updateDm() const
 {
-    tmp<volScalarField> trhoByW
+    volScalarField rhoByW
     (
-        phases_[0]
-       *phases_[0].thermo().rho()
-       /phases_[0].thermo().W()
+        volScalarField::New
+        (
+            "rhoByW",
+            mesh_,
+            dimensionedScalar(dimMoles/dimVolume, Zero)
+        )
     );
-    volScalarField& rhoByW = trhoByW.ref();
 
-    for(label phasei=1; phasei<phases_.size(); phasei++)
+    forAll(phases_, phasei)
     {
         rhoByW += phases_[phasei]
                  *phases_[phasei].thermo().rho()
                  /phases_[phasei].thermo().W();
     }
 
+    volScalarField sumRhoByWD
+    (
+        volScalarField::New
+        (
+            "sumRhoByWD",
+            mesh_,
+            dimMoles/dimVolume/dimKinematicViscosity
+        )
+    );
+
+    dimensionedScalar lBound(sumRhoByWD.dimensions(), 1);
+
     forAll(phases_, phasei)
     {
         if (!missible_[phasei]) continue;
         const compressibleVoFphase& alpha1 = phases_[phasei];
 
-        tmp<volScalarField> tsumRhoByWD
-        (
-            volScalarField::New
-            (
-                "sumRhoByWD",
-                mesh_,
-                dimensionedScalar
-                (
-                    dimMoles/dimVolume/dimKinematicViscosity,
-                    0.0
-                )
-            )
-        );
-        volScalarField& sumRhoByWD = tsumRhoByWD.ref();
+        sumRhoByWD = Zero;
 
         forAll(phases_, phasej)
         {
@@ -396,7 +403,7 @@ void Foam::multicomponentVoFMixture::updateDm() const
                 rhoByW - alpha1*alpha1.thermo().rho()/alpha1.thermo().W()
             ) /
             (
-                sumRhoByWD + dimensionedScalar(sumRhoByWD.dimensions(), 1)
+                sumRhoByWD + lBound
             );
     }
 }

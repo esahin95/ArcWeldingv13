@@ -75,7 +75,7 @@ void Foam::solvers::icoMulticomponentVoF::alphaSolve()
             // Diffusion for missible phases, otherwise compression
             if (mixture.missible(phasei, phasej))
             {
-                const dimensionedScalar D(dimArea/dimTime, 1e-4);
+                const dimensionedScalar D(dimArea/dimTime, 0);
                 surfaceScalarField phiD
                 (
                     D*mesh.magSf()

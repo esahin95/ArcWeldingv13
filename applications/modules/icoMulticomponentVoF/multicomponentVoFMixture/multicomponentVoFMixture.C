@@ -178,6 +178,13 @@ Foam::multicomponentVoFMixture::multicomponentVoFMixture
     }
 
     correct();
+
+    updateDm();
+
+    forAll(phases_, phasei)
+    {
+        Info<<phases_[phasei].thermo().W()().primitiveField()<<endl;
+    }
 }
 
 
@@ -329,14 +336,9 @@ Foam::tmp<Foam::surfaceScalarField> Foam::multicomponentVoFMixture::j
 
 void Foam::multicomponentVoFMixture::updateDm() const
 {
-    forAll(phases_, phasei)
-    {
-        Dm_[phasei] = Zero;
-    }
-
     tmp<volScalarField> trhoByW
     (
-        max(min(phases_[0], 1.0), 0.0)
+        phases_[0]
        *phases_[0].thermo().rho()
        /phases_[0].thermo().W()
     );
@@ -344,15 +346,14 @@ void Foam::multicomponentVoFMixture::updateDm() const
 
     for(label phasei=1; phasei<phases_.size(); phasei++)
     {
-        rhoByW += max(min(phases_[phasei], 1.0), 0.0)
+        rhoByW += phases_[phasei]
                  *phases_[phasei].thermo().rho()
                  /phases_[phasei].thermo().W();
     }
 
     forAll(phases_, phasei)
     {
-        //if (!missible_[phasei]) continue;
-
+        if (!missible_[phasei]) continue;
         const compressibleVoFphase& alpha1 = phases_[phasei];
 
         tmp<volScalarField> tsumRhoByWD
@@ -364,7 +365,7 @@ void Foam::multicomponentVoFMixture::updateDm() const
                 dimensionedScalar
                 (
                     dimMoles/dimVolume/dimKinematicViscosity,
-                    Zero
+                    0.0
                 )
             )
         );
@@ -381,56 +382,22 @@ void Foam::multicomponentVoFMixture::updateDm() const
             dimensionedScalar rDij
             (
                 dimless/dimKinematicViscosity,
-                D == Ds_.end()? 0.0 : 1.0/max(D(), small)
+                D == Ds_.end()? 1e8 : 1.0/max(D(), 1e-8)
             );
-            //Info<< alpha1.name() << " , " << alpha2.name() << " : " << rDij<<endl;
 
-            sumRhoByWD += max(min(alpha2, 1.0), 0.0)
+            sumRhoByWD += alpha2
                          *alpha2.thermo().rho()
                          /alpha2.thermo().W()
                          *rDij;
         }
 
-        Info<< phasei << " : " << Dm_[phasei].name() << endl;
-        volScalarField& Dm = Dm_[phasei];
-
-        /*
-        Dm =
+        Dm_[phasei] =
             (
-                rhoByW
-              - max(min(alpha1, 1.0), 0.0)
-               *alpha1.thermo().rho()
-               /alpha1.thermo().W()
+                rhoByW - alpha1*alpha1.thermo().rho()/alpha1.thermo().W()
             ) /
-            max
             (
-                sumRhoByWD,
-                dimensionedScalar(sumRhoByWD.dimensions(), small)
+                sumRhoByWD + dimensionedScalar(sumRhoByWD.dimensions(), 1)
             );
-        */
-
-        /*
-        Dm =
-            (
-                rhoByW
-              - max(min(alpha1, 1.0), 0.0)
-               *alpha1.thermo().rho()
-               /alpha1.thermo().W()
-            ) / dimensionedScalar(sumRhoByWD.dimensions(), 1.0);
-        */
-
-        Dm =
-            dimensionedScalar(rhoByW.dimensions(), 1.0)/
-            max
-            (
-                sumRhoByWD,
-                dimensionedScalar(sumRhoByWD.dimensions(), small)
-            );
-        /*
-        Dm_[phasei].primitiveFieldRef() = rhoByW.primitiveField() -
-        (phases_[phasei]*phases_[phasei].thermo().rho()/phases_[phasei].thermo().W())().primitiveField();
-        */
-        //Dm_[phasei].primitiveFieldRef() = rhoByWD.primitiveField();
     }
 }
 

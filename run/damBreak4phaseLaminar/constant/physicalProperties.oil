@@ -29,11 +29,11 @@ mixture
 {
     specie
     {
-        molWeight   18.0;//100.21;
+        molWeight   100.21;
     }
     equationOfState
     {
-        rho         1027;//684;
+        rho         684;
     }
     thermodynamics
     {

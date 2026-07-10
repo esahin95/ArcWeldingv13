@@ -1,0 +1,3 @@
+icoMultiPhaseChangeVoF.C
+
+LIB = $(FOAM_USER_LIBBIN)/libicoMultiPhaseChangeVoF

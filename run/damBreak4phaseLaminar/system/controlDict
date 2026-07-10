@@ -14,7 +14,7 @@ FoamFile
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-solver          icoMulticomponentVoF;
+solver          icoMultiPhaseChangeVoF;
 //solver          compressibleMultiphaseVoF;
 
 startFrom       startTime;

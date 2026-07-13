@@ -98,6 +98,12 @@ protected:
         Foam::pressureReference pressureReference_;
 
 
+    // Kinematic properties
+
+        //- Phase mass fluxes
+        PtrList<surfaceScalarField> alphaRhoPhis_;
+
+
     // Momentum transport
 
         //- Momentum transport model pointer

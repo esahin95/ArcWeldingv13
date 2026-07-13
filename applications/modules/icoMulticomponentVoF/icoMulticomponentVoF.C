@@ -89,6 +89,8 @@ Foam::solvers::icoMulticomponentVoF::icoMulticomponentVoF
         false
     ),
 
+    alphaRhoPhis_(phases.size()),
+
     momentumTransport_
     (
         compressible::momentumTransportModel::New
@@ -143,6 +145,27 @@ Foam::solvers::icoMulticomponentVoF::icoMulticomponentVoF
             << "At least one phase is compressible!"
             << exit(FatalError);
     }
+
+    forAll(phases, phasei)
+    {
+        const compressibleVoFphase& alpha = phases[phasei];
+
+        alphaRhoPhis_.set
+        (
+            phasei,
+            new surfaceScalarField
+            (
+                IOobject
+                (
+                    IOobject::groupName("alphaRhoPhi", alpha.name()),
+                    mesh.time().name(),
+                    mesh
+                ),
+                mesh,
+                dimensionedScalar(rhoPhi.dimensions(), 0.0)
+            )
+        );
+    }
 }
 
 
@@ -156,6 +179,8 @@ Foam::solvers::icoMulticomponentVoF::~icoMulticomponentVoF()
 
 void Foam::solvers::icoMulticomponentVoF::prePredictor()
 {
+    mixture.updateDm();
+
     multiphaseVoFSolver::prePredictor();
 
     contErr.ref() = fvc::ddt(rho)() + fvc::div(rhoPhi)();
@@ -178,9 +203,7 @@ void Foam::solvers::icoMulticomponentVoF::momentumTransportPredictor()
 
 void Foam::solvers::icoMulticomponentVoF::
 thermophysicalTransportPredictor()
-{
-    mixture.updateDm();
-}
+{}
 
 
 void Foam::solvers::icoMulticomponentVoF::momentumTransportCorrector()

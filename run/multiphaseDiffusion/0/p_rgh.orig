@@ -8,44 +8,35 @@
 FoamFile
 {
     format      ascii;
-    class       dictionary;
-    location    "constant";
-    object      phaseProperties;
+    class       volScalarField;
+    object      p_rgh;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-phases (oil water air);
+dimensions      [1 -1 -2 0 0 0 0];
 
-missible (water oil);
+internalField   uniform 1e5;
 
-sigmas
-(
-    (air water)     0.07
-    (air oil)       0.07
-    (oil water)     0.00
-);
-
-/*
-sigmaDicts
-(
-    (air water)
+boundaryField
+{
+    "(right|left|bottom)"
     {
-        sigma
-        {
-            type constant;
-            sigma 0.07;
-        }
+        type            fixedFluxPressure;
+        value           $internalField;
     }
-    (air oil)
-    {
-        sigma 0.07;
-    }
-);
-*/
 
-Ds
-(
-    (water oil)     1e-3
-);
+    top
+    {
+        type            prghTotalPressure;
+        p0              $internalField;
+        value           $internalField;
+    }
+
+    "(front|back)"
+    {
+        type            empty;
+    }
+}
+
 
 // ************************************************************************* //

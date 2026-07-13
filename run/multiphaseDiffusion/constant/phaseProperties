@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Version:  13
+    \\  /    A nd           | Version:  10
      \\/     M anipulation  |
 \*---------------------------------------------------------------------------*/
 FoamFile
@@ -14,38 +14,19 @@ FoamFile
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-phases (oil water air);
+phases (water oil air);
 
 missible (water oil);
 
 sigmas
 (
-    (air water)     0.07
-    (air oil)       0.07
-    (oil water)     0.00
+    (air water)     0.00
+    (air oil)       0.00
 );
-
-/*
-sigmaDicts
-(
-    (air water)
-    {
-        sigma
-        {
-            type constant;
-            sigma 0.07;
-        }
-    }
-    (air oil)
-    {
-        sigma 0.07;
-    }
-);
-*/
 
 Ds
 (
-    (water oil)     1e-3
+    (water oil)     1e-4
 );
 
 // ************************************************************************* //

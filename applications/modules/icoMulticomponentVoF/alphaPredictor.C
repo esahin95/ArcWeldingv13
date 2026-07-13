@@ -129,6 +129,8 @@ void Foam::solvers::icoMulticomponentVoF::alphaSolve()
 
         surfaceScalarField& alphaPhi = alphaPhis[phasei];
 
+        surfaceScalarField& alphaRhoPhi = alphaRhoPhis_[phasei];
+
         MULES::explicitSolve
         (
             geometricOneField(),
@@ -136,7 +138,9 @@ void Foam::solvers::icoMulticomponentVoF::alphaSolve()
             alphaPhi
         );
 
-        rhoPhi += fvc::interpolate(alpha.thermo().rho())*alphaPhi;
+        alphaRhoPhi = fvc::interpolate(alpha.thermo().rho())*alphaPhi;
+
+        rhoPhi += alphaRhoPhi;
 
         Info<< alpha.name() << " volume fraction, min, max = "
             << alpha.weightedAverage(mesh.V()).value()
@@ -181,6 +185,23 @@ void Foam::solvers::icoMulticomponentVoF::alphaPredictor()
             dimensionedScalar(rhoPhi.dimensions(), 0)
         );
 
+        PtrList<surfaceScalarField> alphaRhoPhiSums(phases.size());
+        forAll(phases, phasei)
+        {
+            const compressibleVoFphase& alpha = phases[phasei];
+
+            alphaRhoPhiSums.set
+            (
+                phasei,
+                surfaceScalarField::New
+                (
+                    IOobject::groupName("alphaRhoPhiSum", alpha.name()),
+                    mesh,
+                    dimensionedScalar(rhoPhi.dimensions(), 0.0)
+                )
+            );
+        }
+
         const dimensionedScalar totalDeltaT = runTime.deltaT();
 
         UPtrList<volScalarField> alphas(phases.size());
@@ -201,9 +222,18 @@ void Foam::solvers::icoMulticomponentVoF::alphaPredictor()
         {
             alphaSolve();
             rhoPhiSum += (runTime.deltaT()/totalDeltaT)*rhoPhi;
+            forAll(phases, phasei)
+            {
+                alphaRhoPhiSums[phasei] +=
+                    (runTime.deltaT()/totalDeltaT)*alphaRhoPhis_[phasei];
+            }
         }
 
         rhoPhi = rhoPhiSum;
+        forAll(phases, phasei)
+        {
+            alphaRhoPhis_[phasei] = alphaRhoPhiSums[phasei];
+        }
     }
     else
     {

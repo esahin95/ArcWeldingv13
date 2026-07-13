@@ -9,3 +9,5 @@ wmake $targetType icoThermoVoF
 wmake $targetType icoPhaseChangeVoF
 
 wmake $targetType icoMulticomponentVoF
+
+wmake $targetType icoMultiPhaseChangeVoF

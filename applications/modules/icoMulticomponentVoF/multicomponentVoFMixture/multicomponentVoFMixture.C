@@ -169,7 +169,9 @@ Foam::multicomponentVoFMixture::multicomponentVoFMixture
                     mesh_.time().name(),
                     mesh_,
                     IOobject::NO_READ,
-                    IOobject::AUTO_WRITE
+                    debug ?
+                    IOobject::AUTO_WRITE :
+                    IOobject::NO_WRITE
                 ),
                 mesh,
                 dimensionedScalar(dimKinematicViscosity, Zero)
@@ -180,11 +182,6 @@ Foam::multicomponentVoFMixture::multicomponentVoFMixture
     correct();
 
     updateDm();
-
-    forAll(phases_, phasei)
-    {
-        Info<<phases_[phasei].thermo().W()().primitiveField()<<endl;
-    }
 }
 
 
@@ -315,7 +312,7 @@ Foam::tmp<Foam::volScalarField> Foam::multicomponentVoFMixture::kappaEff
     return tkappaEff;
 }
 
-
+/*
 Foam::tmp<Foam::volScalarField> Foam::multicomponentVoFMixture::DEff
 (
     const label phasei
@@ -323,6 +320,7 @@ Foam::tmp<Foam::volScalarField> Foam::multicomponentVoFMixture::DEff
 {
     return volScalarField::New("DEff", rho()*Dm_[phasei]);
 }
+*/
 
 
 Foam::tmp<Foam::surfaceScalarField> Foam::multicomponentVoFMixture::j

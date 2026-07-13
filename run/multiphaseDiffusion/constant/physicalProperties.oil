@@ -9,47 +9,46 @@ FoamFile
 {
     format      ascii;
     class       dictionary;
-    location    "system";
-    object      setFieldsDict;
+    location    "constant";
+    object      physicalProperties;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-defaultValues
+thermoType
 {
-    alpha.air       1;
-    alpha.water     0;
-    alpha.oil       0;
+    type            heRhoThermo;
+    mixture         pureMixture;
+    transport       const;
+    thermo          hConst;
+    equationOfState rhoConst;
+    specie          specie;
+    energy          sensibleInternalEnergy;
 }
 
-zones
+mixture
 {
-    water
+    specie
     {
-        type        box;
-
-        box         (0 0 -1) (0.1461 0.2 1);
-
-        values
-        {
-            alpha.water     1;
-            alpha.oil       0;
-            alpha.air       0;
-        }
+        molWeight   18.0;
     }
 
-    oil
+    equationOfState
     {
-        type        box;
+        rho         1562.5;
+    }
 
-        box         (0.1461 0 -1) (0.2922 0.2 1);
+    thermodynamics
+    {
+        Cp          1007;
+        hf          0;
+    }
 
-        values
-        {
-            alpha.water     0;
-            alpha.oil       1;
-            alpha.air       0;
-        }
+    transport
+    {
+        mu          0.005;
+        kappa       12.5;
     }
 }
+
 
 // ************************************************************************* //

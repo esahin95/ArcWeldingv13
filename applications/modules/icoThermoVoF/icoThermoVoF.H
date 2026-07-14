@@ -25,8 +25,8 @@ Class
     Foam::solvers::icoThermoVoF
 
 Description
-    Solver module for 2 incompressible, isothermal immiscible fluids using a
-    VOF (volume of fluid) phase-fraction based interface capturing approach,
+    Solver module for 2 incompressible non-isothermal immiscible fluids using
+    a VOF (volume of fluid) phase fraction based interface capturing approach,
     with optional mesh motion and mesh topology changes including adaptive
     re-meshing.
 
@@ -42,8 +42,12 @@ Description
     pseudo-transient and steady simulations.
 
     Optional fvModels and fvConstraints are provided to enhance the simulation
-    in many ways including adding various sources, Lagrangian
-    particles, surface film etc. and constraining or limiting the solution.
+    in many ways including adding various sources like laser heat source, grey
+    body radiation and Boussinesq force.
+
+    Energy equation is build based on icoReactingMultiphaseInterFoam. Alpha
+    predictor and pressure corrector are taken from twoPhaseVoFSolver and are
+    identical to incompressibleVoF.
 
 SourceFiles
     icoThermoVoF.C
@@ -51,7 +55,6 @@ SourceFiles
 See also
     Foam::solvers::VoFSolver
     Foam::solvers::twoPhaseVoFSolver
-    Foam::solvers::compressibleVoF
 
 \*---------------------------------------------------------------------------*/
 

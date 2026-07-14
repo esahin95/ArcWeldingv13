@@ -25,10 +25,12 @@ Class
     Foam::solvers::icoMulticomponentVoF
 
 Description
-    Solver module for the solution of multiple compressible, isothermal
+    Solver module for the solution of multiple incompressible, non-isothermal
     immiscible fluids using a VOF (volume of fluid) phase-fraction based
     interface capturing approach, with optional mesh motion and mesh topology
-    changes including adaptive re-meshing.
+    changes including adaptive re-meshing. Selection of phases can be set to
+    be missible with zero surface tension and interface compression, but
+    non-zero diffusivity.
 
     The momentum and other fluid properties are of the "mixture" and a single
     momentum equation is solved.
@@ -39,11 +41,15 @@ Description
     Uses the flexible PIMPLE (PISO-SIMPLE) solution for time-resolved and
     pseudo-transient and steady simulations.
 
+    Energy equation is based on icoReactingMultiphaseInterFoam with mixture
+    averaged binary mass diffusion coefficients and diffusion fluxes from
+    generalized Fick's law. Alpha predictor and pressure corrector are taken
+    from incompressibleMultiphaseVoF.
+
 SourceFiles
     icoMulticomponentVoF.C
 
 See also
-    Foam::solvers::VoFSolver
     Foam::solvers::multiphaseVoFSolver
 
 \*---------------------------------------------------------------------------*/

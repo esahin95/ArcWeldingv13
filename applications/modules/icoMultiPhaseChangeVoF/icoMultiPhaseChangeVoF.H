@@ -25,26 +25,22 @@ Class
     Foam::solvers::icoMultiPhaseChangeVoF
 
 Description
-    Solver module for the solution of multiple compressible, isothermal
+    Solver module for the solution of multiple incompressible, non-isothermal
     immiscible fluids using a VOF (volume of fluid) phase-fraction based
     interface capturing approach, with optional mesh motion and mesh topology
-    changes including adaptive re-meshing.
+    changes including adaptive re-meshing. Selection of phases can be set to
+    be missible with zero surface tension and interface compression, but
+    non-zero diffusivity.
 
-    The momentum and other fluid properties are of the "mixture" and a single
-    momentum equation is solved.
-
-    A mixture approach for momentum transport is provided in which a single
-    laminar, RAS or LES model is selected to model the momentum stress.
-
-    Uses the flexible PIMPLE (PISO-SIMPLE) solution for time-resolved and
-    pseudo-transient and steady simulations.
+    Inherits from icoMulticomponentVoF and adds solidification and evaporation
+    phase change models for first given phase. Models are runtime selectable.
+    Energy equation is iterated until given tolerance is reached.
 
 SourceFiles
     icoMultiPhaseChangeVoF.C
 
 See also
-    Foam::solvers::VoFSolver
-    Foam::solvers::multiphaseVoFSolver
+    Foam::solvers::icoMulticomponentVoF
 
 \*---------------------------------------------------------------------------*/
 

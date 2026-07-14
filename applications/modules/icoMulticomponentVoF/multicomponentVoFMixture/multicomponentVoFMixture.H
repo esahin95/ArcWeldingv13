@@ -31,14 +31,14 @@ Description
     compressible turbulence models.
 
     Surface tension and contact-angle is handled for the interface between each
-    phase-pair.
+    phase-pair. Surface tension and interface compression are ignored between
+    missible phases, which have diffusion instead.
 
 SourceFiles
     multicomponentVoFMixture.C
 
 See also
-    Foam::multiphaseVoFMixture
-    Foam::compressibleVoFphase
+    Foam::compressibleVoFMixture
 
 \*---------------------------------------------------------------------------*/
 

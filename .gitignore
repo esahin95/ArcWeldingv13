@@ -2,6 +2,7 @@
 platforms/
 linux64*/
 .vscode/
+.venv/
 lnInclude/
 
 # match runtime directories excluding initial directories

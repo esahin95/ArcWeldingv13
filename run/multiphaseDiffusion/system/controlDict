@@ -55,7 +55,7 @@ maxCo           0.5;
 maxAlphaCo      0.5;
 maxDiCo         1000000.0;
 
-maxDeltaT       3e-7;
+maxDeltaT       1e-6;
 
 
 // ************************************************************************* //
@@ -75,4 +75,5 @@ functions
 {
     #includeFunc cellMax
     #includeFunc cellMin
+    #includeFunc lineUniform
 }

@@ -42,7 +42,7 @@ mixture
         Cp          1007;
         hf          0;
     }
-    
+
     transport
     {
         mu          0.005;
@@ -50,5 +50,14 @@ mixture
     }
 }
 
+solidification
+{
+    type    none;
+}
+
+evaporation
+{
+    type    none;
+}
 
 // ************************************************************************* //

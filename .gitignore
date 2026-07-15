@@ -23,3 +23,5 @@ log.*
 # match results directory and files
 results
 *.png
+*.pdf
+*.mp4

@@ -23,7 +23,6 @@ startFrom       startTime;
 startTime       0;
 
 stopAt          endTime;
-//stopAt          nextWrite;
 
 endTime         0.02;
 
@@ -47,23 +46,19 @@ timePrecision   10;
 
 runTimeModifiable yes;
 
-adjustTimeStep  no;
+adjustTimeStep  yes;
 
 maxCo           0.5;
 maxAlphaCo      0.5;
 maxDiCo         1000.0;
 maxDeltaT       1;
 
-libs ("liblaserDTRM.so");
-
 // ************************************************************************* //
 
 DebugSwitches
 {
     laserDTRM   1;
-    DTRMParticle 1;
-    fresnelLaser 1;
-    fresnelLorentzDrude 1;
+    reflectionModel 1;
 }
 
 OptimisationSwitches

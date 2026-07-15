@@ -27,10 +27,14 @@ mixture
     H2O;
 }
 
-solidificationModel
+solidification
 {
     type    none;
 }
 
+evaporation
+{
+    type    none;
+}
 
 // ************************************************************************* //

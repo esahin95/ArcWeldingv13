@@ -20,7 +20,7 @@ else
     runApplication $(getApplication)
 fi
 
-. .venv/bin/activate
+activate
 python3 compare.py
 deactivate
 

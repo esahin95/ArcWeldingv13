@@ -22,17 +22,17 @@ ddtSchemes
 gradSchemes
 {
     default         Gauss linear;
+    limited         cellLimited<cubic> 1.5 Gauss linear 1;
 }
 
 divSchemes
 {
     default         none;
 
-    //div(phi,alpha)  Gauss interfaceCompression vanLeer 1;
-    div(phi,alpha)  Gauss MPLIC;
+    div(phi,alpha)  Gauss interfaceCompression vanLeer 1;
 
-    div(rhoPhi,U)   Gauss limitedLinear 1;
-    div(rhoPhiCp,T) Gauss limitedLinear 1;
+    div(rhoPhi,U)   Gauss linearUpwind limited;
+    div(rhoPhiCp,T) Gauss linearUpwind limited;
 
     div(((rho*nuEff)*dev2(T(grad(U))))) Gauss linear;
 }

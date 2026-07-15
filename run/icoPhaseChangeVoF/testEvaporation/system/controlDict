@@ -71,5 +71,5 @@ functions
 {
     #includeFunc cellMax;
     #includeFunc cellMin;
-    #includeFunc volField;
+    #includeFunc evaporation;
 }

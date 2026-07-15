@@ -18,4 +18,8 @@ else
     runApplication $(getApplication)
 fi
 
+ sed -n "/lost power/Ip" log.foamRun
+
+ paraview --state=state.pvsm
+
 #------------------------------------------------------------------------------

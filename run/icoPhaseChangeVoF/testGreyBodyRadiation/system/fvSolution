@@ -29,17 +29,6 @@ solvers
         relTol          0;
     }
 
-    /*
-    p_rgh
-    {
-        solver          GAMG;
-        smoother        DICGaussSeidel;
-        tolerance       1e-08;
-        relTol          0.05;
-        maxIter         50;
-    }
-    */
-
     p_rgh
     {
         solver          PCG;

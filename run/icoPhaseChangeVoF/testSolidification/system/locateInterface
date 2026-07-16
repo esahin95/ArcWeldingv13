@@ -15,10 +15,6 @@ type     coded;
 
 writeControl writeTime;
 
-//Ta      ${${FOAM_CASE}/0/T!Tinlet};
-//T       ${${FOAM_CASE}/0/T!Twall};
-
-// Header files for classes and functions, e.g. for fvc::grad
 codeInclude
 #{
     #include "OFstream.H"
@@ -26,24 +22,16 @@ codeInclude
     #include "writeFile.H"
 #};
 
-// Header file paths for Make/options, e.g. for momentum transport models
-// Example:
-// -I$(LIB_SRC)/MomentumTransportModels/incompressible/lnInclude
 codeOptions
 #{
 #};
 
-// Linked libraries for Make/options, e.g. for momentum transport models
-// Not usually required since libraries are already linked to the solver
-// Example:
-// -lincompressibleMomentumTransportModels
 codeLibs
 #{
 #};
 
 codeFields
 #{
-    // Read fields when executing function objects with "foamPostProcess"
     fields.append("alpha.solid.bismuth");
 #};
 
@@ -80,7 +68,7 @@ codeWrite
         true
     );
 
-    os << mesh().time().name() << " " << x << ";" << endl;
+    os << mesh().time().name() << " " << x << endl;
 
     Info<<"Average interface location x = " << x <<endl;
 #};

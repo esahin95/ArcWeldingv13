@@ -15,4 +15,10 @@ runApplication reconstructPar
 
 foamPostProcess -noZero -func locateInterface
 
+. $WM_PROJECT_USER_DIR/.venv/bin/activate
+NAME="comparison.pdf"
+python3 compare.py $NAME
+wslview $NAME
+deactivate
+
 #------------------------------------------------------------------------------

@@ -9,39 +9,16 @@ FoamFile
 {
     format      ascii;
     class       dictionary;
-    object      controlDict;
+    object      limitTemperature;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-solver          fluid;
+limitT
+{
+    type       limitTemperature;
+    cellZone   all;
+    min        ${${FOAM_CASE}/0/T!TWind};
+    max        ${${FOAM_CASE}/0/T!TStack};
+}
 
-startFrom       latestTime;
-
-startTime       0;
-
-stopAt          endTime;
-stopAt          nextWrite;
-
-endTime         5000;
-
-deltaT          0.1;
-
-writeControl    runTime;
-
-writeInterval   200;
-
-purgeWrite      0;
-
-writeFormat     ascii;
-
-writePrecision  8;
-
-writeCompression off;
-
-timeFormat      general;
-
-timePrecision   6;
-
-runTimeModifiable true;
-
-// ************************************************************************* //
+//************************************************************************** //

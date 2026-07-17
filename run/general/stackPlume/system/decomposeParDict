@@ -9,39 +9,30 @@ FoamFile
 {
     format      ascii;
     class       dictionary;
-    object      controlDict;
+    object      decomposeParDict;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-solver          fluid;
+numberOfSubdomains  4;
 
-startFrom       latestTime;
+/*
+    Main methods are:
+    1) Geometric: "simple"; "hierarchical", with ordered sorting, e.g. xyz, yxz
+    2) Scotch: "scotch", when running in serial; "ptscotch", running in parallel
+*/
 
-startTime       0;
+method              hierarchical;
 
-stopAt          endTime;
-stopAt          nextWrite;
+simpleCoeffs
+{
+    n               (2 2 1); // total must match numberOfSubdomains
+}
 
-endTime         5000;
+hierarchicalCoeffs
+{
+    n               (2 2 1); // total must match numberOfSubdomains
+    order           xyz;
+}
 
-deltaT          0.1;
-
-writeControl    runTime;
-
-writeInterval   200;
-
-purgeWrite      0;
-
-writeFormat     ascii;
-
-writePrecision  8;
-
-writeCompression off;
-
-timeFormat      general;
-
-timePrecision   6;
-
-runTimeModifiable true;
 
 // ************************************************************************* //

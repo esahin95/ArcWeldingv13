@@ -8,40 +8,38 @@
 FoamFile
 {
     format      ascii;
-    class       dictionary;
-    object      controlDict;
+    class       LagrangianVectorField;
+    location    "0/Lagrangian/cloud";
+    object      U;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-solver          fluid;
+dimensions      [velocity];
 
-startFrom       latestTime;
+internalField   uniform (0 0 0);
 
-startTime       0;
+boundaryField
+{
+    #includeEtc "caseDicts/setConstraintTypes"
 
-stopAt          endTime;
-stopAt          nextWrite;
+    ".*"
+    {
+        type            escapeVelocity;
+    }
 
-endTime         5000;
+    wall
+    {
+        type            stickVelocity;
+    }
+}
 
-deltaT          0.1;
+sources
+{
+    inlet
+    {
+        type            carrier;
+    }
+}
 
-writeControl    runTime;
-
-writeInterval   200;
-
-purgeWrite      0;
-
-writeFormat     ascii;
-
-writePrecision  8;
-
-writeCompression off;
-
-timeFormat      general;
-
-timePrecision   6;
-
-runTimeModifiable true;
 
 // ************************************************************************* //

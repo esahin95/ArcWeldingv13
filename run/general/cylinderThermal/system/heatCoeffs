@@ -38,6 +38,7 @@ codeOptions
 // -lincompressibleMomentumTransportModels
 codeLibs
 #{
+    //-lcoupledThermophysicalTransportModels
 #};
 
 codeFields
@@ -48,6 +49,8 @@ codeFields
 
 codeWrite
 #{
+    //Info<< mesh().sortedToc() << endl;
+
     const thermophysicalTransportModel& ttm =
         lookupObject<thermophysicalTransportModel>
         (

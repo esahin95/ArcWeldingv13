@@ -9,39 +9,38 @@ FoamFile
 {
     format      ascii;
     class       dictionary;
-    object      controlDict;
+    object      fvSchemes;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-solver          fluid;
+ddtSchemes
+{
+    default         Euler;
+}
 
-startFrom       latestTime;
+gradSchemes
+{
+    default         Gauss linear;
+}
 
-startTime       0;
+divSchemes
+{
+    default         none;
+}
 
-stopAt          endTime;
-stopAt          nextWrite;
+laplacianSchemes
+{
+    default         Gauss linear uncorrected;
+}
 
-endTime         5000;
+interpolationSchemes
+{
+    default         linear;
+}
 
-deltaT          0.1;
-
-writeControl    runTime;
-
-writeInterval   200;
-
-purgeWrite      0;
-
-writeFormat     ascii;
-
-writePrecision  8;
-
-writeCompression off;
-
-timeFormat      general;
-
-timePrecision   6;
-
-runTimeModifiable true;
+snGradSchemes
+{
+    default         uncorrected;
+}
 
 // ************************************************************************* //

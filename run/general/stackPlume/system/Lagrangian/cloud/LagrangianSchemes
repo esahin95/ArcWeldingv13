@@ -9,39 +9,38 @@ FoamFile
 {
     format      ascii;
     class       dictionary;
-    object      controlDict;
+    location    "system/Lagrangian/cloud";
+    object      LagrangianSchemes;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-solver          fluid;
+tracking    linear;
 
-startFrom       latestTime;
+ddtSchemes
+{
+    default     Euler;
+}
 
-startTime       0;
+SpSchemes
+{
+    default     none;
+    Sp(D,U)     implicit;
+    Sp(D,Uc)    explicit;
+}
 
-stopAt          endTime;
-stopAt          nextWrite;
+averagingSchemes
+{}
 
-endTime         5000;
+interpolationSchemes
+{
+    default     cell;
+    Uc          cellPoint;
+}
 
-deltaT          0.1;
+accumulationSchemes
+{
+    ".*"        cellPoint;
+}
 
-writeControl    runTime;
-
-writeInterval   200;
-
-purgeWrite      0;
-
-writeFormat     ascii;
-
-writePrecision  8;
-
-writeCompression off;
-
-timeFormat      general;
-
-timePrecision   6;
-
-runTimeModifiable true;
 
 // ************************************************************************* //

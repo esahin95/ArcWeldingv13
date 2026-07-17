@@ -8,40 +8,31 @@
 FoamFile
 {
     format      ascii;
-    class       dictionary;
-    object      controlDict;
+    class       volScalarField;
+    object      mut;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-solver          fluid;
+dimensions      [0 2 -1 0 0 0 0];
 
-startFrom       latestTime;
+internalField   uniform 0;
 
-startTime       0;
+boundaryField
+{
+    ".*"
+    {
+        type            calculated;
+        value           uniform 0;
+    }
 
-stopAt          endTime;
-stopAt          nextWrite;
+    wall
+    {
+        type            nutkAtmRoughWallFunction;
+        #include        "${${FOAM_CASE}/system/setAtmBoundaryLayerDict"
+        value           uniform 0;
+    }
 
-endTime         5000;
-
-deltaT          0.1;
-
-writeControl    runTime;
-
-writeInterval   200;
-
-purgeWrite      0;
-
-writeFormat     ascii;
-
-writePrecision  8;
-
-writeCompression off;
-
-timeFormat      general;
-
-timePrecision   6;
-
-runTimeModifiable true;
+    #includeEtc "caseDicts/setConstraintTypes"
+}
 
 // ************************************************************************* //

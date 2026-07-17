@@ -9,39 +9,29 @@ FoamFile
 {
     format      ascii;
     class       dictionary;
-    object      controlDict;
+    object      physicalProperties;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-solver          fluid;
+thermoType          constSolidThermo;
 
-startFrom       latestTime;
+rho
+{
+    type        uniform;
+    value       8940;
+}
 
-startTime       0;
+Cv
+{
+    type        uniform;
+    value       385;
+}
 
-stopAt          endTime;
-stopAt          nextWrite;
+kappa
+{
+    type        uniform;
+    value       380;
+}
 
-endTime         5000;
-
-deltaT          0.1;
-
-writeControl    runTime;
-
-writeInterval   200;
-
-purgeWrite      0;
-
-writeFormat     ascii;
-
-writePrecision  8;
-
-writeCompression off;
-
-timeFormat      general;
-
-timePrecision   6;
-
-runTimeModifiable true;
 
 // ************************************************************************* //

@@ -2,37 +2,18 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Version:  13
+    \\  /    A nd           | Version:  dev
      \\/     M anipulation  |
 \*---------------------------------------------------------------------------*/
 FoamFile
 {
     format      ascii;
     class       dictionary;
-    location    "system";
-    object      functions;
+    location    "constant";
+    object      fvModels;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-#includeFunc forceCoeffsCompressible
-#includeFunc residuals
-(
-    name=residuals,
-    fields=(p U)
-)
-#includeFunc streamlinesLine
-(
-    name=streamlines,
-    start=(0.02 -0.04 0),
-    end=(0.02 0.04 0),
-    nPoints=40,
-    U
-)
-#includeFunc patchAverage
-(
-    name=Tmean,
-    patch=cylinder,
-    T
-)
+#includeModel parcelCloud(name=cloud)
 
-// ************************************************************************* //
+//************************************************************************ //

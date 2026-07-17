@@ -8,40 +8,35 @@
 FoamFile
 {
     format      ascii;
-    class       dictionary;
-    object      controlDict;
+    class       volScalarField;
+    object      flueGas;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-solver          fluid;
+dimensions      [0 0 0 0 0 0 0];
 
-startFrom       latestTime;
+internalField   uniform 0;
 
-startTime       0;
+boundaryField
+{
+    inlet
+    {
+        type            fixedValue;
+        value           uniform 1;
+    }
 
-stopAt          endTime;
-stopAt          nextWrite;
+    inletWind
+    {
+        type            fixedValue;
+        value           uniform 0;
+    }
 
-endTime         5000;
+    ".*"
+    {
+        type            zeroGradient;
+    }
 
-deltaT          0.1;
-
-writeControl    runTime;
-
-writeInterval   200;
-
-purgeWrite      0;
-
-writeFormat     ascii;
-
-writePrecision  8;
-
-writeCompression off;
-
-timeFormat      general;
-
-timePrecision   6;
-
-runTimeModifiable true;
+    #includeEtc "caseDicts/setConstraintTypes"
+}
 
 // ************************************************************************* //

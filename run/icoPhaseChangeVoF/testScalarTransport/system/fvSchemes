@@ -27,23 +27,17 @@ gradSchemes
 divSchemes
 {
     default             none;
+
+    div(phi,alpha)  Gauss interfaceCompression vanLeer 1;
+
     divScheme           Gauss limitedLinear 1;
     div(rhoPhi,U)       $divScheme;
     div(rhoPhiCp,T)     $divScheme;
-    div(phi,alpha)  Gauss interfaceCompression vanLeer 1;
+
     div(((rho*nuEff)*dev2(T(grad(U))))) Gauss linear;
 
     // for phaseScalarTransport
-    div(alphaRhoPhi,alpha) Gauss limitedLinear 1;
-
-    // Only for icoPhaseChangeVoF
-
-
-    // Only for compressibleVoF
-    div(alphaRhoPhi,h)  $divScheme;
-    div(alphaRhoPhi,T)  $divScheme;
-    div(rhoPhi,K)       $divScheme;
-    div(phi,p)          $divScheme;
+    div(alphaPhi,heat) $divScheme;
 }
 
 laplacianSchemes

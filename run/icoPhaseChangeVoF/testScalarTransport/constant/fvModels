@@ -20,7 +20,7 @@ boussinesq
 
     phase   water;
 
-    beta    5e-2;
+    beta    2e-2;
 
     T0      300;
 }

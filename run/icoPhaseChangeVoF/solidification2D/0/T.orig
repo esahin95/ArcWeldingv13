@@ -15,6 +15,9 @@ FoamFile
 
 dimensions      [0 0 0 1 0 0 0];
 
+internalField   uniform 540.55;
+
+/*
 internalField   #codeStream
 {
     codeInclude
@@ -28,7 +31,7 @@ internalField   #codeStream
         -I$(LIB_SRC)/finiteVolume/lnInclude \
         -I$(LIB_SRC)/meshTools/lnInclude
     #};
-    
+
     codeLibs
     #{
         -lmeshTools \
@@ -54,6 +57,7 @@ internalField   #codeStream
         writeEntry(os, "", T);
     #};
 };
+*/
 
 boundaryField
 {
@@ -67,7 +71,7 @@ boundaryField
         type            fixedValue;
         value           uniform 540.55;
     }
-    
+
     left
     {
         type            fixedValue;

@@ -15592,7 +15592,7 @@
         <Domain name="bool" id="12254.DecomposePolyhedra.bool"/>
       </Property>
       <Property name="FileName" id="12254.FileName" number_of_elements="1">
-        <Element index="0" value="/home/sahin/OpenFOAM/sahin-13/run/MarangoniWithPhaseChange/MarangoniWithPhaseChange.foam"/>
+        <Element index="0" value="/home/sahin/OpenFOAM/sahin-13/run/icoPhaseChangeVoF/solidification2D/solidification2D.foam"/>
         <Domain name="files" id="12254.FileName.files"/>
       </Property>
       <Property name="LagrangianArrayInfo" id="12254.LagrangianArrayInfo"/>
@@ -16405,19 +16405,19 @@
       <Item id="13770" name="RepresentationAnimationHelper"/>
     </ProxyCollection>
     <ProxyCollection name="pq_helper_proxies.12466">
-      <Item id="12243" name="DataAxesGrid" logname="MarangoniWithPhaseChange.foam(UnstructuredGridRepresentation)/DataAxesGrid/GridAxesRepresentation"/>
-      <Item id="12302" name="GlyphType" logname="MarangoniWithPhaseChange.foam(UnstructuredGridRepresentation)/Glyph3DRepresentation/GlyphType/ArrowSource"/>
-      <Item id="12313" name="GlyphType" logname="MarangoniWithPhaseChange.foam(UnstructuredGridRepresentation)/Glyph3DRepresentation/GlyphType/ConeSource"/>
-      <Item id="12324" name="GlyphType" logname="MarangoniWithPhaseChange.foam(UnstructuredGridRepresentation)/Glyph3DRepresentation/GlyphType/CubeSource"/>
-      <Item id="12335" name="GlyphType" logname="MarangoniWithPhaseChange.foam(UnstructuredGridRepresentation)/Glyph3DRepresentation/GlyphType/CylinderSource"/>
-      <Item id="12346" name="GlyphType" logname="MarangoniWithPhaseChange.foam(UnstructuredGridRepresentation)/Glyph3DRepresentation/GlyphType/LineSource"/>
-      <Item id="12357" name="GlyphType" logname="MarangoniWithPhaseChange.foam(UnstructuredGridRepresentation)/Glyph3DRepresentation/GlyphType/SphereSource"/>
-      <Item id="12368" name="GlyphType" logname="MarangoniWithPhaseChange.foam(UnstructuredGridRepresentation)/Glyph3DRepresentation/GlyphType/GlyphSource2D"/>
-      <Item id="12379" name="GlyphType" logname="MarangoniWithPhaseChange.foam(UnstructuredGridRepresentation)/Glyph3DRepresentation/GlyphType/PipelineConnection"/>
-      <Item id="12392" name="OSPRayScaleFunction" logname="MarangoniWithPhaseChange.foam(UnstructuredGridRepresentation)/SurfaceRepresentation/OSPRayScaleFunction/PiecewiseFunction"/>
-      <Item id="12393" name="OpacityTransferFunction" logname="MarangoniWithPhaseChange.foam(UnstructuredGridRepresentation)/PointGaussianRepresentation/OpacityTransferFunction/PiecewiseFunction"/>
-      <Item id="12291" name="PolarAxes" logname="MarangoniWithPhaseChange.foam(UnstructuredGridRepresentation)/PolarAxes/PolarAxesRepresentation"/>
-      <Item id="12394" name="ScaleTransferFunction" logname="MarangoniWithPhaseChange.foam(UnstructuredGridRepresentation)/PointGaussianRepresentation/ScaleTransferFunction/PiecewiseFunction"/>
+      <Item id="12243" name="DataAxesGrid" logname="solidification2D.foam(UnstructuredGridRepresentation)/DataAxesGrid/GridAxesRepresentation"/>
+      <Item id="12302" name="GlyphType" logname="solidification2D.foam(UnstructuredGridRepresentation)/Glyph3DRepresentation/GlyphType/ArrowSource"/>
+      <Item id="12313" name="GlyphType" logname="solidification2D.foam(UnstructuredGridRepresentation)/Glyph3DRepresentation/GlyphType/ConeSource"/>
+      <Item id="12324" name="GlyphType" logname="solidification2D.foam(UnstructuredGridRepresentation)/Glyph3DRepresentation/GlyphType/CubeSource"/>
+      <Item id="12335" name="GlyphType" logname="solidification2D.foam(UnstructuredGridRepresentation)/Glyph3DRepresentation/GlyphType/CylinderSource"/>
+      <Item id="12346" name="GlyphType" logname="solidification2D.foam(UnstructuredGridRepresentation)/Glyph3DRepresentation/GlyphType/LineSource"/>
+      <Item id="12357" name="GlyphType" logname="solidification2D.foam(UnstructuredGridRepresentation)/Glyph3DRepresentation/GlyphType/SphereSource"/>
+      <Item id="12368" name="GlyphType" logname="solidification2D.foam(UnstructuredGridRepresentation)/Glyph3DRepresentation/GlyphType/GlyphSource2D"/>
+      <Item id="12379" name="GlyphType" logname="solidification2D.foam(UnstructuredGridRepresentation)/Glyph3DRepresentation/GlyphType/PipelineConnection"/>
+      <Item id="12392" name="OSPRayScaleFunction" logname="solidification2D.foam(UnstructuredGridRepresentation)/SurfaceRepresentation/OSPRayScaleFunction/PiecewiseFunction"/>
+      <Item id="12393" name="OpacityTransferFunction" logname="solidification2D.foam(UnstructuredGridRepresentation)/PointGaussianRepresentation/OpacityTransferFunction/PiecewiseFunction"/>
+      <Item id="12291" name="PolarAxes" logname="solidification2D.foam(UnstructuredGridRepresentation)/PolarAxes/PolarAxesRepresentation"/>
+      <Item id="12394" name="ScaleTransferFunction" logname="solidification2D.foam(UnstructuredGridRepresentation)/PointGaussianRepresentation/ScaleTransferFunction/PiecewiseFunction"/>
     </ProxyCollection>
     <ProxyCollection name="pq_helper_proxies.12508">
       <Item id="12502" name="CutFunction" logname="Slice1/CutFunction/Box"/>
@@ -16553,7 +16553,7 @@
       <Item id="12702" name="GeometryRepresentation1" logname="Slice1(GeometryRepresentation)"/>
       <Item id="13520" name="GeometryRepresentation2" logname="Glyph1(GeometryRepresentation)"/>
       <Item id="13747" name="GeometryRepresentation3" logname="Contour1(GeometryRepresentation)"/>
-      <Item id="12466" name="UnstructuredGridRepresentation1" logname="MarangoniWithPhaseChange.foam(UnstructuredGridRepresentation)"/>
+      <Item id="12466" name="UnstructuredGridRepresentation1" logname="solidification2D.foam(UnstructuredGridRepresentation)"/>
       <Item id="12954" name="UnstructuredGridRepresentation2" logname="Clip1(UnstructuredGridRepresentation)"/>
       <Item id="13206" name="UnstructuredGridRepresentation3" logname="Clip2(UnstructuredGridRepresentation)"/>
     </ProxyCollection>
@@ -16571,7 +16571,7 @@
       <Item id="12994" name="Clip2" logname="Clip2"/>
       <Item id="13553" name="Contour1" logname="Contour1"/>
       <Item id="13326" name="Glyph1" logname="Glyph1"/>
-      <Item id="12254" name="MarangoniWithPhaseChange.foam" logname="MarangoniWithPhaseChange.foam"/>
+      <Item id="12254" name="solidification2D.foam" logname="solidification2D.foam"/>
       <Item id="12508" name="Slice1" logname="Slice1"/>
     </ProxyCollection>
     <ProxyCollection name="timekeeper">

@@ -20,4 +20,11 @@ else
     runApplication $(getApplication)
 fi
 
+foamPostProcess -noZero -func heatMass | tee log.heatMass
+
+sed -n "/Total alphaHeat/p" log.heatMass
+sed -n "/Total heat/p" log.heatMass
+
+paraview --state=boussinesq.pvsm
+
 #------------------------------------------------------------------------------

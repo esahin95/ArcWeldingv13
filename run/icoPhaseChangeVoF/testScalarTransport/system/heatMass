@@ -33,29 +33,20 @@ codeFields
 #{
     fields.append("alphaHeat.water");
     fields.append("heat.water");
-    fields.append("alpha.water");
 #};
 
 codeWrite
 #{
-    const volScalarField& alpha1 = mesh().lookupObject<volScalarField>(fields()[0]);
-    const volScalarField& alpha2 = mesh().lookupObject<volScalarField>(fields()[1]);
-    const volScalarField& alpha3 = mesh().lookupObject<volScalarField>(fields()[2]);
-    Info<< alpha1.name() << " , " << alpha2.name()  << endl;
+    const volScalarField& alphaHeat = mesh().lookupObject<volScalarField>(fields()[0]);
+    const volScalarField& heat = mesh().lookupObject<volScalarField>(fields()[1]);
+    Info<< alphaHeat.name() << " , " << heat.name()  << endl;
 
-    const dimensionedScalar intAlpha1 = fvc::domainIntegrate(alpha1);
-    const dimensionedScalar intAlpha2 = fvc::domainIntegrate(alpha2);
-    const dimensionedScalar intAlpha3 = fvc::domainIntegrate((1-alpha3)*alpha2);
-    const dimensionedScalar relErr
-    (
-        "relError",
-        (intAlpha2 - intAlpha1)/intAlpha2
-    );
+    const dimensionedScalar a = fvc::domainIntegrate(alphaHeat);
+    const dimensionedScalar b = fvc::domainIntegrate(heat);
 
-    Info<<"Total heat in " << alpha1.name() << " = " << intAlpha1.value() <<endl;
-    Info<<"Total heat in " << alpha2.name() << " = " << intAlpha2.value() <<endl;
-    Info<<"Heat difference   = " << (intAlpha2-intAlpha3).value() << endl;
-    Info<<"Fraction in phase = " << relErr.value() <<endl;
+    Info<<"Total alphaHeat = " << a.value() <<endl;
+    Info<<"Total heat = " << b.value() <<endl;
+    Info<<"Total difference = " << (b-a).value() << endl;
 
 #};
 

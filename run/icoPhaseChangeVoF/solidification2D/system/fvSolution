@@ -16,17 +16,16 @@ FoamFile
 
 solvers
 {
-    "alpha.bismuth.*"
+    "alpha.*"
     {
-        nCorrectors     2;
-        nSubCycles      1;
+        nCorrectors     1;
+        nSubCycles      polynomial (0 4);
 
-        MULESCorr       yes;
-
-        solver          smoothSolver;
-        smoother        symGaussSeidel;
-        tolerance       1e-8;
-        relTol          0;
+        MULES
+        {
+            nIter       5;
+            tolerance   1e-2;
+        }
     }
 
     p_rgh
@@ -70,7 +69,8 @@ PIMPLE
     nNonOrthogonalCorrectors 0;
     nOuterCorrectors 1;
 
-    nThermoCorr 10;
+    nThermoCorr 20;
+    thermoTol   1e-4;
 
     pRefCell    0;
     pRefValue   0;

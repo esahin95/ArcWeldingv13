@@ -21,6 +21,15 @@ solvers
         nCorrectors     1;
         nSubCycles      polynomial (0 4);
 
+        MULES
+        {
+            nIter       5;
+            tolerance   1e-2;
+        }
+    }
+
+    "heat.*"
+    {
         solver          PBiCGStab;
         preconditioner  DILU;
         tolerance       1e-8;

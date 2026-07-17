@@ -30,16 +30,17 @@ divSchemes
 
     div(phi,alpha)  Gauss interfaceCompression vanLeer 1;
 
-    div(rhoPhi,U)   Gauss upwind;
-    div(rhoPhiCp,T) Gauss upwind;
-    div(alphaRhoPhi,solid) Gauss upwind;
+    divScheme Gauss limitedLinear 1;
+    div(rhoPhi,U)   $divScheme;
+    div(rhoPhiCp,T) $divScheme;
+    div(alphaRhoPhi,solid) $divScheme;
 
     div(((rho*nuEff)*dev2(T(grad(U))))) Gauss linear;
 }
 
 laplacianSchemes
 {
-    default         Gauss linear uncorrected;
+    default         Gauss linear corrected;
 }
 
 interpolationSchemes
@@ -49,7 +50,7 @@ interpolationSchemes
 
 snGradSchemes
 {
-    default         uncorrected;
+    default         corrected;
 }
 
 

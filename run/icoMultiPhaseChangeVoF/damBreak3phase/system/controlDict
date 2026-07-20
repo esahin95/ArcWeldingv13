@@ -55,6 +55,7 @@ maxDeltaT       1;
 
 DebugSwitches
 {
+    MULES   1;
     multicomponentVoFMixture 1;
 }
 

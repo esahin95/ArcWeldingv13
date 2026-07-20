@@ -53,8 +53,20 @@ Foam::solvers::icoMultiPhaseChangeVoF::icoMultiPhaseChangeVoF
 )
 :
     icoMulticomponentVoF(mesh),
+
     solModels_(phases.size()),
-    evaModels_(phases.size())
+
+    evaModels_(phases.size()),
+
+    nThermoCorr_
+    (
+        pimple.dict().lookupOrDefault<label>("nThermoCorr", 20)
+    ),
+
+    thermoTol_
+    (
+        pimple.dict().lookupOrDefault<scalar>("thermoTol", 1e-6)
+    )
 {
     forAll(phases, phasei)
     {
@@ -81,6 +93,32 @@ Foam::solvers::icoMultiPhaseChangeVoF::~icoMultiPhaseChangeVoF()
 
 // * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
 
+Foam::scalar Foam::solvers::icoMultiPhaseChangeVoF::correctPhaseChange()
+{
+    const volScalarField& T = mixture.T();
+
+    // Correct models
+    const scalar res0 = gMax(mag(T.prevIter().v() - T.v())().primitiveField());
+
+    scalar res1 = 0;
+    forAll(solModels_, phasei)
+    {
+        res1 = max(res1, solModels_[phasei].correct());
+    }
+
+    scalar res2 = 0;
+    forAll(evaModels_, phasei)
+    {
+        res2 = max(res2, evaModels_[phasei].correct());
+    }
+
+    Info<< "resT = " << res0 << " , "
+        << "resS = " << res1 << " , "
+        << "resE = " << res2 << endl;
+
+    // return maximum
+    return max(res1, res2);
+}
 
 
 // ************************************************************************* //

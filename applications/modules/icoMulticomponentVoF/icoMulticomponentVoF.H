@@ -195,6 +195,9 @@ public:
 
     // Member Functions
 
+        //- Return the current maximum time-step for stable solution
+        virtual scalar maxDeltaT() const;
+
         //- Called at the start of the PIMPLE loop
         virtual void prePredictor();
 

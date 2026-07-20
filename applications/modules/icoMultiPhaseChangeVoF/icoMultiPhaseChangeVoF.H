@@ -77,6 +77,24 @@ protected:
         // Evaporation model pointers
         PtrList<evaporationModel> evaModels_;
 
+    // Numerical Controls
+
+        // Thermo corrections
+        const label nThermoCorr_;
+
+        // Thermo tolerance
+        const scalar thermoTol_;
+
+
+    // Private member functions
+
+        // Add source terms
+        template<class Type>
+        void addSup(fvMatrix<Type>& eqn) const;
+
+        // Correct phase change models
+        scalar correctPhaseChange();
+
 public:
 
     //- Runtime type information
@@ -99,6 +117,15 @@ public:
     virtual ~icoMultiPhaseChangeVoF();
 
 
+    // Member Functions
+
+        //- Construct and optionally solve the momentum equation
+        virtual void momentumPredictor();
+
+        //- Construct and solve the energy equation
+        virtual void thermophysicalPredictor();
+
+
     // Member Operators
 
         //- Disallow default bitwise assignment
@@ -112,6 +139,11 @@ public:
 } // End namespace Foam
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+#ifdef NoRepository
+    #include "icoMultiPhaseChangeVoFTemplates.C"
+#endif
+
 
 #endif
 

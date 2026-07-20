@@ -57,7 +57,9 @@ maxDeltaT       1e-6;
 // ************************************************************************* //
 
 DebugSwitches
-{}
+{
+    MULES 1;
+}
 
 OptimisationSwitches
 {

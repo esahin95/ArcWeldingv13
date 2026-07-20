@@ -20,6 +20,12 @@ solvers
     {
         nSubCycles      polynomial (0 2);
         cAlpha          1;
+
+        MULES
+        {
+            nIter       5;
+            tolerance   1e-3;
+        }
     }
 
     /*

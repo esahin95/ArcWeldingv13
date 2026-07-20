@@ -177,6 +177,13 @@ Foam::solvers::icoMulticomponentVoF::~icoMulticomponentVoF()
 
 // * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
 
+Foam::scalar Foam::solvers::icoMulticomponentVoF::maxDeltaT() const
+{
+    scalar deltaT = multiphaseVoFSolver::maxDeltaT();
+
+    return deltaT;
+}
+
 void Foam::solvers::icoMulticomponentVoF::prePredictor()
 {
     mixture.updateDm();

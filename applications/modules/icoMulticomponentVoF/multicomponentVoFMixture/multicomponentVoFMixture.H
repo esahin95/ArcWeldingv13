@@ -146,6 +146,7 @@ public:
 
         //- Mixture mass diffusion for phase
         //tmp<volScalarField> DEff(const label phasei) const;
+        const volScalarField& Dm(const label phasei) const;
 
         //- Mass diffusion flux for phase
         tmp<surfaceScalarField> j(const label phasei) const;

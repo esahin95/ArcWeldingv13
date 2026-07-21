@@ -312,15 +312,14 @@ Foam::tmp<Foam::volScalarField> Foam::multicomponentVoFMixture::kappaEff
     return tkappaEff;
 }
 
-/*
-Foam::tmp<Foam::volScalarField> Foam::multicomponentVoFMixture::DEff
+const Foam::volScalarField& Foam::multicomponentVoFMixture::Dm
 (
     const label phasei
 ) const
 {
-    return volScalarField::New("DEff", rho()*Dm_[phasei]);
+    // volScalarField::New("Dm", rho()*Dm_[phasei])
+    return Dm_[phasei];
 }
-*/
 
 
 Foam::tmp<Foam::surfaceScalarField> Foam::multicomponentVoFMixture::j

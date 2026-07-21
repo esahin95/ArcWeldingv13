@@ -181,6 +181,78 @@ Foam::scalar Foam::solvers::icoMulticomponentVoF::maxDeltaT() const
 {
     scalar deltaT = multiphaseVoFSolver::maxDeltaT();
 
+    const scalarField& V = mesh.V().primitiveField();
+
+    {
+        const scalarField sumDif
+        (
+            fvc::surfaceSum
+            (
+                mesh.magSf()
+                * fvc::interpolate(mixture.kappaEff(momentumTransport.nut()))
+                * mesh.surfaceInterpolation::deltaCoeffs()
+            )().primitiveField()
+        );
+
+        const scalarField sumDiv
+        (
+            V*rhoCp().primitiveField()
+        );
+
+        const scalar diCoNum =
+            gMax(sumDif/sumDiv)*runTime.deltaTValue();
+
+        const scalar meanDiCoNum =
+            gSum(sumDif)/gSum(sumDiv)*runTime.deltaTValue();
+
+        Info<< "Thermal Courant Number mean: " << meanDiCoNum
+            << " max: " << diCoNum << endl;
+
+        const scalar maxDiCo =
+            runTime.controlDict().lookup<scalar>("maxEnCo");
+
+        if (diCoNum > small)
+        {
+            deltaT = min(deltaT, maxDiCo/diCoNum*runTime.deltaTValue());
+        }
+    }
+
+    {
+        scalar diCoNum = 0.0;
+        scalar meanDiCoNum = 0.0;
+
+        const scalarField& V = mesh.V().primitiveField();
+        const scalar deltaTBySumV = runTime.deltaTValue()/gSum(V);
+
+        forAll(phases, phasei)
+        {
+            const scalarField sumDif
+            (
+                fvc::surfaceSum
+                (
+                    mesh.magSf()
+                    * fvc::interpolate(mixture.Dm(phasei))
+                    * mesh.surfaceInterpolation::deltaCoeffs()
+                )().primitiveField()
+            );
+
+            diCoNum = max(diCoNum, gMax(sumDif/V)*runTime.deltaTValue());
+
+            meanDiCoNum = max(meanDiCoNum, gSum(sumDif)*deltaTBySumV);
+        }
+
+        Info<< "Diffusion Courant Number mean: " << meanDiCoNum
+            << " max: " << diCoNum << endl;
+
+        const scalar maxDiCo =
+            runTime.controlDict().lookup<scalar>("maxDiCo");
+
+        if (diCoNum > small)
+        {
+            deltaT = min(deltaT, maxDiCo/diCoNum*runTime.deltaTValue());
+        }
+    }
+
     return deltaT;
 }
 

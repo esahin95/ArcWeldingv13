@@ -62,7 +62,6 @@ SourceFiles
 
 #include "fvMeshFunctionObject.H"
 #include "logFiles.H"
-#include "point.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -83,42 +82,24 @@ class traceSurface
     // Private Data
 
         //- Name of the alpha field
-        word alphaName_;
+        const word alphaName_;
 
-        //- Is the alpha field that of the liquid under the wave?
-        bool liquid_;
+        //- Area to sample
+        const List<vector> corners_;
 
-        //- List of locations to report the height at
-        List<point> locations_;
+        //- Discretization
+        const label nx_;
+        const label ny_;
+        const label ns_;
 
         //- Interpolation scheme
-        word interpolationScheme_;
-
-        //- Normal
-        const vector n_;
+        const word interpolationScheme_;
 
 
     // Private Member Functions
 
         //- Output positions
         void writePositions();
-
-
-    // Private Enumerations
-
-        //- File enumeration
-        enum class fileID
-        {
-            heightFile = 0,
-            positionFile = 1
-        };
-
-        using logFiles::file;
-
-        Ostream& file(const fileID fid)
-        {
-            return logFiles::file(label(fid));
-        }
 
 
 protected:
@@ -151,9 +132,6 @@ public:
 
 
     // Member Functions
-
-        //- Read
-        virtual bool read(const dictionary&);
 
         //- Return the list of fields required
         virtual wordList fields() const;

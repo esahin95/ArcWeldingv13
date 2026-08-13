@@ -22,7 +22,7 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::functionObjects::traceSurface
+    Foam::functionObjects::fillFraction
 
 Description
     This function object reports the height of the interface above a set of
@@ -34,9 +34,9 @@ Description
 
     Example of function object specification:
     \verbatim
-    traceSurface1
+    fillFraction1
     {
-        type           traceSurface;
+        type           fillFraction;
         libs           ("libfieldFunctionObjects.so");
         alpha          alpha.water;
         locations      ((0 0 0) (10 0 0) (20 0 0));
@@ -53,18 +53,17 @@ Usage
     \endtable
 
 SourceFiles
-    traceSurface.C
+    fillFraction.C
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef traceSurface_H
-#define traceSurface_H
+#ifndef fillFraction_H
+#define fillFraction_H
 
-#include "fvMeshFunctionObject.H"
-#include "logFiles.H"
+#include "traceSurface.H"
 
-#include "Cloud.H"
-#include "tracerParticle.H"
+//#include "Cloud.H"
+//#include "tracerParticle.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -74,43 +73,17 @@ namespace functionObjects
 {
 
 /*---------------------------------------------------------------------------*\
-                       Class traceSurface Declaration
+                       Class fillFraction Declaration
 \*---------------------------------------------------------------------------*/
 
-class traceSurface
+class fillFraction
 :
-    public fvMeshFunctionObject,
-    public logFiles
+    public traceSurface
 {
-    // Private Data
-
-        //- Name of the alpha field
-        const word alphaName_;
-
-        //- Area to sample
-        const List<vector> corners_;
-
-        //- Discretization
-        const label nx_;
-        const label ny_;
-        const label ns_;
-
-        //- Track length
-        const scalar maxTrackLength_;
-
-
-    // Private Member Functions
-
-        //- Output positions
-        void writePositions();
-
 
 protected:
 
     // Protected Member Functions
-
-        //- Output file header information
-        virtual void writeFileHeader(const label i = 0);
 
         //- Output quantity
         virtual scalar output(lagrangian::Cloud<tracerParticle>& cloud);
@@ -119,13 +92,13 @@ protected:
 public:
 
     //- Runtime type information
-    TypeName("traceSurface");
+    TypeName("fillFraction");
 
 
     // Constructors
 
         //- Construct from Time and dictionary
-        traceSurface
+        fillFraction
         (
             const word& name,
             const Time& runTime,
@@ -134,28 +107,8 @@ public:
 
 
     //- Destructor
-    virtual ~traceSurface();
+    virtual ~fillFraction();
 
-
-    // Member Functions
-
-        //- Return the list of fields required
-        virtual wordList fields() const;
-
-        //- Execute
-        virtual bool execute();
-
-        //- Execute at the final time-loop
-        virtual bool end();
-
-        //- Write
-        virtual bool write();
-
-        //- Necessary for output
-        scalar ns() const
-        {
-            return ns_;
-        }
 };
 
 

@@ -77,6 +77,9 @@ class tracerParticle
         //- Direction
         vector d_;
 
+        //- Filled fraction
+        scalar a_;
+
 
 public:
 
@@ -147,6 +150,12 @@ public:
             scalar h() const
             {
                 return h_;
+            }
+
+            //- Fill fraction
+            scalar a() const
+            {
+                return a_;
             }
 
         // Patch interactions

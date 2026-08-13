@@ -1,6 +1,0 @@
-tracerParticle/tracerParticle.C
-tracerParticle/tracerParticleIO.C
-
-traceSurface.C
-
-LIB = $(FOAM_USER_LIBBIN)/libtraceSurface

@@ -45,7 +45,7 @@ Foam::tracerParticle::tracerParticle(Istream& is, bool readFields)
         if (is.format() == IOstream::ASCII)
         {
             h_ = readScalar(is);
-            is >> d_;
+            is >> d_ >> a_;
         }
         else
         {
@@ -65,7 +65,8 @@ Foam::Ostream& Foam::operator<<(Ostream& os, const tracerParticle& p)
     {
         os  << static_cast<const particle&>(p)
             << token::SPACE << p.h_
-            << token::SPACE << p.d_;
+            << token::SPACE << p.d_
+            << token::SPACE << p.a_;
     }
     else
     {

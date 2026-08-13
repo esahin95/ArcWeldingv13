@@ -33,9 +33,6 @@ License
 #include "volFields.H"
 #include "addToRunTimeSelectionTable.H"
 
-#include "Cloud.H"
-#include "tracerParticle.H"
-
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
 namespace Foam
@@ -132,12 +129,9 @@ void Foam::functionObjects::traceSurface::writePositions()
             }
 
             cloud.move(cloud, td);
-            scalar h = 0.0;
-            forAllConstIter(lagrangian::Cloud<tracerParticle>, cloud, iter)
-            {
-                //Info<< iter().h() << " " << (p0 & d3) << " " << d3 << p0 << endl;
-                h += iter().h();// - h0;
-            }
+
+            // Surface height
+            scalar out = output(cloud);
 
             if (Pstream::master())
             {
@@ -145,7 +139,7 @@ void Foam::functionObjects::traceSurface::writePositions()
 
                 file() << w << x+0.5*dx
                        << w << y+0.5*dy
-                       << w << (h / scalar(ns_*ns_));
+                       << w << out;
                 file().endl();
             }
 
@@ -166,6 +160,20 @@ void Foam::functionObjects::traceSurface::writeFileHeader(const label i)
     const Foam::Omanip<int> w = valueWidth(1);
     file() << w << "# x" << w << "y" << w << "h";
     file().endl();
+}
+
+Foam::scalar Foam::functionObjects::traceSurface::output
+(
+    lagrangian::Cloud<tracerParticle>& cloud
+)
+{
+    scalar h = 0.0;
+    forAllConstIter(lagrangian::Cloud<tracerParticle>, cloud, iter)
+    {
+        h = max(h, iter().h());
+    }
+
+    return h;
 }
 
 

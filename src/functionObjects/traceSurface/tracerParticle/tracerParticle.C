@@ -46,7 +46,8 @@ Foam::tracerParticle::tracerParticle
 :
     particle(searchEngine, position, cellI, nLocateBoundaryHits),
     h_(0.0),
-    d_(direction)
+    d_(direction),
+    a_(0.0)
 {
     reset(0.0);
 }
@@ -63,8 +64,6 @@ bool Foam::tracerParticle::move
     td.keepParticle = true;
     td.sendToProc = -1;
 
-    //const vector normal = normalised(d_);
-
     scalar h = h_;
 
     while
@@ -80,7 +79,10 @@ bool Foam::tracerParticle::move
         // Track to new face and cell
         trackToAndHitFace(d_, 1.0, cloud, td);
         const vector pos = this->position(td.mesh);
-        h += mag(pos - pos0);
+        const scalar ds = mag(pos - pos0);
+
+        h += ds;
+        a_ += alpha*ds;
 
         // Update max height
         if (alpha >= 0.5)

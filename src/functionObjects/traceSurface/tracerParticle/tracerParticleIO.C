@@ -44,12 +44,12 @@ Foam::tracerParticle::tracerParticle(Istream& is, bool readFields)
     {
         if (is.format() == IOstream::ASCII)
         {
-            q0_ = readScalar(is);
-            is >> trackIndex_ >> q_ >> d_ >> transmissive_;
+            h_ = readScalar(is);
+            is >> d_;
         }
         else
         {
-            is.read(reinterpret_cast<char*>(&q0_), sizeofFields_);
+            is.read(reinterpret_cast<char*>(&h_), sizeofFields_);
         }
     }
 
@@ -64,18 +64,15 @@ Foam::Ostream& Foam::operator<<(Ostream& os, const tracerParticle& p)
     if (os.format() == IOstream::ASCII)
     {
         os  << static_cast<const particle&>(p)
-            << token::SPACE << p.q0_
-            << token::SPACE << p.trackIndex_
-            << token::SPACE << p.q_
-            << token::SPACE << p.d_
-            << token::SPACE << p.transmissive_;
+            << token::SPACE << p.h_
+            << token::SPACE << p.d_;
     }
     else
     {
         os  << static_cast<const particle&>(p);
         os.write
         (
-            reinterpret_cast<const char*>(&p.q0_),
+            reinterpret_cast<const char*>(&p.h_),
             tracerParticle::sizeofFields_
         );
     }

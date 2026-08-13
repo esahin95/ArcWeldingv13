@@ -20,42 +20,42 @@ FoamFile
     {
         type            wall;
         inGroups        List<word> 1(wall);
-        nFaces          48;
-        startFace       472;
+        nFaces          4800;
+        startFace       565600;
     }
     xmin
     {
         type            wall;
         inGroups        List<word> 1(wall);
-        nFaces          32;
-        startFace       520;
+        nFaces          3200;
+        startFace       570400;
     }
     xmax
     {
         type            wall;
         inGroups        List<word> 1(wall);
-        nFaces          32;
-        startFace       552;
+        nFaces          3200;
+        startFace       573600;
     }
     ymin
     {
         type            wall;
         inGroups        List<word> 1(wall);
-        nFaces          48;
-        startFace       584;
+        nFaces          4800;
+        startFace       576800;
     }
     zmin
     {
         type            wall;
         inGroups        List<word> 1(wall);
-        nFaces          24;
-        startFace       632;
+        nFaces          2400;
+        startFace       581600;
     }
     zmax
     {
         type            patch;
-        nFaces          24;
-        startFace       656;
+        nFaces          2400;
+        startFace       584000;
     }
 )
 

@@ -92,8 +92,8 @@ class traceSurface
         const label ny_;
         const label ns_;
 
-        //- Interpolation scheme
-        const word interpolationScheme_;
+        //- Track length
+        const scalar maxTrackLength_;
 
 
     // Private Member Functions

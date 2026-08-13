@@ -40,13 +40,11 @@ SourceFiles
 #include "particle.H"
 #include "Cloud.H"
 #include "IOstream.H"
-#include "autoPtr.H"
-#include "interpolationCellPoint.H"
+//#include "autoPtr.H"
+//#include "interpolationCellPoint.H"
+#include "volFields.H"
 #include "contiguous.H"
 
-#include "meshSearch.H"
-#include "DynamicField.H"
-#include "reflectionModel.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -73,29 +71,14 @@ class tracerParticle
         //- Size in bytes of the fields
         static const std::size_t sizeofFields_;
 
-        //- Initial power
-        scalar q0_;
-
-        //- Track index
-        label trackIndex_;
-
-        //- Current power
-        scalar q_;
+        //- Layer height
+        scalar h_;
 
         //- Direction
         vector d_;
 
-        //- Transmissivity
-        bool transmissive_;
-
 
 public:
-
-    static label nParticles;
-
-    //- Power lost during tracing
-    static scalar qLost;
-
 
     friend class lagrangian::Cloud<tracerParticle>;
 
@@ -107,27 +90,7 @@ public:
     {
         // Interpolators for continuous phase fields
 
-            const interpolationCellPoint<scalar>& alphaInterp_;
-            const interpolationCellPoint<scalar>& absorpInterp_;
-            const interpolationCellPoint<vector>& gradAlphaInterp_;
-
-        // Reference to heat source
-
-            volScalarField& Q_;
-
-        // Ray tracing
-
-            DynamicField<vector>& allPositions_;
-            DynamicField<label>& allTracks_;
-            DynamicField<scalar>& allPowers_;
-
-        // Reference to meshSearch
-
-            const meshSearch& searchEngine_;
-
-        // Reflection model pointer
-
-            const reflectionModel& reflection_;
+            const volScalarField& alpha_;
 
     public:
 
@@ -136,38 +99,13 @@ public:
             inline trackingData
             (
                 const lagrangian::Cloud<tracerParticle>& cloud,
-                const interpolationCellPoint<scalar>& alphaInterp,
-                const interpolationCellPoint<scalar>& absorpInterp,
-                const interpolationCellPoint<vector>& gradAlphaInterp,
-                volScalarField& Q,
-                DynamicField<vector>& allPositions,
-                DynamicField<label>& allTracks,
-                DynamicField<scalar>& allPowers,
-                const meshSearch& searchEngine,
-                const reflectionModel& reflection
+                const volScalarField& alpha
             );
 
 
         // Member Functions
 
-            inline const interpolationCellPoint<scalar>& alphaInterp() const;
-
-            inline const interpolationCellPoint<scalar>& absorpInterp() const;
-
-            inline const interpolationCellPoint<vector>& gradAlphaInterp() const;
-
-            inline const meshSearch& searchEngine() const;
-
-            inline const reflectionModel& reflection() const;
-
-            inline scalar& Q(label cellI);
-
-            inline void append
-            (
-                vector position,
-                label trackIndex,
-                scalar power
-            );
+            inline scalar alpha(label celli) const;
     };
 
 
@@ -184,9 +122,7 @@ public:
             const vector& position,
             const label cellI,
             label& nLocateBoundaryHits,
-            const vector& direction,
-            const scalar power,
-            const bool transmissive = true
+            const vector& direction
         );
 
         //- Construct from Istream
@@ -207,11 +143,16 @@ public:
             //- Move
             bool move(lagrangian::Cloud<tracerParticle>&, trackingData&);
 
+            //- Height
+            scalar h() const
+            {
+                return h_;
+            }
 
         // Patch interactions
 
             //- Overridable function to handle the particle hitting a wallPatch
-            void hitWallPatch(lagrangian::Cloud<tracerParticle>& cloud, trackingData& td);
+            void hitBasicPatch(lagrangian::Cloud<tracerParticle>& cloud, trackingData& td);
 
 
     // Ostream Operator

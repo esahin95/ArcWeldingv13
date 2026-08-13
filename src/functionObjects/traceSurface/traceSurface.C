@@ -33,6 +33,9 @@ License
 #include "volFields.H"
 #include "addToRunTimeSelectionTable.H"
 
+#include "Cloud.H"
+#include "tracerParticle.H"
+
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
 namespace Foam
@@ -52,19 +55,55 @@ void Foam::functionObjects::traceSurface::writePositions()
     const volScalarField& alpha =
         mesh_.lookupObject<volScalarField>(alphaName_);
 
-    autoPtr<interpolation<scalar>>
-        interpolator
-        (
-            interpolation<scalar>::New(interpolationScheme_, alpha)
-        );
+    // Directions of sampling surface
+    const vector p0 = corners_[0];
+    const vector p1 = corners_[1] - corners_[0];
+    const vector p2 = corners_[2] - corners_[1];
+    const vector d1 = normalised(p1);
+    const vector d2 = normalised(p2);
+    const vector d3 = normalised(d1 ^ d2);
+    //const scalar h0 = p0 & d3;
 
-    const vector d0 = corners_[0];
-    const vector d1 = corners_[1] - corners_[0];
-    const vector d2 = corners_[2] - corners_[1];
-    const scalar dx = mag(d1) / scalar(nx_);
-    const scalar dy = mag(d2) / scalar(ny_);
-    const scalar dhx = dx / scalar(ns_);
-    const scalar dhy = dy / scalar(ns_);
+    // Step sizes
+    const scalar dx = mag(p1) / scalar(nx_);
+    const scalar dy = mag(p2) / scalar(ny_);
+    const scalar dlx = dx / scalar(ns_);
+    const scalar dly = dy / scalar(ns_);
+
+    // Locations of sampling points
+    List<vector> locations(ns_*ns_, Zero);
+    {
+        scalar x = 0.5*dlx;
+        label idx = 0;
+        for (label i=0; i<ns_; i++)
+        {
+            scalar y = 0.5*dly;
+            for (label j=0; j<ns_; j++)
+            {
+                locations[idx] = p0 + x*d1 + y*d2;
+                y += dly;
+                idx++;
+            }
+            x += dlx;
+        }
+    }
+
+    // Initialise cloud
+    const meshSearch& searchEngine = meshSearch::New(mesh());
+    lagrangian::Cloud<tracerParticle> cloud
+    (
+        mesh(),
+        "DTRMCloud",
+        IDLList<tracerParticle>()
+    );
+    label nLocateBoundaryHits = 0;
+
+    // Construct tracking data
+    tracerParticle::trackingData td
+    (
+        cloud,
+        alpha
+    );
 
     scalar x = 0.0;
     for (label i=0; i<nx_; i++)
@@ -72,27 +111,48 @@ void Foam::functionObjects::traceSurface::writePositions()
         scalar y = 0.0;
         for (label j=0; j<ny_; j++)
         {
+            cloud.clear();
 
+            const vector pc = x*d1 + y*d2;
+            forAll(locations, idx)
+            {
+                const vector p = locations[idx] + pc;
+                const label cellI = searchEngine.findCell(p);
+                cloud.addParticle
+                (
+                    new tracerParticle
+                    (
+                        searchEngine,
+                        p,
+                        cellI,
+                        nLocateBoundaryHits,
+                        d3*maxTrackLength_
+                    )
+                );
+            }
 
+            cloud.move(cloud, td);
+            scalar h = 0.0;
+            forAllConstIter(lagrangian::Cloud<tracerParticle>, cloud, iter)
+            {
+                //Info<< iter().h() << " " << (p0 & d3) << " " << d3 << p0 << endl;
+                h += iter().h();// - h0;
+            }
 
-            Info << x+0.5*dx << " " << y+0.5*dy << endl;
+            if (Pstream::master())
+            {
+                const Foam::Omanip<int> w = valueWidth(1);
+
+                file() << w << x+0.5*dx
+                       << w << y+0.5*dy
+                       << w << (h / scalar(ns_*ns_));
+                file().endl();
+            }
+
             y += dy;
         }
 
         x += dx;
-    }
-
-
-    if (Pstream::master())
-    {
-        writeTime(file());
-    }
-
-
-
-    if (Pstream::master())
-    {
-        file().endl();
     }
 }
 
@@ -101,7 +161,10 @@ void Foam::functionObjects::traceSurface::writePositions()
 
 void Foam::functionObjects::traceSurface::writeFileHeader(const label i)
 {
-    writeCommented(file(), "Location");
+    writeHeaderValue(file(), "traced surface for ", alphaName_);
+
+    const Foam::Omanip<int> w = valueWidth(1);
+    file() << w << "# x" << w << "y" << w << "h";
     file().endl();
 }
 
@@ -122,9 +185,7 @@ Foam::functionObjects::traceSurface::traceSurface
     nx_(dict.lookup<label>("nx")),
     ny_(dict.lookup<label>("ny")),
     ns_(dict.lookup<label>("ns")),
-    interpolationScheme_(
-        dict.lookupOrDefault<word>("interpolationScheme", "cellPoint")
-    )
+    maxTrackLength_(dict.lookupOrDefault<scalar>("height", great))
 {
     read(dict);
 

@@ -15,3 +15,5 @@ wmake $targetType physicalProperties/solidificationModels
 wmake $targetType physicalProperties/evaporationModels
 
 fvModels/Allwmake $targetType $*
+
+wmake $targetType functionObjects/traceSurface

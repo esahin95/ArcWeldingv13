@@ -33,6 +33,9 @@ License
 #include "volFields.H"
 #include "addToRunTimeSelectionTable.H"
 
+#include "Cloud.H"
+#include "tracerParticle.H"
+
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
 namespace Foam
@@ -43,6 +46,13 @@ namespace functionObjects
     addToRunTimeSelectionTable(functionObject, traceSurface, dictionary);
 }
 }
+
+const Foam::NamedEnum<Foam::functionObjects::traceSurface::outputType, 2>
+Foam::functionObjects::traceSurface::outputTypeNames_
+{
+    "layerHeight",
+    "fillFraction"
+};
 
 
 // * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
@@ -130,8 +140,33 @@ void Foam::functionObjects::traceSurface::writePositions()
 
             cloud.move(cloud, td);
 
-            // Surface height
-            scalar out = output(cloud);
+            // Compute layer height
+            scalar h = 0.0;
+            forAllConstIter(lagrangian::Cloud<tracerParticle>, cloud, iter)
+            {
+                h = max(h, iter().h());
+            }
+
+            // Compute output
+            scalar out = 0.0;
+            switch (output_)
+            {
+                case outputType::layerHeight:
+                {
+                    out = h;
+                    break;
+                }
+
+                case outputType::fillFraction:
+                {
+                    forAllConstIter(lagrangian::Cloud<tracerParticle>, cloud, iter)
+                    {
+                        out += iter().a();
+                    }
+                    out /= scalar(ns_*ns_) * (h + 1e-6);
+                    break;
+                }
+            }
 
             if (Pstream::master())
             {
@@ -162,20 +197,6 @@ void Foam::functionObjects::traceSurface::writeFileHeader(const label i)
     file().endl();
 }
 
-Foam::scalar Foam::functionObjects::traceSurface::output
-(
-    lagrangian::Cloud<tracerParticle>& cloud
-)
-{
-    scalar h = 0.0;
-    forAllConstIter(lagrangian::Cloud<tracerParticle>, cloud, iter)
-    {
-        h = max(h, iter().h());
-    }
-
-    return h;
-}
-
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
@@ -193,7 +214,8 @@ Foam::functionObjects::traceSurface::traceSurface
     nx_(dict.lookup<label>("nx")),
     ny_(dict.lookup<label>("ny")),
     ns_(dict.lookup<label>("ns")),
-    maxTrackLength_(dict.lookupOrDefault<scalar>("height", great))
+    maxTrackLength_(dict.lookupOrDefault<scalar>("height", great)),
+    output_(outputTypeNames_[dict.lookup<word>("output")])
 {
     read(dict);
 

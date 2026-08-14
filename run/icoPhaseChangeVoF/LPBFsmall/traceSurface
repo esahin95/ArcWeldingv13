@@ -8,13 +8,15 @@ foamCleanTutorials cases
 
 # pre-processing
 runApplication blockMesh
-#runApplication refineMesh
-#runApplication checkMesh
 runApplication setFields
 
 runApplication decomposePar
-foamPostProcess -func "traceSurface" -latestTime
-foamPostProcess -func "fillFraction" -latestTime
+foamPostProcess -func "layerHeight" -latestTime > log.layerHeight
+foamPostProcess -func "fillFraction" -latestTime > log.fillFraction
 runApplication reconstructPar
+
+. $WM_PROJECT_USER_DIR/.venv/bin/activate
+python3 surf.py
+deactivate
 
 #------------------------------------------------------------------------------

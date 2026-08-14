@@ -63,8 +63,6 @@ SourceFiles
 #include "fvMeshFunctionObject.H"
 #include "logFiles.H"
 
-#include "Cloud.H"
-#include "tracerParticle.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -82,6 +80,18 @@ class traceSurface
     public fvMeshFunctionObject,
     public logFiles
 {
+    // Private enumeration
+
+        //- Output enumeration
+        enum class outputType
+        {
+            layerHeight,
+            fillFraction
+        };
+
+        //- Output enumeration names
+        static const NamedEnum<outputType, 2> outputTypeNames_;
+
     // Private Data
 
         //- Name of the alpha field
@@ -98,6 +108,9 @@ class traceSurface
         //- Track length
         const scalar maxTrackLength_;
 
+        //- Output type
+        const outputType output_;
+
 
     // Private Member Functions
 
@@ -111,9 +124,6 @@ protected:
 
         //- Output file header information
         virtual void writeFileHeader(const label i = 0);
-
-        //- Output quantity
-        virtual scalar output(lagrangian::Cloud<tracerParticle>& cloud);
 
 
 public:
@@ -150,12 +160,6 @@ public:
 
         //- Write
         virtual bool write();
-
-        //- Necessary for output
-        scalar ns() const
-        {
-            return ns_;
-        }
 };
 
 

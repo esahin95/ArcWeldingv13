@@ -10,9 +10,9 @@ Description
 
 \*---------------------------------------------------------------------------*/
 
-type            fillFraction;
+type            traceSurface;
 
-libs            ("libfillFraction.so");
+libs            ("libtraceSurface.so");
 
 log             true;
 
@@ -20,10 +20,12 @@ alpha           alpha.metal;
 
 corners         ((0 0 100e-6) (150e-6 0e-6 100e-6) (150e-6 100e-6 100e-6));
 
-nx              30;
-ny              20;
-ns              8;
+nx              6;
+ny              4;
+ns              16;
 
 height          80e-6;
+
+output          fillFraction;
 
 // ************************************************************************* //

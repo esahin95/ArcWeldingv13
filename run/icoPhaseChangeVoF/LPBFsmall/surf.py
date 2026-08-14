@@ -3,40 +3,34 @@ import matplotlib.pyplot as plt
 
 import surf2stl as stl
 
-M = np.loadtxt('postProcessing/traceSurface/0/traceSurface.dat', skiprows=2)
-
-fig, ax = plt.subplots(subplot_kw={"projection": "3d"})
-
-ax.plot_trisurf(M[:, 0], M[:, 1], M[:, 2], linewidth=0.2, antialiased=True)
-ax.set_aspect('equal', 'box')
-ax.set_axis_off()
-
-fig.tight_layout()
+# load data for layer height
+M = np.loadtxt('postProcessing/layerHeight/0/traceSurface.dat', skiprows=2)
+avg, std = np.mean(M[:, 2]), np.std(M[:, 2])
+print(f'Mean height {avg:.5g}, std {std:.5g}')
 
 # export surface to a stl format file
-X = M[:, 0].reshape(30,20)
-Y = M[:, 1].reshape(30,20)
-Z = M[:, 2].reshape(30,20)
+sz = (30, 20)
+X = M[:, 0].reshape(*sz)
+Y = M[:, 1].reshape(*sz)
+Z = M[:, 2].reshape(*sz)
 stl.write('surf.stl', X, Y, Z)
 
-plt.show()
-
-
-
-M = np.loadtxt('postProcessing/fillFraction/0/fillFraction.dat', skiprows=2)
-
+# plot surface
 fig, ax = plt.subplots(subplot_kw={"projection": "3d"})
-
 ax.plot_trisurf(M[:, 0], M[:, 1], M[:, 2], linewidth=0.2, antialiased=True)
 ax.set_aspect('equal', 'box')
 ax.set_axis_off()
-
 fig.tight_layout()
+plt.show()
 
-# export surface to a stl format file
-X = M[:, 0].reshape(30,20)
-Y = M[:, 1].reshape(30,20)
-Z = M[:, 2].reshape(30,20)
-stl.write('surf2.stl', X, Y, Z)
+# load data for fill fraction
+M = np.loadtxt('postProcessing/fillFraction/0/traceSurface.dat', skiprows=2)
+avg, std = np.mean(M[:, 2]), np.std(M[:, 2])
+print(f'Mean fraction {avg:.5g}, std {std:.5g}')
 
+# plot surface
+fig, ax = plt.subplots(subplot_kw={"projection": "3d"})
+ax.plot_trisurf(M[:, 0], M[:, 1], M[:, 2], linewidth=0.2, antialiased=True)
+ax.set_axis_off()
+fig.tight_layout()
 plt.show()
